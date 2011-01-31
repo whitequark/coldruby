@@ -66,13 +66,36 @@ module ColdRuby
 
       when :pop
         %Q{this.sf.sp--;}
+      when :emptstack
+        %Q{this.sf.sp = 0;}        
         
       when :dup
         [
           %Q{this.sf.stack[this.sf.sp] = this.sf.stack[this.sf.sp - 1];},
           %Q{this.sf.sp++;},
         ]
-      
+      when :dupn
+        [
+          %Q{for(var i = 0; i < #{@info[0]}; i++)},
+          %Q{  this.sf.stack[this.sf.sp + i] = this.sf.stack[this.sf.sp + i - #{@info[0]}];},
+          %Q{this.sf.sp += #{@info[0]};}
+        ]
+      when :topn
+        [
+          %Q{this.sf.stack[this.sf.sp] = this.sf.stack[this.sf.sp - #{@info[0]}];},
+          %Q{this.sf.sp++;}
+        ]
+      when :setn
+        %Q{this.sf.stack[this.sf.sp - #{@info[0]}] = this.sf.stack[this.sf.sp - 1];}
+      when :swap
+        [
+          '{',
+          %Q{var tmp = this.sf.stack[this.sf.sp - 1];},
+          %Q{this.sf.stack[this.sf.sp - 1] = this.sf.stack[this.sf.sp - 2];},
+          %Q{this.sf.stack[this.sf.sp - 2] = tmp;]},
+          '}'
+        ]
+        
       when :setlocal
         %Q{this.osf.locals[#{@info[0]}] = this.sf.stack[--this.sf.sp];}
       when :getlocal
