@@ -18,7 +18,7 @@ module ColdRuby
       last_leaves = @opcodes.last.leaves?
 
       @opcodes.each do |opcode|
-        translation << "/* #{opcode.inspect} */"
+        translation << "/* #{opcode.inspect} */" if ColdRuby.debug
 
         code = opcode.to_js
         translation << code if code
