@@ -89,6 +89,28 @@ module ColdRuby
         ]
       when :duparray
         %Q{this.sf.stack[this.sf.sp++] = #{@info[0]};}
+      when :splatarray
+        [
+          %Q{var array = this.sf.stack[--this.sf.sp];},
+          %Q{array = this.ruby.check_convert_type(array, this.ruby.constants.Array, 'to_a');},
+          %Q{if(array == this.ruby.builtin.Qnil)},
+          %Q{  array = [];},
+          %Q{this.sf.stack[this.sf.sp++] = array;}
+        ]
+      when :expandarray
+        code = []
+
+        code << %Q{var array = this.sf.stack[--this.sf.sp];}
+        code << %Q{this.ruby.check_type(array, this.ruby.constants.Array);}
+
+        if (@info[1] & 1) != 0 # pack remainings into other array
+          code << %Q{this.sf.stack[this.sf.sp++] = array.slice(#{@info[0]}, array.length);}
+        end
+
+        code << %Q{for(var i = 0; i < #{@info[0]}; i++)}
+        code << %Q{  this.sf.stack[this.sf.sp++] = array[#{@info[0]} - i - 1];}
+
+        code
 
       when :pop
         %Q{this.sf.sp--;}

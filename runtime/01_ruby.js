@@ -90,6 +90,15 @@ var $ = {
     if(arg.klass != type) {
       throw "type mismatch: " + arg.klass.klass_name + " != " + type.klass_name;
     }
+    return arg;
+  },
+
+  check_convert_type: function(arg, type, converter, ctx) {
+    if(arg.klass != type) {
+      return $.invoke_method(arg, converter, [], ctx);
+    } else {
+      return arg;
+    }
   },
 
   invoke_method: function(receiver, method, args, ctx) {
