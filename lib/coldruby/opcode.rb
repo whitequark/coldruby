@@ -114,8 +114,8 @@ module ColdRuby
 
       when :pop
         %Q{this.sf.sp--;}
-      when :emptstack
-        %Q{this.sf.sp = 0;}
+      when :adjuststack
+        %Q{this.sf.sp -= #{@info[0]};}
 
       when :dup
         [
