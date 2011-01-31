@@ -81,6 +81,15 @@ module ColdRuby
       when :putiseq
         %Q{this.sf.stack[this.sf.sp++] = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
 
+      when :newarray
+        [
+          %Q{var value = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp);},
+          %Q{this.sf.sp -= #{@info[0]};},
+          %Q{this.sf.stack[this.sf.sp++] = value;}
+        ]
+      when :duparray
+        %Q{this.sf.stack[this.sf.sp++] = #{@info[0]};}
+
       when :pop
         %Q{this.sf.sp--;}
       when :emptstack
@@ -132,6 +141,10 @@ module ColdRuby
         if @info[1] > 0
           code << %Q{var args = this.sf.stack.slice(this.sf.sp - #{@info[1]}, this.sf.sp);}
           code << %Q{this.sf.sp -= #{@info[1]};}
+
+          if (@info[3] & VM_CALL_ARGS_SPLAT_BIT) != 0
+            code << %Q{args = args.concat(args.pop());}
+          end
         end
 
         receiver = nil

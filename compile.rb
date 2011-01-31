@@ -48,6 +48,6 @@ File.open("output.js", "w") do |f|
   f.write <<-EPILOGUE
 var context = $.create_context();
 var toplevel = $.create_toplevel();
-pp($.execute(context, toplevel, toplevel, top_iseq));
+pp($.execute(context, toplevel, toplevel, top_iseq, []));
   EPILOGUE
 end

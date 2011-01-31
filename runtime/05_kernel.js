@@ -3,7 +3,7 @@ $.define_method($c.Object, 'p', function(args, ctx) {
     var obj = args[i];
     print($.invoke_method(obj, 'inspect', [], ctx));
   }
-  return Qnil;
+  return args;
 });
 
 $.define_method($c.Object, 'puts', function(args, ctx) {

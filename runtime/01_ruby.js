@@ -93,8 +93,6 @@ var $ = {
   },
 
   invoke_method: function(receiver, method, args, ctx) {
-    this.ps(ctx, 'enter');
-
     func = this.find_method(receiver, method);
 
     var retval;
@@ -103,17 +101,15 @@ var $ = {
     } else if(typeof func == 'function') {
       retval = func.call(receiver, args, ctx);
     } else if(func.klass == $c.ISeq) {
-      retval = $.execute(ctx, ctx.sf.self, ctx.sf.cbase, func);
+      retval = $.execute(ctx, ctx.sf.self, ctx.sf.cbase, func, args);
     } else {
       throw "trying to execute something weird " + func;
     }
 
-    this.ps(ctx, 'exit');
-
     return retval;
   },
 
-  execute: function(ctx, self, cbase, iseq) {
+  execute: function(ctx, self, cbase, iseq, args) {
     var my_sf = {
       stack:  [],
       sp:     0,
@@ -122,6 +118,14 @@ var $ = {
       cbase:  cbase,
       parent: ctx.sf,
     };
+
+    if(iseq.info.arg_size != args.length) {
+      throw "argument count mismatch: " + args.length + " != " + iseq.info.arg_size;
+    }
+
+    for(var i = 0; i < iseq.info.arg_size; i++) {
+      my_sf.locals[2 + i] = args[i];
+    }
 
     ctx.sf  = my_sf;
     ctx.osf = my_sf;
