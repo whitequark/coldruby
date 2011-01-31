@@ -149,6 +149,7 @@ module ColdRuby
 
         receiver = nil
         if (@info[3] & VM_CALL_FCALL_BIT) != 0
+          code << %Q{this.sf.sp--;} # remove nil, which apparently means self
           receiver = %Q{this.sf.self}
         else
           receiver = %Q{this.sf.stack[--this.sf.sp]}
