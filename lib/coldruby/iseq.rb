@@ -1,10 +1,15 @@
 module ColdRuby
   class ISeq
-    attr_reader :function, :file, :fullpath
+    attr_reader :function, :file, :path, :line
 
-    def initialize(pool, opcodes)
+    def initialize(pool, opcodes, level=0)
       if opcodes[0] != "YARVInstructionSequence/SimpleDataFormat"
-        raise Exception, "Invalid opcode format"
+        raise Exception, "Invalid opcode magic"
+      end
+
+      major, minor, format = *opcodes[1..3]
+      if [1,2,1] != [major, minor, format]
+        raise Exception, "Invalid opcode version"
       end
 
       @arg_size   = opcodes[4][:arg_size]
@@ -14,7 +19,9 @@ module ColdRuby
       @function = opcodes[5]
       @file     = opcodes[6]
       @path     = opcodes[7]
+      @line     = opcodes[8]
 
+      @type   = opcodes[9]
       @locals = opcodes[10]
 
       @pool   = pool
