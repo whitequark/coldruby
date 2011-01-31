@@ -89,11 +89,9 @@ module ColdRuby
         %Q{this.sf.stack[this.sf.sp - #{@info[0]}] = this.sf.stack[this.sf.sp - 1];}
       when :swap
         [
-          '{',
           %Q{var tmp = this.sf.stack[this.sf.sp - 1];},
           %Q{this.sf.stack[this.sf.sp - 1] = this.sf.stack[this.sf.sp - 2];},
           %Q{this.sf.stack[this.sf.sp - 2] = tmp;]},
-          '}'
         ]
 
       when :setlocal
@@ -112,7 +110,7 @@ module ColdRuby
         %Q{this.sf.stack[this.sf.sp++] = this.sf.self.ivs['#{@info[0]}'];}
 
       when :send
-        code = [ "{" ]
+        code = []
 
         if @info[1] > 0
           code << %Q{var args = this.sf.stack.slice(this.sf.sp - #{@info[1]}, this.sf.sp);}
@@ -133,7 +131,6 @@ module ColdRuby
         end
 
         code << %Q{this.sf.stack[this.sf.sp++] = ret;}
-        code << "}"
 
         code
 
