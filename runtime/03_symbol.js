@@ -2,19 +2,19 @@ $.define_class('Symbol', $c.Object);
 $.define_method($c.Symbol, '==', function(args) {
   $.check_args(args, 1);
 
-  return args[0].klass == $c.Symbol && this.value == args[0].value;
+  return args[0].klass == $c.Symbol && this.value == args[0].value ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Symbol, 'inspect', function(args) {
   $.check_args(args, 0);
 
-  return ":" + $.symbols[this.value];
+  return ":" + this.string;
 });
 
 $.define_method($c.Symbol, 'to_s', function(args) {
   $.check_args(args, 0);
 
-  return $.symbols[this.value];
+  return this.string;
 });
 $.alias_method($c.Symbol, 'id2name', 'to_s', true);
 
@@ -45,7 +45,8 @@ $.define_singleton_method($c.Symbol, 'all_symbols', function(args) {
 $.symbols = {};
 $.builtin.get_symbol = function(id) {
   return {
-    klass: $c.Symbol,
-    value: id,
+    klass:  $c.Symbol,
+    value:  id,
+    string: $.symbols[id],
   };
 };
