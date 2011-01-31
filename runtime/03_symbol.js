@@ -1,19 +1,19 @@
 $.define_class('Symbol', $c.Object);
 $.define_method($c.Symbol, '==', function(args) {
   $.check_args(args, 1);
-  
+
   return args[0].klass == $c.Symbol && this.value == args[0].value;
 });
 
 $.define_method($c.Symbol, 'inspect', function(args) {
   $.check_args(args, 0);
-  
+
   return ":" + $.symbols[this.value];
 });
 
 $.define_method($c.Symbol, 'to_s', function(args) {
   $.check_args(args, 0);
-  
+
   return $.symbols[this.value];
 });
 $.alias_method($c.Symbol, 'id2name', 'to_s', true);

@@ -2,7 +2,7 @@ $.define_class('BasicObject', null);
 $.define_class('Object', $c.BasicObject);
 $.define_class('Module', $c.Object);
 $.define_class('Class',  null);
-  
+
 $c.BasicObject.klass = $c.Object.klass = $c.Module.klass = $c.Class.klass = $c.Class;
 $c.Class.superklass = $c.Module;
 

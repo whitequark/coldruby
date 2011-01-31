@@ -14,7 +14,7 @@ $.define_method($c.TrueClass, '^', function(args) {
 });
 
 var Qtrue  = $.builtin.Qtrue = {
-  klass: $c.TrueClass,  
+  klass: $c.TrueClass,
 };
 
 $.define_builtin_class('FalseClass', $c.Object);
@@ -33,5 +33,5 @@ $.define_method($c.FalseClass, '^', function(args) {
 });
 
 var Qfalse = $.builtin.Qfalse = {
-  klass: $c.FalseClass,  
+  klass: $c.FalseClass,
 };

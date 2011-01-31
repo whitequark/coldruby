@@ -23,7 +23,7 @@ function dump_object(obj, ex)
   var od = new Object;
   var result = "";
   var len = 0;
-  
+
   ex[obj] = true;
 
   for (var property in obj)
