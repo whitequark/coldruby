@@ -25,14 +25,15 @@ module ColdRuby
       @locals = opcodes[10]
 
       @pool   = pool
-      @seq    = Opcode.parse(@pool, opcodes[13])
+      @level  = level
+      @seq    = Opcode.parse(@pool, opcodes[13], level)
     end
 
     # Returns a list of chunks.
     # A chunk is a JS closure; it returns an ID of the next chunk if it jumps,
     # and null if it leaves.
     # +this+ should contain context.
-    def chunks
+    def compile
       chunk_id = 0
       chunks = []
 
@@ -58,8 +59,28 @@ module ColdRuby
       end
       chunks << chunk
 
-      elems = chunks.map { |chunk| "  #{chunk.id}: #{chunk.to_js}" }.join ",\n"
-      "{\n#{elems}\n}"
+      elems = []
+      elems << "  klass: $c.ISeq"
+      elems << <<-INFO.rstrip
+  info: {
+    arg_size:   #{@arg_size},
+    local_size: #{@local_size},
+    stack_max:  #{@stack_max},
+
+    func:   '#{@function}',
+    file:   '#{@file}',
+    path:   '#{@path}',
+
+    type:   '#{@type}',
+    locals: [#{@locals.map { |l| "'#{l}'" }.join ', '}],
+  }
+      INFO
+      elems += chunks.map { |chunk| "  #{chunk.id}: #{chunk.to_js}" }
+
+      pad = "  " * @level * 2
+      output = "{\n#{elems.join ",\n"}\n}"
+
+      output.gsub(/^/, pad).lstrip
     end
   end
 end

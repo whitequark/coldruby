@@ -81,30 +81,70 @@ var $ = {
   },
 
   check_args: function(args, count) {
-    /* TODO */
+    if(args.length != count) {
+      throw "wrong argument count: " + args.length + " != " + count;
+    }
+  },
+
+  check_type: function(arg, type) {
+    if(arg.klass != type) {
+      throw "type mismatch: " + arg.klass.klass_name + " != " + type.klass_name;
+    }
   },
 
   invoke_method: function(receiver, method, args, ctx) {
-    //this.ps(ctx);
+    this.ps(ctx, 'enter');
 
     func = this.find_method(receiver, method);
 
     var retval;
-    if(func != null) {
-      retval = func.call(receiver, args, ctx);
-    } else {
+    if(func == undefined) {
       throw "cannot find method " + method;
+    } else if(typeof func == 'function') {
+      retval = func.call(receiver, args, ctx);
+    } else if(func.klass == $c.ISeq) {
+      retval = $.execute(ctx, ctx.sf.self, ctx.sf.cbase, func);
+    } else {
+      throw "trying to execute something weird " + func;
     }
 
-    //this.ps(ctx);
+    this.ps(ctx, 'exit');
 
     return retval;
   },
 
-  create_context: function() {
-    var ruby = this;
+  execute: function(ctx, self, cbase, iseq) {
+    var my_sf = {
+      stack:  [],
+      sp:     0,
+      locals: [],
+      self:   self,
+      cbase:  cbase,
+      parent: ctx.sf,
+    };
 
-    var toplevel = {
+    ctx.sf  = my_sf;
+    ctx.osf = my_sf;
+
+    var chunk = 0;
+    while(chunk != null) {
+      chunk = iseq[chunk].call(ctx);
+    }
+
+    ctx.sf  = my_sf.parent;
+    ctx.osf = ctx.sf;
+
+    if(my_sf.sp == 0) {
+      return Qnil;
+    } else if(my_sf.sp == 1) {
+      return my_sf.stack[0];
+    } else {
+      return my_sf.stack.slice(0, my_sf.sp);
+    }
+  },
+
+  create_toplevel: function() {
+    return {
       klass: this.constants.Object,
       methods: {
         inspect: function(args) {
@@ -112,34 +152,21 @@ var $ = {
           return "main";
         }
       },
-      ivs: {}
+      ivs: {},
+      toplevel: true
     };
+  },
 
-    var context = {
+  create_context: function() {
+    return {
       ruby: this,
-      sf: {
-        stack:  [],
-        sp:     0,
-        locals: [],
-        self:   toplevel,
-      },
+      sf: null,
       osf: null,
     };
-
-    context.osf = context.sf;
-
-    return context;
   },
 
-  execute: function(ctx, chunks) {
-    var chunk = 0;
-    while(chunk != null) {
-      chunk = chunks[chunk].call(ctx);
-    }
-  },
-
-  ps: function(ctx) {
-    print("> Stack Frame <");
+  ps: function(ctx, where) {
+    print("> Stack Frame ("+where+") <");
     pp(ctx.sf)
   }
 };

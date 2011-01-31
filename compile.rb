@@ -37,7 +37,7 @@ end
 
 compiled = ""
 compiled << "/* Compiled code */\n\n"
-compiled << "var chunks = #{iseq.chunks};\n"
+compiled << "var top_iseq = #{iseq.compile};\n"
 compiled << "$.symbols = #{pool.symbols};\n"
 compiled << "\n"
 puts compiled
@@ -47,8 +47,7 @@ File.open("output.js", "w") do |f|
   f.write compiled
   f.write <<-EPILOGUE
 var context = $.create_context();
-$.execute(context, chunks);
-print("> Final Stack Frame <");
-pp(context.sf);
+var toplevel = $.create_toplevel();
+pp($.execute(context, toplevel, toplevel, top_iseq));
   EPILOGUE
 end

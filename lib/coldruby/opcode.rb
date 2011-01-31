@@ -5,10 +5,14 @@ module ColdRuby
     VM_CALL_FCALL_BIT         = 8
     VM_CALL_VCALL_BIT         = 16
 
+    VM_SPECIAL_OBJECT_VMCORE = 1
+    VM_SPECIAL_OBJECT_CBASE  = 2
+
     attr_reader :type, :info
 
-    def initialize(pool, opcode)
+    def initialize(pool, opcode, level=0)
       @pool = pool
+      @level = level
 
       case opcode
       when Fixnum
@@ -62,7 +66,20 @@ module ColdRuby
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qtrue;}
         when false
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qfalse;}
+        else
+          raise Exception, "Unhandled putobject opcode: #{object}"
         end
+      when :putspecialobject
+        case @info[0]
+        when VM_SPECIAL_OBJECT_VMCORE
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.vmcore;}
+        when VM_SPECIAL_OBJECT_CBASE
+          %Q{this.sf.stack[this.sf.sp++] = this.sf.cbase;}
+        else
+          raise Exception, "Unhandled putspecialobject opcode"
+        end
+      when :putiseq
+        %Q{this.sf.stack[this.sf.sp++] = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
 
       when :pop
         %Q{this.sf.sp--;}
@@ -151,8 +168,8 @@ module ColdRuby
       end
     end
 
-    def self.parse(pool, opcodes)
-      opcodes.map { |opcode| Opcode.new(pool, opcode) }
+    def self.parse(pool, opcodes, level=0)
+      opcodes.map { |opcode| Opcode.new(pool, opcode, level) }
     end
   end
 end
