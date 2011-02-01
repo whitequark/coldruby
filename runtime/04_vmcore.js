@@ -9,9 +9,9 @@ $.define_singleton_method($.builtin.vmcore,
 
   if(!klass.toplevel) {
     $.check_type(klass, $c.Class);
-    $.define_method(klass, meth.value, iseq.info.arg_size, iseq);
+    $.define_method(klass, meth.value, 0, iseq);
   } else {
-    $.define_method($c.Object, meth.value, iseq.info.arg_size, iseq);
+    $.define_method($c.Object, meth.value, 0, iseq);
   }
 
   return Qnil;
@@ -22,7 +22,7 @@ $.define_singleton_method($.builtin.vmcore,
   meth = $.check_convert_type(meth, $c.Symbol);
   iseq = $.check_type(iseq, $c.InstructionSequence);
 
-  $.define_singleton_method(obj, meth.value, iseq.info.arg_size, iseq);
+  $.define_singleton_method(obj, meth.value, 0, iseq);
 
   return Qnil;
 });

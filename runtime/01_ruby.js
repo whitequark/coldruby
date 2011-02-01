@@ -7,6 +7,10 @@ var $ = {
     return this.builtin.get_symbol(name).value;
   },
 
+  id2sym: function(id) {
+    return this.symbols[id];
+  },
+
   define_class: function(name, superklass) {
     var klass = {
       klass_name:       name,
@@ -28,6 +32,10 @@ var $ = {
   wrap_method: function(want_args, method) {
     var ruby = this, wrapper;
 
+    if(method.klass == this.constants.InstructionSequence) {
+      return method;
+    }
+
     if(want_args >= 0) {
       wrapper = function(self, args) {
         ruby.check_args(args, want_args);
@@ -44,23 +52,25 @@ var $ = {
   },
 
   define_method: function(klass, name, want_args, method) {
-    klass.instance_methods[this.builtin.get_symbol(name).value] =
-          this.wrap_method(want_args, method);
+    if(typeof name == 'string') name = $.sym2id(name);
+
+    klass.instance_methods[name] = this.wrap_method(want_args, method);
     return Qnil;
   },
 
   define_singleton_method: function(klass, name, want_args, method) {
+    if(typeof name == 'string') name = $.sym2id(name);
+
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
-    klass.singleton_methods[this.builtin.get_symbol(name).value] =
-          this.wrap_method(want_args, method);
+    klass.singleton_methods[name] = this.wrap_method(want_args, method);
     return Qnil;
   },
 
   alias_method: function(klass, name, other_name, fast) {
     var ruby = this;
-    name       = ruby.sym2id(name);
-    other_name = ruby.sym2id(other_name);
+    if(typeof name       == 'string') name       = $.sym2id(name);
+    if(typeof other_name == 'string') other_name = $.sym2id(other_name);
 
     if(fast) { // For builtins only
       klass.instance_methods[name] = klass.instance_methods[other_name];
@@ -72,8 +82,8 @@ var $ = {
   },
 
   alias_singleton_method: function(klass, name, other_name) {
-    name = ruby.sym2id(name);
-    other_name = ruby.sym2id(other_name);
+    if(typeof name       == 'string') name       = $.sym2id(name);
+    if(typeof other_name == 'string') other_name = $.sym2id(other_name);
 
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
@@ -136,7 +146,7 @@ var $ = {
 
     var retval;
     if(func == undefined) {
-      throw "cannot find method " + method;
+      throw "cannot find method " + this.id2sym(method);
     } else if(typeof func == 'function') {
       retval = func.call(ctx, receiver, args);
     } else if(func.klass == $c.InstructionSequence) {

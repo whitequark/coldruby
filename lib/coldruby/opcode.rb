@@ -64,7 +64,7 @@ module ColdRuby
           %Q{this.sf.stack[this.sf.sp++] = #{object};}
         when Symbol
           @pool.register_symbol object
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_symbol(#{object.object_id});}
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_symbol(this.ruby.symbols[#{object.object_id}]);}
         when true
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qtrue;}
         when false
