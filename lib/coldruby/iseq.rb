@@ -42,11 +42,13 @@ module ColdRuby
         line = opcode.info if opcode.type == :line
 
         if opcode.type == :label
-          chunks << chunk
-
           chunk_id = Opcode.label_to_id(opcode.info)
-          chunk.next = chunk_id
-          chunk = nil
+
+          if chunk
+            chunks << chunk if chunk
+            chunk.next = chunk_id
+            chunk = nil
+          end
 
           next
         end
