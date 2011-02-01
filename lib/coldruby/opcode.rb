@@ -1,4 +1,12 @@
 module ColdRuby
+  class UnknownFeatureException < Exception
+    def initialize(message, *args)
+      super("You have encountered an unknown (to the developer(s) of " <<
+            "ColdRuby) feature in Ruby (#{message}). Please, contact them and " <<
+            "send the relevant code for the feature to be added.")
+    end
+  end
+
   class Opcode
     VM_CALL_ARGS_SPLAT_BIT    = 2
     VM_CALL_ARGS_BLOCKARG_BIT = 4
@@ -8,6 +16,8 @@ module ColdRuby
     VM_SPECIAL_OBJECT_VMCORE     = 1
     VM_SPECIAL_OBJECT_CBASE      = 2
     VM_SPECIAL_OBJECT_CONST_BASE = 3
+
+    C_VM_ARRAY_REMAINS = 1
 
     attr_reader :type, :info
 
@@ -25,8 +35,6 @@ module ColdRuby
       when Array
         @type = opcode[0]
         @info = opcode[1..-1]
-      else
-        raise Exception, "Unknown opcode: #{opcode.inspect}"
       end
     end
 
@@ -73,7 +81,7 @@ module ColdRuby
         when false
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qfalse;}
         else
-          raise Exception, "Unhandled putobject opcode: #{object}"
+          raise UnknownFeatureException, "putobject type #{object}"
         end
       when :putspecialobject
         case @info[0]
@@ -87,7 +95,7 @@ module ColdRuby
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qnil;}
 
         else
-          raise Exception, "Unhandled putspecialobject opcode"
+          raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
         end
       when :putiseq
         %Q{this.sf.stack[this.sf.sp++] = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
@@ -125,8 +133,10 @@ module ColdRuby
         code << %Q{var array = this.sf.stack[--this.sf.sp];}
         code << %Q{this.ruby.check_type(array, this.ruby.constants.Array);}
 
-        if (@info[1] & 1) != 0 # pack remainings into other array
+        if (@info[1] & C_VM_ARRAY_REMAINS) != 0 # pack remainings into other array
           code << %Q{this.sf.stack[this.sf.sp++] = array.slice(#{@info[0]}, array.length);}
+        elsif @info[1] != 0
+          raise UnknownFeatureException, ""
         end
 
         code << %Q{for(var i = 0; i < #{@info[0]}; i++)}
@@ -236,7 +246,7 @@ module ColdRuby
         %Q{return null;}
 
       else
-        raise Exception, "Cannot translate opcode #{self.inspect}"
+        raise UnknownFeatureException, "opcode #{self.inspect}"
       end
     end
 
