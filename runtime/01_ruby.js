@@ -109,15 +109,6 @@ var $ = {
     }
   },
 
-  alias_singleton_method: function(klass, name, other_name) {
-    if(typeof name       == 'string') name       = $.sym2id(name);
-    if(typeof other_name == 'string') other_name = $.sym2id(other_name);
-
-    if(klass.singleton_methods == undefined)
-      klass.singleton_methods = {};
-    klass.singleton_methods[name] = klass.singleton_methods[other_name];
-  },
-
   find_method: function(object, method) {
     var func = null;
 
