@@ -93,7 +93,6 @@ var $ = {
     name = $.any2id(name);
 
     klass.instance_methods[name] = this.wrap_method(want_args, method);
-    return Qnil;
   },
 
   define_singleton_method: function(klass, name, want_args, method) {
@@ -102,21 +101,13 @@ var $ = {
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
     klass.singleton_methods[name] = this.wrap_method(want_args, method);
-    return Qnil;
   },
 
-  alias_method: function(klass, name, other_name, fast) {
-    var ruby = this;
+  alias_method: function(klass, name, other_name) {
     name       = $.any2id(name);
     other_name = $.any2id(other_name);
 
-    if(fast) { // For builtins only
-      klass.instance_methods[name] = klass.instance_methods[other_name];
-    } else {
-      klass.instance_methods[name] = function(self, args) {
-        return ruby.find_method(self, other_name).call(this, self, args);
-      };
-    }
+    klass.instance_methods[name] = $.find_method(klass, other_name, true);
   },
 
   attr: function(type, klass, methods) {
@@ -143,16 +134,18 @@ var $ = {
     }
   },
 
-  find_method: function(object, method) {
+  find_method: function(object, method, search_klass) {
     var func = null;
 
     if(object != null) {
       // Search singleton methods, and then class hierarchy
-      if(object.singleton_methods != null) {
-        func = object.singleton_methods[method];
+      if(!search_klass) {
+        if(object.singleton_methods != null) {
+          func = object.singleton_methods[method];
+        }
       }
 
-      var klass = object.klass;
+      var klass = search_klass ? object : object.klass;
       while(func == null && klass != null) {
         if(klass.instance_methods != null) {
           func = klass.instance_methods[method];

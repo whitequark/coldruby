@@ -12,8 +12,8 @@ $c.Symbol.superklass = $c.Object;
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
 });
-$.alias_method($c.BasicObject, 'eql?', 'equal?', true);
-$.alias_method($c.BasicObject, '==', 'equal?', true);
+$.alias_method($c.BasicObject, 'eql?', 'equal?');
+$.alias_method($c.BasicObject, '==', 'equal?');
 
 $.define_method($c.BasicObject, '!', 0, function(self) {
   return $.test(self) ? Qfalse : Qtrue;
@@ -22,4 +22,4 @@ $.define_method($c.BasicObject, '!', 0, function(self) {
 $.define_method($c.Module, 'name', 0, function(self) {
   return self.klass_name;
 });
-$.alias_method($c.Module, 'to_s', 'name', true);
+$.alias_method($c.Module, 'to_s', 'name');

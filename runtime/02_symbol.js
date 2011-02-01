@@ -31,12 +31,12 @@ $.define_method($c.Symbol, 'inspect', 0, function(self) {
 $.define_method($c.Symbol, 'to_s', 0, function(self) {
   return $.symbols[self.value];
 });
-$.alias_method($c.Symbol, 'id2name', 'to_s', true);
+$.alias_method($c.Symbol, 'id2name', 'to_s');
 
 $.define_method($c.Symbol, 'to_sym', 0, function(self) {
   return self;
 });
-$.alias_method($c.Symbol, 'intern', 'to_sym', true);
+$.alias_method($c.Symbol, 'intern', 'to_sym');
 
 $.define_method($c.Symbol, 'to_proc', 0, function(self) {
   throw "not implemented";

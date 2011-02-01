@@ -56,5 +56,5 @@ $.define_method($c.Range, 'inspect', 0, function(self) {
 $.define_method($c.Range, 'include?', 1, function(self, other) {
   throw "not implemented";
 });
-$.alias_method($c.Range, 'member?', 'include?', true);
-$.alias_method($c.Range, '===', 'include?', true);
+$.alias_method($c.Range, 'member?', 'include?');
+$.alias_method($c.Range, '===', 'include?');
