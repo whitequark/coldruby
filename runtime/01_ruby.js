@@ -121,8 +121,6 @@ var $ = {
   find_method: function(object, method) {
     var func = null;
 
-    if(typeof method == 'string') method = this.sym2id(method);
-
     if(object != null) {
       // Search singleton methods, and then class hierarchy
       if(object.singleton_methods != null) {
@@ -172,6 +170,8 @@ var $ = {
   },
 
   invoke_method: function(ctx, receiver, method, args) {
+    if(typeof method == 'string') method = this.sym2id(method);
+
     func = this.find_method(receiver, method);
 
     var retval;
