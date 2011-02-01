@@ -57,7 +57,7 @@ module ColdRuby
       when :putself
         %Q{this.sf.stack[this.sf.sp++] = this.sf.self;}
       when :putstring
-        %Q{this.sf.stack[this.sf.sp++] = "#{@info[0]}";}
+        %Q{this.sf.stack[this.sf.sp++] = #{@info[0].inspect};}
       when :putobject
         object = @info[0]
         case object
