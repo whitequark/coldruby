@@ -60,7 +60,7 @@ module ColdRuby
       chunks << chunk
 
       elems = []
-      elems << "  klass: $c.ISeq"
+      elems << "  klass: $c.InstructionSequence"
       elems << <<-INFO.rstrip
   info: {
     arg_size:   #{@arg_size},

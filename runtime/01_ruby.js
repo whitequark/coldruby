@@ -3,6 +3,10 @@ var $ = {
   globals: {},
   builtin: {},
 
+  sym2id: function(name) {
+    return this.builtin.get_symbol(name).value;
+  },
+
   define_class: function(name, superklass) {
     var klass = {
       klass_name:       name,
@@ -21,30 +25,56 @@ var $ = {
     return klass;
   },
 
-  define_method: function(klass, name, method) {
-    klass.instance_methods[name] = method;
-    return method;
+  wrap_method: function(want_args, method) {
+    var ruby = this, wrapper;
+
+    if(want_args >= 0) {
+      wrapper = function(self, args) {
+        ruby.check_args(args, want_args);
+        args.unshift(self);
+        return method.apply(this, args);
+      };
+    } else if(want_args == -1) {
+      wrapper = method;
+    } else {
+      throw "wrap_method: unknown want_args type " + want_args;
+    }
+
+    return wrapper;
   },
 
-  define_singleton_method: function(klass, name, method) {
+  define_method: function(klass, name, want_args, method) {
+    klass.instance_methods[this.builtin.get_symbol(name).value] =
+          this.wrap_method(want_args, method);
+    return Qnil;
+  },
+
+  define_singleton_method: function(klass, name, want_args, method) {
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
-    klass.singleton_methods[name] = method;
-    return method;
+    klass.singleton_methods[this.builtin.get_symbol(name).value] =
+          this.wrap_method(want_args, method);
+    return Qnil;
   },
 
   alias_method: function(klass, name, other_name, fast) {
     var ruby = this;
+    name       = ruby.sym2id(name);
+    other_name = ruby.sym2id(other_name);
+
     if(fast) { // For builtins only
       klass.instance_methods[name] = klass.instance_methods[other_name];
     } else {
-      klass.instance_methods[name] = function(args, ctx) {
-        return ruby.find_method(this, other_name).call(this, args, ctx);
+      klass.instance_methods[name] = function(self, args) {
+        return ruby.find_method(self, other_name).call(this, self, args);
       };
     }
   },
 
   alias_singleton_method: function(klass, name, other_name) {
+    name = ruby.sym2id(name);
+    other_name = ruby.sym2id(other_name);
+
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
     klass.singleton_methods[name] = klass.singleton_methods[other_name];
@@ -101,15 +131,15 @@ var $ = {
     }
   },
 
-  invoke_method: function(receiver, method, args, ctx) {
+  invoke_method: function(ctx, receiver, method, args) {
     func = this.find_method(receiver, method);
 
     var retval;
     if(func == undefined) {
       throw "cannot find method " + method;
     } else if(typeof func == 'function') {
-      retval = func.call(receiver, args, ctx);
-    } else if(func.klass == $c.ISeq) {
+      retval = func.call(ctx, receiver, args);
+    } else if(func.klass == $c.InstructionSequence) {
       retval = $.execute(ctx, ctx.sf.self, ctx.sf.cbase, func, args);
     } else {
       throw "trying to execute something weird " + func;

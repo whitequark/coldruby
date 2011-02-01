@@ -1,0 +1,1 @@
+$.define_builtin_class('InstructionSequence', $c.Object);

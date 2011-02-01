@@ -38,7 +38,12 @@ end
 compiled = ""
 compiled << "/* Compiled code */\n\n"
 compiled << "var top_iseq = #{iseq.compile};\n"
-compiled << "$.symbols = #{pool.symbols};\n"
+compiled << "var new_symbols = #{pool.symbols};\n"
+compiled << <<EOAS
+for(var k in new_symbols) {
+  $.symbols[k] = $.builtin.get_symbol(new_symbols[k]).value;
+}
+EOAS
 compiled << "\n"
 puts compiled
 

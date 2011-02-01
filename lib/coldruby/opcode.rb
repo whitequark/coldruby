@@ -41,6 +41,9 @@ module ColdRuby
       "<%#{@type}: #{@info.inspect}>"
     end
 
+    # Here I'd like to express my appreciation to everyone who has thoroughly documented
+    # the YARV bytecode. It may or may not be an internal data structure, but some
+    # documentation should definitely exist (apart from random japanese blog entries).
     def to_js
       case type
       when :line, :label
@@ -61,7 +64,7 @@ module ColdRuby
           %Q{this.sf.stack[this.sf.sp++] = #{object};}
         when Symbol
           @pool.register_symbol object
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.get_symbol(#{object.object_id});}
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_symbol(#{object.object_id});}
         when true
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qtrue;}
         when false
@@ -177,11 +180,18 @@ module ColdRuby
           receiver = %Q{this.sf.stack[--this.sf.sp]}
         end
 
+        method = @info[0].to_sym
+        @pool.register_symbol method
+
+        args = nil
         if @info[1] > 0
-          code << %Q{var ret = this.ruby.invoke_method(#{receiver}, '#{@info[0]}', args, this);}
+          args = 'args'
         else
-          code << %Q{var ret = this.ruby.invoke_method(#{receiver}, '#{@info[0]}', [], this);}
+          args = '[]'
         end
+
+        code << %Q[var ret = this.ruby.invoke_method(this, #{receiver}, ] <<
+                %Q[this.ruby.symbols[#{method.object_id}], #{args});]
 
         code << %Q{this.sf.stack[this.sf.sp++] = ret;}
 
