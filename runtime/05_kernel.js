@@ -1,13 +1,13 @@
 $.define_method($c.Object, 'p', -1, function(self, args) {
   for(var i = 0; i < args.length; i++) {
-    print($.invoke_method(this, args[i], $.sym2id('inspect'), []));
+    print($.invoke_method(this, args[i], 'inspect', []));
   }
   return args;
 });
 
 $.define_method($c.Object, 'puts', -1, function(self, args) {
   for(var i = 0; i < args.length; i++) {
-    print($.invoke_method(this, args[i], $.sym2id('to_s'), []));
+    print($.invoke_method(this, args[i], 'to_s', []));
   }
   return Qnil;
 });

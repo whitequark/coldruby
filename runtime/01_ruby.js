@@ -4,7 +4,11 @@ var $ = {
   builtin: {},
 
   sym2id: function(name) {
-    return this.builtin.get_symbol(name).value;
+    if(this.symbols[name] == undefined) {
+      return this.builtin.get_symbol(name).value;
+    } else {
+      return name;
+    }
   },
 
   id2sym: function(id) {
@@ -117,6 +121,8 @@ var $ = {
   find_method: function(object, method) {
     var func = null;
 
+    if(typeof method == 'string') method = this.sym2id(method);
+
     if(object != null) {
       // Search singleton methods, and then class hierarchy
       if(object.singleton_methods != null) {
@@ -221,17 +227,16 @@ var $ = {
   },
 
   create_toplevel: function() {
-    return {
+    var toplevel = {
       klass: this.constants.Object,
-      methods: {
-        inspect: function(args) {
-          ruby.check_args(args, 0);
-          return "main";
-        }
-      },
+      singleton_methods: {},
       ivs: {},
       toplevel: true
     };
+    this.define_singleton_method(toplevel, 'inspect', 0, function(self) {
+      return "main";
+    });
+    return toplevel;
   },
 
   create_context: function() {

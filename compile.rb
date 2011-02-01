@@ -41,7 +41,7 @@ compiled << "var top_iseq = #{iseq.compile};\n"
 compiled << "var new_symbols = #{pool.symbols};\n"
 compiled << <<EOAS
 for(var k in new_symbols) {
-  $.symbols[k] = $.builtin.get_symbol(new_symbols[k]).value;
+  $.symbols[k] = parseInt($.builtin.get_symbol(new_symbols[k]).value);
 }
 EOAS
 compiled << "\n"
