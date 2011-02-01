@@ -203,7 +203,7 @@ var $ = {
     }
 
     for(var i = 0; i < iseq.info.arg_size; i++) {
-      my_sf.locals[2 + i] = args[i];
+      my_sf.locals[2 + i] = args[iseq.info.arg_size - i - 1];
     }
 
     ctx.sf  = my_sf;
