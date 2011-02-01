@@ -132,7 +132,7 @@ var $ = {
   },
 
   test: function(object) {
-    return !(object == this.builtin.nil || object == this.builtin.Qfalse);
+    return !(object == this.builtin.Qnil || object == this.builtin.Qfalse);
   },
 
   respond_to: function(object, method) {
