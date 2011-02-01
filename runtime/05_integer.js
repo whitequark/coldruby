@@ -89,7 +89,7 @@ $.define_method($c.Integer, 'pred', 0, function(self) {
     return self - 1;
   }
 
-  return $.invoke_method(this, self, $.sym2id('-'), [1]);
+  return $.invoke_method(this, self, '-', [1]);
 });
 
 $.define_method($c.Integer, 'numerator', 0, function(self) {

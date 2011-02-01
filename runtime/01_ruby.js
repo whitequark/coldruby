@@ -3,12 +3,22 @@ var $ = {
   globals: {},
   builtin: {},
 
-  sym2id: function(name) {
-    if(this.symbols[name] == undefined) {
-      return this.builtin.get_symbol(name).value;
+  any2id: function(obj) {
+    if(typeof obj == 'string' || typeof obj == 'number') {
+      if(this.symbols[obj] == undefined) {
+        return this.builtin.get_symbol(obj).value;
+      } else {
+        return obj;
+      }
+    } else if(obj.klass == this.constants.Symbol) {
+      return obj.value;
     } else {
-      return name;
+      throw "unknown object for any2id: " + obj;
     }
+  },
+
+  sym2id: function(sym) {
+    return sym.value;
   },
 
   id2sym: function(id) {
@@ -80,14 +90,14 @@ var $ = {
   },
 
   define_method: function(klass, name, want_args, method) {
-    if(typeof name == 'string') name = $.sym2id(name);
+    name = $.any2id(name);
 
     klass.instance_methods[name] = this.wrap_method(want_args, method);
     return Qnil;
   },
 
   define_singleton_method: function(klass, name, want_args, method) {
-    if(typeof name == 'string') name = $.sym2id(name);
+    name = $.any2id(name);
 
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
@@ -97,8 +107,8 @@ var $ = {
 
   alias_method: function(klass, name, other_name, fast) {
     var ruby = this;
-    if(typeof name       == 'string') name       = $.sym2id(name);
-    if(typeof other_name == 'string') other_name = $.sym2id(other_name);
+    name       = $.any2id(name);
+    other_name = $.any2id(other_name);
 
     if(fast) { // For builtins only
       klass.instance_methods[name] = klass.instance_methods[other_name];
@@ -161,7 +171,7 @@ var $ = {
   },
 
   invoke_method: function(ctx, receiver, method, args) {
-    if(typeof method == 'string') method = this.sym2id(method);
+    method = this.any2id(method);
 
     func = this.find_method(receiver, method);
 
