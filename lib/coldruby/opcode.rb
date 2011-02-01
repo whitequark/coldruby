@@ -134,6 +134,13 @@ module ColdRuby
 
         code
 
+      when :newhash
+        [
+          %Q{var hash = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp)},
+          %Q{this.sf.sp -= #{@info[0]}},
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_hash(hash);}
+        ]
+
       when :pop
         %Q{this.sf.sp--;}
       when :adjuststack
