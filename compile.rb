@@ -6,7 +6,8 @@ $: << './lib/'
 require 'coldruby'
 
 CompilerOptions = {
-  :peephole_optimization    => true,
+  :peephole_optimization    => false,
+  :tailcall_optimization    => false,
   :inline_const_cache       => false,
   :specialized_instruction  => false,
   :operands_unification     => false,
