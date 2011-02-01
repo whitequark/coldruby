@@ -63,6 +63,8 @@ module ColdRuby
         case object
         when Fixnum
           %Q{this.sf.stack[this.sf.sp++] = #{object};}
+        when Range
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
         when Symbol
           @pool.register_symbol object
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_symbol(this.ruby.symbols[#{object.object_id}]);}

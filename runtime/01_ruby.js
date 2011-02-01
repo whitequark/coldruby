@@ -119,6 +119,30 @@ var $ = {
     }
   },
 
+  attr: function(type, klass, methods) {
+    var ruby = this;
+    if(typeof methods == 'string') {
+      methods = [methods];
+    }
+
+    for(var i = 0; i < methods.length; i++) {
+      var method = methods[i];
+      if(type == 'reader' || type == 'accessor') {
+        this.define_method(klass, method, 0, function(self) {
+          return self.iv[method] || ruby.builtin.Qnil;
+        });
+      }
+      if(type == 'writer' || type == 'accessor') {
+        if(method.klass == this.constants.Symbol) {
+          method = this.id2sym(method.value);
+        }
+        this.define_method(klass, method + '=', 0, function(self) {
+          return self.iv[method] || ruby.builtin.Qnil;
+        });
+      }
+    }
+  },
+
   find_method: function(object, method) {
     var func = null;
 
@@ -139,6 +163,10 @@ var $ = {
     }
 
     return func;
+  },
+
+  obj_infect: function(object, source) {
+    // implement tainting here
   },
 
   test: function(object) {
