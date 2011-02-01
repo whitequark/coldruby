@@ -11,6 +11,30 @@ var $ = {
     return this.symbols[id];
   },
 
+  const_get: function(scope, name) {
+    if(scope == this.builtin.Qnil) {
+      scope = this;
+    }
+    if(scope.constants[name] == undefined) {
+      throw "constant " + name + " is undefined";
+    }
+
+    return scope.constants[name];
+  },
+
+  const_set: function(scope, name, value) {
+    if(scope == this.builtin.Qnil) {
+      scope = this;
+    }
+    if(scope.constants[name] != undefined) {
+      throw "constant " + name + " is already defined";
+    }
+
+    scope.constants[name] = value;
+
+    return value;
+  },
+
   define_class: function(name, superklass) {
     var klass = {
       klass_name:       name,

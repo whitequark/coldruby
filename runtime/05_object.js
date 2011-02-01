@@ -2,6 +2,10 @@ $.define_method($c.Object, 'nil?', 0, function(self) {
   return Qfalse;
 });
 
+$.define_method($c.Object, 'class', 0, function(self) {
+  return self.klass;
+});
+
 $.define_method($c.Object, 'to_s', 0, function(self) {
   return "#<" + self.klass.klass_name + ">";
 });

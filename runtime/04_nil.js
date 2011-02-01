@@ -22,6 +22,6 @@ $.define_method($c.NilClass, 'to_i', 0, function(sel) {
   return 0;
 });
 
-var Qnil = $.builtin.nil = {
+var Qnil = $.builtin.Qnil = {
   klass: $c.NilClass,
 };

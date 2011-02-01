@@ -5,8 +5,9 @@ module ColdRuby
     VM_CALL_FCALL_BIT         = 8
     VM_CALL_VCALL_BIT         = 16
 
-    VM_SPECIAL_OBJECT_VMCORE = 1
-    VM_SPECIAL_OBJECT_CBASE  = 2
+    VM_SPECIAL_OBJECT_VMCORE     = 1
+    VM_SPECIAL_OBJECT_CBASE      = 2
+    VM_SPECIAL_OBJECT_CONST_BASE = 3
 
     attr_reader :type, :info
 
@@ -52,7 +53,7 @@ module ColdRuby
         nil # Ignore
 
       when :putnil
-        %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.nil;}
+        %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qnil;}
       when :putself
         %Q{this.sf.stack[this.sf.sp++] = this.sf.self;}
       when :putstring
@@ -78,11 +79,27 @@ module ColdRuby
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.vmcore;}
         when VM_SPECIAL_OBJECT_CBASE
           %Q{this.sf.stack[this.sf.sp++] = this.sf.cbase;}
+        when VM_SPECIAL_OBJECT_CONST_BASE
+          # Treated in a special way in setconstant
+          # Why bother adding CONST_BASE if getconstant uses nil anyway?
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qnil;}
+
         else
           raise Exception, "Unhandled putspecialobject opcode"
         end
       when :putiseq
         %Q{this.sf.stack[this.sf.sp++] = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
+
+      when :getconstant
+        [
+          %Q{var module = this.sf.stack[--this.sf.sp];},
+          %Q{this.sf.stack[this.sf.sp++] = this.ruby.const_get(module, '#{@info[0]}')}
+        ]
+      when :setconstant
+        [
+          %Q{var module = this.sf.stack[--this.sf.sp];},
+          %Q{this.ruby.const_set(module, '#{@info[0]}', this.sf.stack[--this.sf.sp])}
+        ]
 
       when :newarray
         [
