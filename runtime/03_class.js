@@ -6,6 +6,9 @@ $.define_class('Class',  null);
 $c.BasicObject.klass = $c.Object.klass = $c.Module.klass = $c.Class.klass = $c.Class;
 $c.Class.superklass = $c.Module;
 
+$c.Symbol.klass = $c.Class;
+$c.Symbol.superklass = $c.Object;
+
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
 });

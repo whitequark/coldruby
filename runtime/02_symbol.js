@@ -18,7 +18,7 @@ $.builtin.get_symbol = function(name) {
   return symbol;
 };
 
-$.define_class('Symbol', $c.Object);
+$.define_class('Symbol', null); // will be set up later
 
 $.define_method($c.Symbol, '==', 1, function(self, other) {
   return (other.klass == $c.Symbol && this.value == other.value) ? Qtrue : Qfalse;

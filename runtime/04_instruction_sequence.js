@@ -1,1 +1,1 @@
-$.define_builtin_class('InstructionSequence', $c.Object);
+$.define_bare_class('InstructionSequence', $c.Object);

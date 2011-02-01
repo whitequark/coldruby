@@ -1,4 +1,4 @@
-$.define_builtin_class('TrueClass', $c.Object);
+$.define_bare_class('TrueClass', $c.Object);
 
 $.define_method($c.TrueClass, 'to_s', 0, function(self) {
   return "true";
@@ -17,7 +17,7 @@ var Qtrue  = $.builtin.Qtrue = {
   klass: $c.TrueClass,
 };
 
-$.define_builtin_class('FalseClass', $c.Object);
+$.define_bare_class('FalseClass', $c.Object);
 
 $.define_method($c.FalseClass, 'to_s', 0, function(self) {
   return "false";

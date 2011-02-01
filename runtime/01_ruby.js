@@ -39,7 +39,7 @@ var $ = {
     return value;
   },
 
-  define_class: function(name, superklass) {
+  define_bare_class: function(name, superklass) {
     var klass = {
       klass_name:       name,
       klass:            this.constants.Class,
@@ -51,9 +51,9 @@ var $ = {
     return klass;
   },
 
-  define_builtin_class: function(name) {
-    var klass = this.define_class(name, this.constants.Object);
-    klass.builtin = true; // Forbid #allocate and #new
+  define_class: function(name, superklass) {
+    var klass = this.define_bare_class(name, superklass);
+    // Add #allocate and #new here
     return klass;
   },
 

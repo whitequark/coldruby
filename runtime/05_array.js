@@ -1,4 +1,4 @@
-$.define_builtin_class('Array', $c.Object);
+$.define_class('Array', $c.Object);
 
 $.define_method($c.Array, 'inspect', 0, function(self) {
   var desc = [];
