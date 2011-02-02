@@ -216,7 +216,7 @@ module ColdRuby
         [
           %Q{var tmp = this.sf.stack[this.sf.sp - 1];},
           %Q{this.sf.stack[this.sf.sp - 1] = this.sf.stack[this.sf.sp - 2];},
-          %Q{this.sf.stack[this.sf.sp - 2] = tmp;]},
+          %Q{this.sf.stack[this.sf.sp - 2] = tmp;},
         ]
 
       when :setlocal
