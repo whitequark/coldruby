@@ -1,5 +1,5 @@
 module ColdRuby
-  @@debug = true
+  @@debug = false
 
   def self.debug=(value)
     @@debug = value

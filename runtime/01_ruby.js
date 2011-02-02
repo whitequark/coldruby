@@ -358,12 +358,13 @@ var $ = {
       new_sf[key] = opts[key];
     }
 
-    if(typeof iseq == 'object') {
+/*  if(typeof iseq == 'object') {
       var method = iseq.info.func;
     } else {
       var method = '!native';
     }
     this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);
+*/
 
     if(typeof iseq == 'object') {
       if(iseq.info.arg_size != args.length) {
