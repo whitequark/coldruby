@@ -23,7 +23,7 @@ def compile(what, where, is_file)
     if is_file
       ruby_iseq = nil
       where.each do |dir|
-        file = File.join(dir, what)
+        file = File.join(dir, what) + '.rb'
         if File.exists? file
           ruby_iseq = iseq.compile_file file, CompilerOptions
           break
