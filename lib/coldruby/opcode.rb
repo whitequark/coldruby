@@ -88,7 +88,7 @@ module ColdRuby
         when VM_SPECIAL_OBJECT_VMCORE
           %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.vmcore;}
         when VM_SPECIAL_OBJECT_CBASE
-          %Q{this.sf.stack[this.sf.sp++] = this.sf.cbase;}
+          %Q{this.sf.stack[this.sf.sp++] = this.sf.ddef;}
         when VM_SPECIAL_OBJECT_CONST_BASE
           # Treated in a special way in setconstant
           # Why bother adding CONST_BASE if getconstant uses nil anyway?
@@ -150,7 +150,7 @@ module ColdRuby
       when :concatarray
         [
           %Q{var array = this.sf.stack[--this.sf.sp];},
-          %Q{array = array.concat(this.sf.stack[--this.sf.sp]);},
+          %Q{array = this.sf.stack[--this.sf.sp].concat(array);},
           %Q{this.sf.stack[this.sf.sp++] = array;}
         ]
 
@@ -192,9 +192,14 @@ module ColdRuby
         ]
 
       when :setlocal
-        %Q{this.osf.locals[#{@info[0]}] = this.sf.stack[--this.sf.sp];}
+        %Q{this.sf.osf.locals[#{@info[0]}] = this.sf.stack[--this.sf.sp];}
       when :getlocal
-        %Q{this.sf.stack[this.sf.sp++] = this.osf.locals[#{@info[0]}];}
+        %Q{this.sf.stack[this.sf.sp++] = this.sf.osf.locals[#{@info[0]}];}
+
+      when :setdynamic
+        %Q{this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}] = this.sf.stack[--this.sf.sp];}
+      when :getdynamic
+        %Q{this.sf.stack[this.sf.sp++] = this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
         %Q{this.ruby.globals['#{@info[0]}'] = this.sf.stack[--this.sf.sp];}
@@ -206,38 +211,57 @@ module ColdRuby
       when :getinstancevariable
         %Q{this.sf.stack[this.sf.sp++] = this.sf.self.ivs['#{@info[0]}'];}
 
-      when :send
+      when :send, :invokeblock
         code = []
 
-        if @info[1] > 0
-          code << %Q{var args = this.sf.stack.slice(this.sf.sp - #{@info[1]}, this.sf.sp);}
-          code << %Q{this.sf.sp -= #{@info[1]};}
+        if type == :send
+          argcount, options = @info[1], @info[3]
+        elsif type == :invokeblock
+          argcount, options = @info[0], @info[1]
+        end
 
-          if (@info[3] & VM_CALL_ARGS_SPLAT_BIT) != 0
+        if (options & ~(VM_CALL_ARGS_SPLAT_BIT | VM_CALL_FCALL_BIT |
+                        VM_CALL_VCALL_BIT)) != 0
+          # Honestly, I don't know what VM_CALL_VCALL_BIT _really_ does.
+          # But it works this way, so I accept it.
+          raise UnknownFeatureException, "#{type} opcode flags #{options}"
+        end
+
+        if argcount > 0
+          code << %Q{var args = this.sf.stack.slice(this.sf.sp - #{argcount}, this.sf.sp);}
+          code << %Q{this.sf.sp -= #{argcount};}
+
+          if (options & VM_CALL_ARGS_SPLAT_BIT) != 0
             code << %Q{args = args.concat(args.pop());}
           end
-        end
 
-        receiver = nil
-        if (@info[3] & VM_CALL_FCALL_BIT) != 0
-          code << %Q{this.sf.sp--;} # remove nil, which apparently means self
-          receiver = %Q{this.sf.self}
-        else
-          receiver = %Q{this.sf.stack[--this.sf.sp]}
-        end
-
-        method = @info[0].to_sym
-        @pool.register_symbol method
-
-        args = nil
-        if @info[1] > 0
           args = 'args'
         else
           args = '[]'
         end
 
-        code << %Q[var ret = this.ruby.invoke_method(this, #{receiver}, ] <<
-                %Q[this.ruby.symbols[#{method.object_id}], #{args});]
+        if type == :send
+          if (@info[3] & VM_CALL_FCALL_BIT) != 0
+            code << %Q{this.sf.sp--;} # remove nil, which apparently means self
+            receiver = %Q{this.sf.self}
+          else
+            receiver = %Q{this.sf.stack[--this.sf.sp]}
+          end
+
+          if @info[2]
+            code << %Q{var iseq = #{ISeq.new(@pool, @info[2], @level + 1).compile};}
+            code << %Q{iseq.stack_frame = this.sf;}
+            args << ', iseq'
+          end
+
+          method = @info[0].to_sym
+          @pool.register_symbol method
+
+          code << %Q[var ret = this.ruby.invoke_method(this, #{receiver}, ] +
+                  %Q[this.ruby.symbols[#{method.object_id}], #{args});]
+        elsif type == :invokeblock
+          code << %Q[var ret = this.ruby.yield(this, #{args});]
+        end
 
         code << %Q{this.sf.stack[this.sf.sp++] = ret;}
 

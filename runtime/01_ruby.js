@@ -191,61 +191,115 @@ var $ = {
     }
   },
 
-  invoke_method: function(ctx, receiver, method, args) {
+  invoke_method: function(ctx, receiver, method, args, block) {
     method = this.any2id(method);
 
     func = this.find_method(receiver, method);
 
+    var sf_opts = {
+      block: block,
+
+      self: receiver,
+      ddef: ctx.sf.ddef,
+      cref: ctx.sf.cref,
+    };
+
     var retval;
     if(func == undefined) {
       throw "cannot find method " + this.id2sym(method);
-    } else if(typeof func == 'function') {
-      retval = func.call(ctx, receiver, args);
-    } else if(func.klass == $c.InstructionSequence) {
-      retval = $.execute(ctx, ctx.sf.self, ctx.sf.cbase, func, args);
     } else {
-      throw "trying to execute something weird " + func;
+      return $.execute(ctx, sf_opts, func, args);
     }
-
-    return retval;
   },
 
-  execute: function(ctx, self, cbase, iseq, args) {
-    var my_sf = {
-      stack:  [],
-      sp:     0,
-      locals: [],
-      self:   self,
-      cbase:  cbase,
-      parent: ctx.sf,
+  yield: function(ctx, args, iseq) {
+    var iseq = ctx.sf.block;
+
+    if(!iseq) {
+      throw "block is needed";
+    }
+
+    var sf = iseq.stack_frame;
+
+    var sf_opts = {
+      self: sf.self,
+      ddef: sf.ddef,
+      cref: sf.cref,
+
+      outer: sf,
     };
 
-    if(iseq.info.arg_size != args.length) {
-      throw "argument count mismatch: " + args.length + " != " + iseq.info.arg_size;
+    return this.execute(ctx, sf_opts, iseq, args)
+  },
+
+  execute: function(ctx, opts, iseq, args) {
+    var new_sf = {
+      parent:  ctx.sf,
+
+      stack:   [],
+      sp:      0,
+      locals:  [],
+      dynamic: [],
+      osf:     null,
+
+      // http://yugui.jp/articles/846
+      self: null,
+      ddef: null,
+      cref: null,
+    };
+
+    for(var key in opts) {
+      new_sf[key] = opts[key];
     }
 
-    for(var i = 0; i < iseq.info.arg_size; i++) {
-      my_sf.locals[2 + i] = args[iseq.info.arg_size - i - 1];
-    }
-
-    ctx.sf  = my_sf;
-    ctx.osf = my_sf;
-
-    var chunk = 0;
-    while(chunk != null) {
-      chunk = iseq[chunk].call(ctx);
-    }
-
-    ctx.sf  = my_sf.parent;
-    ctx.osf = ctx.sf;
-
-    if(my_sf.sp == 0) {
-      return Qnil;
-    } else if(my_sf.sp == 1) {
-      return my_sf.stack[0];
+    if(typeof iseq == 'object') {
+      var method = iseq.info.func;
     } else {
-      return my_sf.stack.slice(0, my_sf.sp);
+      var method = '!native';
     }
+//    this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);
+
+    if(typeof iseq == 'object') {
+      if(iseq.info.arg_size != args.length) {
+        throw "argument count mismatch: " + args.length + " != " + iseq.info.arg_size;
+      }
+
+      for(var i = 0; i < iseq.info.arg_size; i++) {
+        new_sf.locals[2 + i] = args[iseq.info.arg_size - i - 1];
+      }
+    }
+
+    new_sf.dynamic.push(new_sf);
+    if(new_sf.outer) {
+      for(var i = 0; i < new_sf.outer.dynamic.length; i++) {
+        new_sf.dynamic.push(new_sf.outer.dynamic[i]);
+      }
+
+      new_sf.osf = ctx.sf;
+    } else {
+      new_sf.osf = new_sf;
+    }
+
+    ctx.sf = new_sf;
+
+    if(typeof iseq == 'object') {
+      var chunk = 0;
+      while(chunk != null) {
+        chunk = iseq[chunk].call(ctx);
+      }
+
+      if(new_sf.sp != 1) {
+        throw "Invalid stack frame at exit"
+      }
+
+      var retval = new_sf.stack[0];
+    } else {
+      var retval = iseq.call(ctx, new_sf.self, args);
+    }
+
+    ctx.sf = new_sf.parent;
+
+    return retval;
   },
 
   create_toplevel: function() {
@@ -264,8 +318,8 @@ var $ = {
   create_context: function() {
     return {
       ruby: this,
-      sf: null,
-      osf: null,
+      sf:   null,
+      osf:  null,
     };
   },
 

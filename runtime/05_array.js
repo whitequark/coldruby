@@ -2,7 +2,7 @@ $.define_class('Array', $c.Object);
 
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
-    $.yield(this, self[i]);
+    $.yield(this, [self[i]]);
   }
   return self;
 });

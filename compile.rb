@@ -36,9 +36,11 @@ Dir[File.join(File.dirname(__FILE__), 'runtime', '*')].sort.each do |runtime_par
   runtime << "\n\n"
 end
 
+code = iseq.compile
+
 compiled = ""
 compiled << "/* Compiled code */\n\n"
-compiled << "var top_iseq = #{iseq.compile};\n"
+compiled << "var iseq = #{code};\n"
 compiled << "var new_symbols = #{pool.symbols};\n"
 compiled << <<EOAS
 for(var k in new_symbols) {
@@ -54,6 +56,11 @@ File.open("output.js", "w") do |f|
   f.write <<-EPILOGUE
 var context = $.create_context();
 var toplevel = $.create_toplevel();
-pp($.execute(context, toplevel, toplevel, top_iseq, []));
+var sf_opts = {
+  self: toplevel,
+  ddef: toplevel,
+  cref: [$c.Object],
+};
+pp($.execute(context, sf_opts, iseq, []));
   EPILOGUE
 end

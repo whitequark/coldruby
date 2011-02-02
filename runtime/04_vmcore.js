@@ -1,5 +1,8 @@
 $.builtin.vmcore = {
-  singleton_methods: {}
+  singleton_methods: {},
+  klass: {
+    klass_name: 'core'
+  }
 };
 
 $.define_singleton_method($.builtin.vmcore,
