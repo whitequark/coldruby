@@ -1,21 +1,41 @@
 $.symbols = { last: -1 };
-$.builtin.make_symbol = function(id) {
+
+$.id2sym = function(id) {
   return {
     klass: $c.Symbol,
     value: id,
   };
 };
-$.builtin.get_symbol = function(name) {
+
+$.text2sym = function(name) {
   for(var k in $.symbols) {
     if($.symbols[k] == name) {
-      return $.builtin.make_symbol(k);
+      return $.id2sym(k);
     }
   }
 
-  var symbol = $.builtin.make_symbol($.symbols.last--);
+  var symbol = this.id2sym($.symbols.last--);
   $.symbols[symbol.value] = name;
 
   return symbol;
+};
+
+$.id2text = function(id) {
+  return this.symbols[id];
+};
+
+$.any2id = function(obj) {
+  if(typeof obj == 'string' || typeof obj == 'number') {
+    if(this.symbols[obj] == undefined) {
+      return this.text2sym(obj).value;
+    } else {
+      return obj;
+    }
+  } else if(obj.klass == this.internal_constants.Symbol) {
+    return obj.value;
+  } else {
+    throw "unknown object for any2id: " + obj;
+  }
 };
 
 $.define_class('Symbol', null); // will be set up later
@@ -46,7 +66,7 @@ $.define_singleton_method($c.Symbol, 'all_symbols', 0, function(self) {
   var keys = $.symbols.keys;
   var symbols = [];
   for(var i = 0; i < keys.length; i++) {
-    symbols.push($.builtin.fetch_symbol(keys[i]));
+    symbols.push($.text2sym(keys[i]));
   }
   return symbols;
 });

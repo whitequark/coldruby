@@ -58,7 +58,7 @@ module ColdRuby
     POP    = 'this.sf.stack[--this.sf.sp]'
     SYMBOL = lambda { |opcode, symbol|
                       opcode.pool.register_symbol(symbol);
-                      %Q{this.ruby.builtin.make_symbol(this.ruby.symbols[#{symbol.object_id}])}
+                      %Q{this.ruby.id2sym(this.ruby.symbols[#{symbol.object_id}])}
                     }
 
     # Here I'd like to express my appreciation to everyone who has thoroughly documented
@@ -100,9 +100,8 @@ module ColdRuby
         when VM_SPECIAL_OBJECT_CBASE
           %Q{#{PUSH} = this.sf.ddef;}
         when VM_SPECIAL_OBJECT_CONST_BASE
-          # Treated in a special way in setconstant
-          # Why bother adding CONST_BASE if getconstant uses nil anyway?
-          %Q{#{PUSH} = this.ruby.builtin.Qnil;}
+          # Just guessing.
+          %Q{#{PUSH} = this.sf.cref[0];}
 
         else
           raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
@@ -113,13 +112,13 @@ module ColdRuby
       when :getconstant
         [
           %Q{var module = #{POP};},
-          %Q{#{PUSH} = this.ruby.const_get(module, '#{@info[0]}')}
+          %Q{#{PUSH} = this.ruby.const_get(module, #{SYMBOL[self, @info[0]]})}
         ]
 
       when :setconstant
         [
           %Q{var module = #{POP};},
-          %Q{this.ruby.const_set(module, '#{@info[0]}', #{POP})}
+          %Q{this.ruby.const_set(module, #{SYMBOL[self, @info[0]]}, #{POP})}
         ]
 
       when :newarray

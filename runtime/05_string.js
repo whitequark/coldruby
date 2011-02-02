@@ -4,6 +4,10 @@ $.define_method($c.String, 'to_s', 0, function(self) {
   return self;
 });
 
+$.define_method($c.String, 'to_sym', 0, function(self) {
+  return $.text2sym(self);
+});
+
 $.define_method($c.String, 'inspect', 0, function(self) {
   return '"' + self + '"';
 });

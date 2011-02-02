@@ -44,7 +44,7 @@ compiled << "var iseq = #{code};\n"
 compiled << "var new_symbols = #{pool.symbols};\n"
 compiled << <<EOAS
 for(var k in new_symbols) {
-  $.symbols[k] = parseInt($.builtin.get_symbol(new_symbols[k]).value);
+  $.symbols[k] = parseInt($.text2sym(new_symbols[k]).value);
 }
 EOAS
 compiled << "\n"

@@ -1,5 +1,6 @@
 var $ = {
   constants: {},
+  internal_constants: {}, // analogue of rb_c*
   globals: {},
   globals_aliases: {},
   builtin: {
@@ -22,24 +23,6 @@ var $ = {
       $.invoke_method(this, object, 'initialize', args);
       return object;
     },
-  },
-
-  any2id: function(obj) {
-    if(typeof obj == 'string' || typeof obj == 'number') {
-      if(this.symbols[obj] == undefined) {
-        return this.builtin.get_symbol(obj).value;
-      } else {
-        return obj;
-      }
-    } else if(obj.klass == this.constants.Symbol) {
-      return obj.value;
-    } else {
-      throw "unknown object for any2id: " + obj;
-    }
-  },
-
-  id2sym: function(id) {
-    return this.symbols[id];
   },
 
   /* === GLOBAL VARIABLES === */
@@ -83,17 +66,17 @@ var $ = {
   },
 
   /* === CONSTANTS === */
-  const_defined: function(scope, name) {
-    if(scope == this.builtin.Qnil) {
-      scope = this;
-    }
+  const_defined: function(scope, name, inherit) {
+    if(scope == this.builtin.Qnil) scope = this;
+    name = $.any2id(name);
+
     return (name in scope.constants);
   },
 
-  const_get: function(scope, name) {
-    if(scope == this.builtin.Qnil) {
-      scope = this;
-    }
+  const_get: function(scope, name, inherit) {
+    if(scope == this.builtin.Qnil) scope = this;
+    name = $.any2id(name);
+
     if(scope.constants[name] == undefined) {
       throw "constant " + name + " is undefined";
     }
@@ -102,9 +85,9 @@ var $ = {
   },
 
   const_set: function(scope, name, value) {
-    if(scope == this.builtin.Qnil) {
-      scope = this;
-    }
+    if(scope == this.builtin.Qnil) scope = this;
+    name = $.any2id(name);
+
     if(scope.constants[name] != undefined) {
       throw "constant " + name + " is already defined";
     }
@@ -114,21 +97,24 @@ var $ = {
     return value;
   },
 
+  /* === CLASSES AND MODULES === */
   define_module: function(name, self_klass, superklass) {
     var klass = {
       klass_name:        name,
-      klass:             self_klass || this.constants.Module,
-      superklass:        superklass || this.constants.Object,
+      klass:             self_klass || this.internal_constants.Module,
+      superklass:        superklass || this.internal_constants.Object,
+      constants:         {},
       instance_methods:  {},
       singleton_methods: {},
       ivs:               {},
     };
-    this.constants[name] = klass;
+    this.constants[this.any2id(name)] = klass;
+    this.internal_constants[name]     = klass;
     return klass;
   },
 
   define_class: function(name, superklass) {
-    var klass = this.define_module(name, this.constants.Class, superklass);
+    var klass = this.define_module(name, this.internal_constants.Class, superklass);
     klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
     klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
     return klass;
@@ -137,7 +123,8 @@ var $ = {
   wrap_method: function(want_args, method) {
     var ruby = this, wrapper;
 
-    if(method.klass == this.constants.InstructionSequence) {
+    if(typeof method != 'function' &&
+         method.klass == this.internal_constants.InstructionSequence) {
       return method;
     }
 
@@ -191,8 +178,8 @@ var $ = {
         });
       }
       if(type == 'writer' || type == 'accessor') {
-        if(method.klass == this.constants.Symbol) {
-          method = this.id2sym(method.value);
+        if(method.klass == this.internal_constants.Symbol) {
+          method = this.id2text(method.value);
         }
         this.define_method(klass, method + '=', 0, function(self) {
           return self.iv[method] || ruby.builtin.Qnil;
@@ -257,9 +244,9 @@ var $ = {
     }
   },
 
-  check_convert_type: function(arg, type, converter, ctx) {
+  check_convert_type: function(ctx, arg, type, converter) {
     if(arg.klass != type) {
-      return $.invoke_method(arg, converter, [], ctx);
+      return $.invoke_method(ctx, arg, converter, []);
     } else {
       return arg;
     }
@@ -269,8 +256,9 @@ var $ = {
     if(!this.const_defined(cbase, name)) {
       var klass = {
         klass_name:        name,
-        klass:             is_class ? this.constants.Class : this.constants.Module,
-        superklass:        superklass == this.builtin.Qnil ? this.constants.Object : superklass,
+        klass:             is_class ? this.internal_constants.Class : this.internal_constants.Module,
+        superklass:        superklass == this.builtin.Qnil ? this.internal_constants.Object : superklass,
+        constants:         {},
         instance_methods:  {},
         singleton_methods: {},
         ivs:               {},
@@ -282,10 +270,15 @@ var $ = {
       var klass = this.const_get(cbase, name);
     }
 
+    var cref = [ klass ];
+    for(var i = 0; i < ctx.sf.cref.length; i++) {
+      cref.push(ctx.sf.cref[i]);
+    }
+
     var sf_opts = {
       self: klass,
       ddef: klass,
-      cref: ctx.sf.cref,
+      cref: cref,
     };
 
     return $.execute(ctx, sf_opts, iseq, []);
@@ -306,7 +299,7 @@ var $ = {
 
     var retval;
     if(func == undefined) {
-      throw "cannot find method " + this.id2sym(method);
+      throw "cannot find method " + this.id2text(method);
     } else {
       return $.execute(ctx, sf_opts, func, args);
     }
@@ -357,7 +350,7 @@ var $ = {
     } else {
       var method = '!native';
     }
-//    this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);
+    this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);
 
     if(typeof iseq == 'object') {
       if(iseq.info.arg_size != args.length) {
@@ -404,7 +397,7 @@ var $ = {
 
   create_toplevel: function() {
     var toplevel = {
-      klass: this.constants.Object,
+      klass: this.internal_constants.Object,
       singleton_methods: {},
       ivs: {},
       toplevel: true
@@ -429,4 +422,4 @@ var $ = {
   }
 };
 
-var $c = $.constants;
+var $c = $.internal_constants;
