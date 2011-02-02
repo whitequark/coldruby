@@ -20,7 +20,7 @@ module ColdRuby
     VM_SPECIAL_OBJECT_CONST_BASE = 3
 
     VM_DEFINE_CLASS    = 0
-    VM_SCOPE_SINGLETON = 1
+    VM_SINGLETON_CLASS = 1
     VM_DEFINE_MODULE   = 2
 
     C_VM_ARRAY_REMAINS = 1
@@ -305,6 +305,8 @@ module ColdRuby
           define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
           code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, } +
                   %Q{#{@info[0].to_json}, superklass, #{define_class}, iseq);}
+        when VM_SINGLETON_CLASS
+          code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, null, null, null, iseq);}
         else
           raise UnknownFeatureException, "defineclass type #{@info[2]}"
         end

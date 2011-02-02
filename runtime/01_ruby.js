@@ -266,21 +266,42 @@ var $ = {
   },
 
   execute_class: function(ctx, cbase, name, superklass, is_class, iseq) {
-    if(!this.const_defined(cbase, name)) {
+    if(name != null) {
+      if(!this.const_defined(cbase, name)) {
+        if(superklass.singleton) {
+          throw "can't make subclass of singleton";
+        }
+
+        var klass = {
+          klass_name:        name,
+          klass:             is_class ? this.internal_constants.Class : this.internal_constants.Module,
+          superklass:        superklass == this.builtin.Qnil ? this.internal_constants.Object : superklass,
+          constants:         {},
+          instance_methods:  {},
+          singleton_methods: {},
+          ivs:               {},
+        };
+        klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
+        klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
+        this.const_set(cbase, name, klass);
+      } else {
+        var klass = this.const_get(cbase, name);
+      }
+    } else { // singleton
+      if(!cbase.singleton_methods) {
+        cbase.singleton_methods = {}
+      }
+
       var klass = {
-        klass_name:        name,
-        klass:             is_class ? this.internal_constants.Class : this.internal_constants.Module,
-        superklass:        superklass == this.builtin.Qnil ? this.internal_constants.Object : superklass,
+        klass_name:        'singleton',
+        klass:             this.internal_constants.Class,
+        superklass:        this.internal_constants.Object,
         constants:         {},
-        instance_methods:  {},
+        instance_methods:  cbase.singleton_methods,
         singleton_methods: {},
         ivs:               {},
-      };
-      klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
-      klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
-      this.const_set(cbase, name, klass);
-    } else {
-      var klass = this.const_get(cbase, name);
+        singleton:         true,
+      }
     }
 
     var cref = [ klass ];
