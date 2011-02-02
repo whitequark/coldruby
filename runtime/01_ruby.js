@@ -78,7 +78,7 @@ var $ = {
     name = $.any2id(name);
 
     if(scope.constants[name] == undefined) {
-      throw "constant " + name + " is undefined";
+      throw "constant " + this.id2text(name) + " is undefined";
     }
 
     return scope.constants[name];
@@ -89,7 +89,7 @@ var $ = {
     name = $.any2id(name);
 
     if(scope.constants[name] != undefined) {
-      throw "constant " + name + " is already defined";
+      throw "constant " + this.id2text(name) + " is already defined";
     }
 
     scope.constants[name] = value;
