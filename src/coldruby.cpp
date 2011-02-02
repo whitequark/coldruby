@@ -87,13 +87,11 @@ Handle<Value> API_exec(const Arguments& args) {
     }
     close(in[1]);
 
-    waitpid(child, NULL, 0);
-
     string outputString;
     char buffer[2048];
     while(true) {
       int bytes = read(out[0], buffer, sizeof(buffer));
-      if(bytes <= 0)
+      if(bytes <= 0 && waitpid(child, NULL, WNOHANG) != 0)
         break;
 
       outputString += string(buffer, bytes);
