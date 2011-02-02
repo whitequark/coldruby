@@ -1,3 +1,6 @@
+$.define_method($c.Object, 'initialize', 0, function(self) {
+});
+
 $.define_method($c.Object, 'nil?', 0, function(self) {
   return Qfalse;
 });

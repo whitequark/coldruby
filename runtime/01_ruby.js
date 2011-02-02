@@ -1,7 +1,19 @@
 var $ = {
   constants: {},
   globals: {},
-  builtin: {},
+  builtin: {
+    allocate: function(self) {
+      return {
+        klass:            self,
+        ivs:              {},
+      };
+    },
+    'new': function(self, args) {
+      var object = this.ruby.builtin.allocate(self);
+      $.invoke_method(this, object, 'initialize', args);
+      return object;
+    },
+  },
 
   any2id: function(obj) {
     if(typeof obj == 'string' || typeof obj == 'number') {
@@ -23,6 +35,13 @@ var $ = {
 
   id2sym: function(id) {
     return this.symbols[id];
+  },
+
+  const_defined: function(scope, name) {
+    if(scope == this.builtin.Qnil) {
+      scope = this;
+    }
+    return (name in scope.constants);
   },
 
   const_get: function(scope, name) {
@@ -51,11 +70,12 @@ var $ = {
 
   define_bare_class: function(name, superklass) {
     var klass = {
-      klass_name:       name,
-      klass:            this.constants.Class,
-      superklass:       superklass,
-      instance_methods: {},
-      ivs:              {},
+      klass_name:        name,
+      klass:             this.constants.Class,
+      superklass:        superklass,
+      instance_methods:  {},
+      singleton_methods: {},
+      ivs:               {},
     };
     this.constants[name] = klass;
     return klass;
@@ -63,7 +83,8 @@ var $ = {
 
   define_class: function(name, superklass) {
     var klass = this.define_bare_class(name, superklass);
-    // Add #allocate and #new here
+    klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
+    klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
     return klass;
   },
 
@@ -177,10 +198,17 @@ var $ = {
   },
 
   check_type: function(arg, type) {
-    if(arg.klass != type) {
-      throw "type mismatch: " + arg.klass.klass_name + " != " + type.klass_name;
+    if(type instanceof Array) {
+      for(var i = 0; i < type.length; i++) {
+        if(arg.klass == type[i]) return arg;
+      }
+      throw "type mismatch: " + arg.klass.klass_name + " is not expected";
+    } else {
+      if(arg.klass != type) {
+        throw "type mismatch: " + arg.klass.klass_name + " != " + type.klass_name;
+      }
+      return arg;
     }
-    return arg;
   },
 
   check_convert_type: function(arg, type, converter, ctx) {
@@ -189,6 +217,32 @@ var $ = {
     } else {
       return arg;
     }
+  },
+
+  execute_class: function(ctx, cbase, name, superklass, is_class, iseq) {
+    if(!this.const_defined(cbase, name)) {
+      var klass = {
+        klass_name:        name,
+        klass:             is_class ? this.constants.Class : this.constants.Module,
+        superklass:        superklass == this.builtin.Qnil ? this.constants.Object : superklass,
+        instance_methods:  {},
+        singleton_methods: {},
+        ivs:               {},
+      };
+      klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
+      klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
+      this.const_set(cbase, name, klass);
+    } else {
+      var klass = this.const_get(cbase, name);
+    }
+
+    var sf_opts = {
+      self: klass,
+      ddef: klass,
+      cref: ctx.sf.cref,
+    };
+
+    return $.execute(ctx, sf_opts, iseq, []);
   },
 
   invoke_method: function(ctx, receiver, method, args, block) {

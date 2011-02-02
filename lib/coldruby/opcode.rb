@@ -17,6 +17,10 @@ module ColdRuby
     VM_SPECIAL_OBJECT_CBASE      = 2
     VM_SPECIAL_OBJECT_CONST_BASE = 3
 
+    VM_DEFINE_CLASS    = 0
+    VM_SCOPE_SINGLETON = 1
+    VM_DEFINE_MODULE   = 2
+
     C_VM_ARRAY_REMAINS = 1
 
     attr_reader :type, :info
@@ -50,6 +54,9 @@ module ColdRuby
       "<%#{@type}: #{@info.inspect}>"
     end
 
+    PUSH = 'this.sf.stack[this.sf.sp++]'
+    POP  = 'this.sf.stack[--this.sf.sp]'
+
     # Here I'd like to express my appreciation to everyone who has thoroughly documented
     # the YARV bytecode. It may or may not be an internal data structure, but some
     # documentation should definitely exist (apart from random japanese blog entries).
@@ -61,111 +68,111 @@ module ColdRuby
         nil # Ignore
 
       when :putnil
-        %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qnil;}
+        %Q{#{PUSH} = this.ruby.builtin.Qnil;}
       when :putself
-        %Q{this.sf.stack[this.sf.sp++] = this.sf.self;}
+        %Q{#{PUSH} = this.sf.self;}
       when :putstring
-        %Q{this.sf.stack[this.sf.sp++] = #{@info[0].inspect};}
+        %Q{#{PUSH} = #{@info[0].inspect};}
       when :putobject
         object = @info[0]
         case object
         when Fixnum
-          %Q{this.sf.stack[this.sf.sp++] = #{object};}
+          %Q{#{PUSH} = #{object};}
         when Range
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
+          %Q{#{PUSH} = this.ruby.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
         when Symbol
           @pool.register_symbol object
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_symbol(this.ruby.symbols[#{object.object_id}]);}
+          %Q{#{PUSH} = this.ruby.builtin.make_symbol(this.ruby.symbols[#{object.object_id}]);}
         when true
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qtrue;}
+          %Q{#{PUSH} = this.ruby.builtin.Qtrue;}
         when false
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qfalse;}
+          %Q{#{PUSH} = this.ruby.builtin.Qfalse;}
         else
           raise UnknownFeatureException, "putobject type #{object}"
         end
       when :putspecialobject
         case @info[0]
         when VM_SPECIAL_OBJECT_VMCORE
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.vmcore;}
+          %Q{#{PUSH} = this.ruby.builtin.vmcore;}
         when VM_SPECIAL_OBJECT_CBASE
-          %Q{this.sf.stack[this.sf.sp++] = this.sf.ddef;}
+          %Q{#{PUSH} = this.sf.ddef;}
         when VM_SPECIAL_OBJECT_CONST_BASE
           # Treated in a special way in setconstant
           # Why bother adding CONST_BASE if getconstant uses nil anyway?
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.Qnil;}
+          %Q{#{PUSH} = this.ruby.builtin.Qnil;}
 
         else
           raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
         end
       when :putiseq
-        %Q{this.sf.stack[this.sf.sp++] = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
+        %Q{#{PUSH} = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
 
       when :getconstant
         [
-          %Q{var module = this.sf.stack[--this.sf.sp];},
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.const_get(module, '#{@info[0]}')}
+          %Q{var module = #{POP};},
+          %Q{#{PUSH} = this.ruby.const_get(module, '#{@info[0]}')}
         ]
+
       when :setconstant
         [
-          %Q{var module = this.sf.stack[--this.sf.sp];},
-          %Q{this.ruby.const_set(module, '#{@info[0]}', this.sf.stack[--this.sf.sp])}
+          %Q{var module = #{POP};},
+          %Q{this.ruby.const_set(module, '#{@info[0]}', #{POP})}
         ]
 
       when :newarray
         [
           %Q{var value = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp);},
           %Q{this.sf.sp -= #{@info[0]};},
-          %Q{this.sf.stack[this.sf.sp++] = value;}
+          %Q{#{PUSH} = value;}
         ]
       when :duparray
-        %Q{this.sf.stack[this.sf.sp++] = #{@info[0]};}
+        %Q{#{PUSH} = #{@info[0]};}
       when :splatarray
         if @info[0] != false
           raise UnknownFeatureException, "unknown splatarray flags (#{@info[0]})"
         end
 
         [
-          %Q{var array = this.sf.stack[--this.sf.sp];},
+          %Q{var array = #{POP};},
           %Q{array = this.ruby.check_convert_type(array, this.ruby.constants.Array, 'to_a');},
           %Q{if(array == this.ruby.builtin.Qnil)},
           %Q{  array = [];},
-          %Q{this.sf.stack[this.sf.sp++] = array;}
+          %Q{#{PUSH} = array;}
         ]
       when :expandarray
         code = []
 
-        code << %Q{var array = this.sf.stack[--this.sf.sp];}
+        code << %Q{var array = #{POP};}
         code << %Q{this.ruby.check_type(array, this.ruby.constants.Array);}
 
         if (@info[1] & C_VM_ARRAY_REMAINS) != 0 # pack remainings into other array
-          code << %Q{this.sf.stack[this.sf.sp++] = array.slice(#{@info[0]}, array.length);}
+          code << %Q{#{PUSH} = array.slice(#{@info[0]}, array.length);}
         elsif @info[1] != 0
           raise UnknownFeatureException, "unknown expandarray flags (#{@info[1]})"
         end
 
         code << %Q{for(var i = 0; i < #{@info[0]}; i++)}
-        code << %Q{  this.sf.stack[this.sf.sp++] = array[#{@info[0]} - i - 1];}
+        code << %Q{  #{PUSH} = array[#{@info[0]} - i - 1];}
 
         code
       when :concatarray
         [
-          %Q{var array = this.sf.stack[--this.sf.sp];},
-          %Q{array = this.sf.stack[--this.sf.sp].concat(array);},
-          %Q{this.sf.stack[this.sf.sp++] = array;}
+          %Q{var array = #{POP};},
+          %Q{array = #{POP}.concat(array);},
+          %Q{#{PUSH} = array;}
         ]
 
       when :newhash
         [
           %Q{var hash = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp)},
           %Q{this.sf.sp -= #{@info[0]}},
-          %Q{this.sf.stack[this.sf.sp++] = this.ruby.builtin.make_hash(hash);}
+          %Q{#{PUSH} = this.ruby.builtin.make_hash(hash);}
         ]
 
       when :pop
         %Q{this.sf.sp--;}
       when :adjuststack
         %Q{this.sf.sp -= #{@info[0]};}
-
       when :dup
         [
           %Q{this.sf.stack[this.sf.sp] = this.sf.stack[this.sf.sp - 1];},
@@ -192,24 +199,24 @@ module ColdRuby
         ]
 
       when :setlocal
-        %Q{this.sf.osf.locals[#{@info[0]}] = this.sf.stack[--this.sf.sp];}
+        %Q{this.sf.osf.locals[#{@info[0]}] = #{POP};}
       when :getlocal
-        %Q{this.sf.stack[this.sf.sp++] = this.sf.osf.locals[#{@info[0]}];}
+        %Q{#{PUSH} = this.sf.osf.locals[#{@info[0]}];}
 
       when :setdynamic
-        %Q{this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}] = this.sf.stack[--this.sf.sp];}
+        %Q{this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}] = #{POP};}
       when :getdynamic
-        %Q{this.sf.stack[this.sf.sp++] = this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
+        %Q{#{PUSH} = this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
-        %Q{this.ruby.globals['#{@info[0]}'] = this.sf.stack[--this.sf.sp];}
+        %Q{this.ruby.globals['#{@info[0]}'] = #{POP};}
       when :getglobal
-        %Q{this.sf.stack[this.sf.sp++] = this.ruby.globals['#{@info[0]}'];}
+        %Q{#{PUSH} = this.ruby.globals['#{@info[0]}'];}
 
       when :setinstancevariable
-        %Q{this.sf.self.ivs['#{@info[0]}'] = this.sf.stack[--this.sf.sp];}
+        %Q{this.sf.self.ivs['#{@info[0]}'] = #{POP};}
       when :getinstancevariable
-        %Q{this.sf.stack[this.sf.sp++] = this.sf.self.ivs['#{@info[0]}'];}
+        %Q{#{PUSH} = this.sf.self.ivs['#{@info[0]}'];}
 
       when :send, :invokeblock
         code = []
@@ -245,7 +252,7 @@ module ColdRuby
             code << %Q{this.sf.sp--;} # remove nil, which apparently means self
             receiver = %Q{this.sf.self}
           else
-            receiver = %Q{this.sf.stack[--this.sf.sp]}
+            receiver = %Q{#{POP}}
           end
 
           if @info[2]
@@ -263,7 +270,25 @@ module ColdRuby
           code << %Q[var ret = this.ruby.yield(this, #{args});]
         end
 
-        code << %Q{this.sf.stack[this.sf.sp++] = ret;}
+        code << %Q{#{PUSH} = ret;}
+
+        code
+
+      when :defineclass
+        code = [
+          %Q{var iseq = #{ISeq.new(@pool, @info[1], @level + 1).compile};},
+          %Q{var superklass = #{POP};},
+          %Q{var cbase = #{POP};},
+        ]
+
+        case @info[2]
+        when VM_DEFINE_MODULE, VM_DEFINE_CLASS
+          define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
+          code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, } +
+                  %Q{'#{@info[0]}', superklass, #{define_class}, iseq);}
+        else
+          raise UnknownFeatureException, "defineclass type #{@info[2]}"
+        end
 
         code
 
@@ -272,7 +297,7 @@ module ColdRuby
       when :branchif, :branchunless
         mode = ("!" if type == :branchunless)
         [
-          %Q{if(#{mode}this.ruby.test(this.sf.stack[--this.sf.sp]))},
+          %Q{if(#{mode}this.ruby.test(#{POP}))},
           %Q{  return #{self.class.label_to_id(@info[0])};}
         ]
 

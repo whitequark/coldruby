@@ -11,7 +11,7 @@ $.define_singleton_method($.builtin.vmcore,
   iseq = $.check_type(iseq, $c.InstructionSequence);
 
   if(!klass.toplevel) {
-    $.check_type(klass, $c.Class);
+    $.check_type(klass, [$c.Class, $c.Module]);
     $.define_method(klass, meth.value, 0, iseq);
   } else {
     $.define_method($c.Object, meth.value, 0, iseq);
