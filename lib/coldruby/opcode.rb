@@ -120,6 +120,10 @@ module ColdRuby
       when :duparray
         %Q{this.sf.stack[this.sf.sp++] = #{@info[0]};}
       when :splatarray
+        if @info[0] != false
+          raise UnknownFeatureException, "unknown splatarray flags (#{@info[0]})"
+        end
+
         [
           %Q{var array = this.sf.stack[--this.sf.sp];},
           %Q{array = this.ruby.check_convert_type(array, this.ruby.constants.Array, 'to_a');},
@@ -136,13 +140,19 @@ module ColdRuby
         if (@info[1] & C_VM_ARRAY_REMAINS) != 0 # pack remainings into other array
           code << %Q{this.sf.stack[this.sf.sp++] = array.slice(#{@info[0]}, array.length);}
         elsif @info[1] != 0
-          raise UnknownFeatureException, ""
+          raise UnknownFeatureException, "unknown expandarray flags (#{@info[1]})"
         end
 
         code << %Q{for(var i = 0; i < #{@info[0]}; i++)}
         code << %Q{  this.sf.stack[this.sf.sp++] = array[#{@info[0]} - i - 1];}
 
         code
+      when :concatarray
+        [
+          %Q{var array = this.sf.stack[--this.sf.sp];},
+          %Q{array = array.concat(this.sf.stack[--this.sf.sp]);},
+          %Q{this.sf.stack[this.sf.sp++] = array;}
+        ]
 
       when :newhash
         [
