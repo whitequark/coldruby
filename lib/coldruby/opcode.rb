@@ -1,3 +1,5 @@
+require 'json'
+
 module ColdRuby
   class UnknownFeatureException < Exception
     def initialize(message, *args)
@@ -82,7 +84,7 @@ module ColdRuby
         when Fixnum
           %Q{#{PUSH} = #{object};}
         when String
-          %Q{#{PUSH} = #{@info[0].inspect};}
+          %Q{#{PUSH} = #{@info[0].to_json};}
         when Float
           %Q{#{PUSH} = this.ruby.builtin.make_float(#{@info[0].inspect});}
         when Range
@@ -226,14 +228,14 @@ module ColdRuby
         %Q{#{PUSH} = this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
-        %Q{this.ruby.gvar_set('#{@info[0]}', #{POP});}
+        %Q{this.ruby.gvar_set(#{@info[0].to_json}, #{POP});}
       when :getglobal
-        %Q{#{PUSH} = this.ruby.gvar_get('#{@info[0]}');}
+        %Q{#{PUSH} = this.ruby.gvar_get(#{@info[0].to_json});}
 
       when :setinstancevariable
-        %Q{this.sf.self.ivs['#{@info[0]}'] = #{POP};}
+        %Q{this.sf.self.ivs[#{@info[0].to_json}] = #{POP};}
       when :getinstancevariable
-        %Q{#{PUSH} = this.sf.self.ivs['#{@info[0]}'];}
+        %Q{#{PUSH} = this.sf.self.ivs[#{@info[0].to_json}];}
 
       when :send, :invokeblock
         code = []
@@ -302,7 +304,7 @@ module ColdRuby
         when VM_DEFINE_MODULE, VM_DEFINE_CLASS
           define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
           code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, } +
-                  %Q{'#{@info[0]}', superklass, #{define_class}, iseq);}
+                  %Q{#{@info[0].to_json}, superklass, #{define_class}, iseq);}
         else
           raise UnknownFeatureException, "defineclass type #{@info[2]}"
         end
