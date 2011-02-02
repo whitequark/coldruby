@@ -50,3 +50,5 @@ $.define_singleton_method($c.Symbol, 'all_symbols', 0, function(self) {
   }
   return symbols;
 });
+
+$.builtin.setup();

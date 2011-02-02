@@ -23,7 +23,7 @@ module ColdRuby
 
     C_VM_ARRAY_REMAINS = 1
 
-    attr_reader :type, :info
+    attr_reader :type, :info, :pool
 
     def initialize(pool, opcode, level=0)
       @pool = pool
@@ -54,8 +54,12 @@ module ColdRuby
       "<%#{@type}: #{@info.inspect}>"
     end
 
-    PUSH = 'this.sf.stack[this.sf.sp++]'
-    POP  = 'this.sf.stack[--this.sf.sp]'
+    PUSH   = 'this.sf.stack[this.sf.sp++]'
+    POP    = 'this.sf.stack[--this.sf.sp]'
+    SYMBOL = lambda { |opcode, symbol|
+                      opcode.pool.register_symbol(symbol);
+                      %Q{this.ruby.builtin.make_symbol(this.ruby.symbols[#{symbol.object_id}])}
+                    }
 
     # Here I'd like to express my appreciation to everyone who has thoroughly documented
     # the YARV bytecode. It may or may not be an internal data structure, but some
@@ -81,8 +85,7 @@ module ColdRuby
         when Range
           %Q{#{PUSH} = this.ruby.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
         when Symbol
-          @pool.register_symbol object
-          %Q{#{PUSH} = this.ruby.builtin.make_symbol(this.ruby.symbols[#{object.object_id}]);}
+          %Q{#{PUSH} = #{SYMBOL[self, object]};}
         when true
           %Q{#{PUSH} = this.ruby.builtin.Qtrue;}
         when false
@@ -209,9 +212,9 @@ module ColdRuby
         %Q{#{PUSH} = this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
-        %Q{this.ruby.globals['#{@info[0]}'] = #{POP};}
+        %Q{this.ruby.gvar_set('#{@info[0]}', #{POP});}
       when :getglobal
-        %Q{#{PUSH} = this.ruby.globals['#{@info[0]}'];}
+        %Q{#{PUSH} = this.ruby.gvar_get('#{@info[0]}');}
 
       when :setinstancevariable
         %Q{this.sf.self.ivs['#{@info[0]}'] = #{POP};}

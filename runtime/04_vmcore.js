@@ -37,4 +37,16 @@ $.define_singleton_method($.builtin.vmcore,
   other = $.check_convert_type(other, $c.Symbol, 'to_sym');
 
   $.alias_method(klass, meth.value, other.value);
+
+  return Qnil;
+});
+
+$.define_singleton_method($.builtin.vmcore,
+    'core#set_variable_alias', 2, function(self, variable, other) {
+  variable = $.check_convert_type(variable, $c.Symbol, 'to_sym');
+  other    = $.check_convert_type(other,    $c.Symbol, 'to_sym');
+
+  $.gvar_alias(variable.value, other.value);
+
+  return Qnil;
 });

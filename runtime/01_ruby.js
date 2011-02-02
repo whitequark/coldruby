@@ -1,7 +1,16 @@
 var $ = {
   constants: {},
   globals: {},
+  globals_aliases: {},
   builtin: {
+    setup: function() {
+      $.gvar_set('$"', []);
+      $.gvar_alias('$LOADED_FEATURES', '$"');
+
+      $.gvar_set('$:', []);
+      $.gvar_alias('$LOAD_PATH', '$:');
+    },
+
     allocate: function(self) {
       return {
         klass:            self,
@@ -29,14 +38,51 @@ var $ = {
     }
   },
 
-  sym2id: function(sym) {
-    return sym.value;
-  },
-
   id2sym: function(id) {
     return this.symbols[id];
   },
 
+  /* === GLOBAL VARIABLES === */
+  gvar_normalize: function(name) {
+    name = this.any2id(name);
+    if(name in this.globals_aliases) {
+      name = this.globals_aliases[name];
+    }
+    return name;
+  },
+
+  /*
+   * call-seq: -> Boolean
+   * Check if a global variable +name+ is defined.
+   */
+  gvar_defined: function(name) {
+    name = this.any2id(name);
+    return name in this.globals || name in this.globals_aliases;
+  },
+
+  /*
+   * Set an alias +name+ for global variable +other_name+.
+   */
+  gvar_alias: function(name, other_name) {
+    name = this.any2id(name);
+    this.globals_aliases[name] = this.gvar_normalize(other_name);
+  },
+
+  /*
+   * Retrieve contents of global variable +name+.
+   */
+  gvar_get: function(name) {
+    return this.globals[this.gvar_normalize(name)] || this.builtin.Qnil;
+  },
+
+  /*
+   * Set contents of global variable +name+ to +value+.
+   */
+  gvar_set: function(name, value) {
+    this.globals[this.gvar_normalize(name)] = value;
+  },
+
+  /* === CONSTANTS === */
   const_defined: function(scope, name) {
     if(scope == this.builtin.Qnil) {
       scope = this;
