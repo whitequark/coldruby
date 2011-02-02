@@ -120,6 +120,13 @@ var $ = {
     return klass;
   },
 
+  module_include: function(target, module) {
+    if(target.included_modules == undefined) {
+      target.included_modules = [];
+    }
+    target.included_modules.push(module);
+  },
+
   wrap_method: function(want_args, method) {
     var ruby = this, wrapper;
 
@@ -201,7 +208,13 @@ var $ = {
 
       var klass = search_klass ? object : object.klass;
       while(func == null && klass != null) {
-        if(klass.instance_methods != null) {
+        if(!search_klass && klass.included_modules) {
+          for(var i = 0; i < klass.included_modules.length && func == null; i++) {
+            func = klass.included_modules[i].instance_methods[method];
+          }
+        }
+
+        if(func == null && klass.instance_methods) {
           func = klass.instance_methods[method];
         }
 
