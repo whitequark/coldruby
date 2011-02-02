@@ -1,4 +1,4 @@
-$.define_bare_class('Hash', $c.Object);
+$.define_module('Hash', $c.Class);
 
 $.builtin.make_hash = function(elements) {
   if(elements.length % 2 != 0) {

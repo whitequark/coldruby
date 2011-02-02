@@ -1,4 +1,4 @@
-$.define_bare_class('Integer', $c.Object);
+$.define_class('Integer', $c.Class);
 
 $.define_method($c.Integer, 'to_i', 0, function(self) {
   return self;

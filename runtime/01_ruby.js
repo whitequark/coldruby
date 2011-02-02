@@ -68,11 +68,11 @@ var $ = {
     return value;
   },
 
-  define_bare_class: function(name, superklass) {
+  define_module: function(name, self_klass, superklass) {
     var klass = {
       klass_name:        name,
-      klass:             this.constants.Class,
-      superklass:        superklass,
+      klass:             self_klass || this.constants.Module,
+      superklass:        superklass || this.constants.Object,
       instance_methods:  {},
       singleton_methods: {},
       ivs:               {},
@@ -82,7 +82,7 @@ var $ = {
   },
 
   define_class: function(name, superklass) {
-    var klass = this.define_bare_class(name, superklass);
+    var klass = this.define_module(name, this.constants.Class, superklass);
     klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
     klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
     return klass;

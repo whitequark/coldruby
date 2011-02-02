@@ -1,4 +1,4 @@
-$.define_bare_class('TrueClass', $c.Object);
+$.define_module('TrueClass', $c.Class);
 
 $.define_method($c.TrueClass, 'to_s', 0, function(self) {
   return "true";
@@ -17,7 +17,7 @@ var Qtrue  = $.builtin.Qtrue = {
   klass: $c.TrueClass,
 };
 
-$.define_bare_class('FalseClass', $c.Object);
+$.define_module('FalseClass', $c.Class);
 
 $.define_method($c.FalseClass, 'to_s', 0, function(self) {
   return "false";

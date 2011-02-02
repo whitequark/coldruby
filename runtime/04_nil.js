@@ -1,4 +1,4 @@
-$.define_bare_class('NilClass', $c.Object);
+$.define_module('NilClass', $c.Class);
 
 $.define_method($c.NilClass, 'inspect', 0, function(self) {
   return "nil";
