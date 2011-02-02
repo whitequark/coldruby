@@ -56,6 +56,7 @@ module ColdRuby
 
     PUSH   = 'this.sf.stack[this.sf.sp++]'
     POP    = 'this.sf.stack[--this.sf.sp]'
+    TOP    = 'this.sf.stack[this.sf.sp - 1]'
     SYMBOL = lambda { |opcode, symbol|
                       opcode.pool.register_symbol(symbol);
                       %Q{this.ruby.id2sym(this.ruby.symbols[#{symbol.object_id}])}
@@ -75,13 +76,15 @@ module ColdRuby
         %Q{#{PUSH} = this.ruby.builtin.Qnil;}
       when :putself
         %Q{#{PUSH} = this.sf.self;}
-      when :putstring
-        %Q{#{PUSH} = #{@info[0].inspect};}
-      when :putobject
+      when :putobject, :putstring
         object = @info[0]
         case object
         when Fixnum
           %Q{#{PUSH} = #{object};}
+        when String
+          %Q{#{PUSH} = #{@info[0].inspect};}
+        when Float
+          %Q{#{PUSH} = this.ruby.builtin.make_float(#{@info[0].inspect});}
         when Range
           %Q{#{PUSH} = this.ruby.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
         when Symbol
@@ -108,6 +111,18 @@ module ColdRuby
         end
       when :putiseq
         %Q{#{PUSH} = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
+
+      when :tostring
+        [
+          %Q{if((typeof #{TOP}) != 'string')},
+          %Q{  #{TOP} = $.invoke_method(this, #{TOP}, 'to_s', []);}
+        ]
+      when :concatstrings
+        [
+          %Q{var strings = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp);},
+          %Q{this.sf.sp -= #{@info[0]};},
+          %Q{#{PUSH} = strings.join('');}
+        ]
 
       when :getconstant
         [
