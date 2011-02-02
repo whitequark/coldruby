@@ -249,7 +249,7 @@ module ColdRuby
         end
 
         if (options & ~(VM_CALL_ARGS_SPLAT_BIT | VM_CALL_FCALL_BIT |
-                        VM_CALL_VCALL_BIT)) != 0
+                        VM_CALL_ARGS_BLOCKARG_BIT | VM_CALL_VCALL_BIT)) != 0
           # Honestly, I don't know what VM_CALL_VCALL_BIT _really_ does.
           # But it works this way, so I accept it.
           raise UnknownFeatureException, "#{type} opcode flags #{options}"
@@ -268,8 +268,14 @@ module ColdRuby
           args = '[]'
         end
 
+        if (options & VM_CALL_ARGS_BLOCKARG_BIT) != 0
+          code.unshift %Q{var block = #{POP}.iseq;}
+          args << ', block'
+        end
+
+
         if type == :send
-          if (@info[3] & VM_CALL_FCALL_BIT) != 0
+          if (options & VM_CALL_FCALL_BIT) != 0
             code << %Q{this.sf.sp--;} # remove nil, which apparently means self
             receiver = %Q{this.sf.self}
           else

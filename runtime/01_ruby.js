@@ -339,6 +339,10 @@ var $ = {
     }
   },
 
+  block_given: function(ctx) {
+    return !!ctx.sf.block;
+  },
+
   yield: function(ctx, args, iseq) {
     var iseq = ctx.sf.block;
 
@@ -388,12 +392,34 @@ var $ = {
 */
 
     if(typeof iseq == 'object') {
-      if(iseq.info.arg_size != args.length) {
-        throw "argument count mismatch: " + args.length + " != " + iseq.info.arg_size;
+      if(args.length < iseq.info.args.argc && (iseq.info.type == 'method' || iseq.lambda)) {
+        throw "argument count mismatch: " + args.length + " < " + iseq.info.args.argc;
+      }
+
+      var argsinfo = iseq.info.args;
+      var new_args = [];
+
+      if(argsinfo.block > -1) {
+        if(new_sf.block) {
+          new_args[argsinfo.block] = this.builtin.make_proc(new_sf.block);
+        } else {
+          new_args[argsinfo.block] = this.builtin.Qnil;
+        }
+      }
+      for(var i = 0; i < argsinfo.argc; i++) {
+        new_args[i] = args.shift();
+      }
+      if(argsinfo.rest > -1) {
+        new_args[argsinfo.rest] = args;
+        args = [];
+      }
+
+      if(args.length > 0) {
+        throw "[internal] incorrect argument exploding"
       }
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
-        new_sf.locals[2 + i] = args[iseq.info.arg_size - i - 1];
+        new_sf.locals[2 + i] = new_args[iseq.info.arg_size - i - 1] || this.builtin.Qnil;
       }
     }
 

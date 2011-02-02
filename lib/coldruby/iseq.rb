@@ -24,6 +24,13 @@ module ColdRuby
       @type   = opcodes[9]
       @locals = opcodes[10]
 
+      @args   = opcodes[11]
+      if @args.is_a? Integer
+        args    = [0, [], 0, 0, -1, -1, 0]
+        args[0] = @args
+        @args   = args
+      end
+
       @pool   = pool
       @level  = level
       @seq    = Opcode.parse(@pool, opcodes[13], level)
@@ -69,8 +76,15 @@ module ColdRuby
     local_size: #{@local_size},
     stack_max:  #{@stack_max},
 
+    args: {
+      argc:  #{@args[0]},
+      rest:  #{@args[4]},
+      block: #{@args[5]},
+    },
+
     func:   '#{@function}',
     file:   '#{@file}',
+    line:   #{@line},
     path:   '#{@path}',
 
     type:   '#{@type}',
