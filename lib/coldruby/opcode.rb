@@ -23,6 +23,8 @@ module ColdRuby
     VM_SINGLETON_CLASS = 1
     VM_DEFINE_MODULE   = 2
 
+    DEFINED_IVAR = 3
+
     C_VM_ARRAY_REMAINS = 1
 
     attr_reader :type, :info, :pool
@@ -309,6 +311,27 @@ module ColdRuby
           code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, null, null, null, iseq);}
         else
           raise UnknownFeatureException, "defineclass type #{@info[2]}"
+        end
+
+        code
+
+      when :defined
+        object = @info[1]
+        case @info[0]
+        when DEFINED_IVAR
+          cond, str = %Q{obj.ivs['#{object}']}, 'instance-variable'
+        end
+
+        code = [
+          %Q{var obj = #{POP};},
+          %Q{if(obj == this.ruby.builtin.Qnil)},
+          %Q{  obj = this.sf.self; }
+        ]
+
+        if @info[2]
+          code << %Q{#{PUSH} = (#{cond}) ? '#{str}' : this.ruby.builtin.Qnil;}
+        else
+          code << %Q{#{PUSH} = (#{cond}) ? this.ruby.builtin.Qtrue : this.ruby.builtin.Qfalse;}
         end
 
         code
