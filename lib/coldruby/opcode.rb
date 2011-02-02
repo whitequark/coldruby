@@ -348,6 +348,9 @@ module ColdRuby
       when :leave
         %Q{return null;}
 
+      # Optimized versions. Just skip them now.
+      when :opt_case_dispatch
+
       else
         raise UnknownFeatureException, "opcode #{self.inspect}"
       end
