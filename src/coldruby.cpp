@@ -16,12 +16,12 @@ using namespace std;
 
 const char* prelude = " \
 $it = { \
-  eval:    function(code, info) { $i.eval($i.exec('-', info, code.length, code)); }, \
+  eval:    function(code, info) { $i.exec('-', info, code.length, code); }, \
   compile: function(file, path) { $i.print('] Compiling ' + file + '\\n'); \
-       $i.eval($i.exec(file, path)); }, \
+                                  $i.exec(file, path); }, \
 }; \
 $i.print('] Loading runtime'); \
-$i.eval($i.exec()); \
+$i.exec(); \
 ";
 const char* compile = "$it.compile('%s', '[]');";
 
@@ -36,18 +36,6 @@ Handle<Value> API_print(const Arguments& args) {
   cout << ObjectToString(args[0]) << flush;
 
   return Null();
-}
-
-Handle<Value> API_eval(const Arguments& args) {
-  if (args.Length() != 1) return Undefined();
-
-  HandleScope scope;
-  Handle<Value> arg = args[0];
-
-  if(!arg->IsString())
-    return Undefined();
-
-  return Script::Compile(Handle<String>::Cast(arg))->Run();
 }
 
 static int c_in, c_out;
@@ -127,7 +115,12 @@ Handle<Value> API_exec(const Arguments& args) {
     length -= bytes;
   }
 
-  return String::New(outputString.c_str(), outputString.length());
+  Handle<String> code = String::New(outputString.c_str(), outputString.length());
+  Handle<String> file = String::New(fileString.c_str(), fileString.length());
+
+  ScriptOrigin origin(file);
+
+  return Script::Compile(code, &origin)->Run();
 }
 
 int main(int argc, char* argv[]) {
@@ -139,7 +132,6 @@ int main(int argc, char* argv[]) {
 
   Handle<ObjectTemplate> interp = ObjectTemplate::New();
   interp->Set(String::New("print"), FunctionTemplate::New(API_print));
-  interp->Set(String::New("eval"),  FunctionTemplate::New(API_eval));
   interp->Set(String::New("exec"),  FunctionTemplate::New(API_exec));
 
   Handle<ObjectTemplate> global = ObjectTemplate::New();

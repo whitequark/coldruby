@@ -17,7 +17,7 @@ def get_runtime(plaintext=false)
       runtime_part << "\n\n"
       runtime << runtime_part
     else
-      runtime << [runtime_file, File.read(runtime_file)]
+      runtime << [File.basename(runtime_file), File.read(runtime_file)]
     end
   end
   runtime
@@ -122,7 +122,7 @@ if __FILE__ == $0
     puts file;        $>.flush
     code << %{$i.print('.');}
     if i < runtime.length - 1
-      code << %{$i.eval($i.exec());}
+      code << %{$i.exec();}
     else
       code << %{$i.print('\\n');}
     end
