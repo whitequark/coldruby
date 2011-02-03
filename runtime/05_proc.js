@@ -32,9 +32,10 @@ $.define_method($c.Proc, 'call', -1, function(self, args) {
     outer: sf,
   };
 
-  return this.execute(ctx, sf_opts, self.iseq, args)
+  return $.execute(this, sf_opts, self.iseq, args)
 });
 $.alias_method($c.Proc, 'yield', 'call');
+$.alias_method($c.Proc, '[]', 'call');
 $.alias_method($c.Proc, '===',   'call');
 
 $.define_method($c.Proc, 'lambda?', 0, function(self) {
