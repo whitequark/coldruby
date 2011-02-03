@@ -70,18 +70,39 @@ var $ = {
   },
 
   /* === CONSTANTS === */
+  const_find_scope: function(name) {
+    var cref = this.context.sf.cref;
+
+    // Skip outermost context; it has precedence lower than superklasses
+    for(var i = 0; i < cref.length - 1; i++) {
+      if(name in cref[i].constants)
+        return cref[i];
+    }
+
+    var klass = cref[0];
+    while(klass) {
+      if(name in klass.constants)
+        return klass;
+      klass = klass.superklass;
+    }
+
+    // Return the inner scope. It does not really matter what to
+    // return, as the constant won't be found anyway.
+    return cref[0];
+  },
+
   const_defined: function(scope, name, inherit) {
-    if(scope == this.builtin.Qnil)
-      scope = this.context.sf.cref[0];
     name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.const_find_scope(name);
 
     return (name in scope.constants);
   },
 
   const_get: function(scope, name, inherit) {
-    if(scope == this.builtin.Qnil)
-      scope = this.context.sf.cref[0];
     name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.const_find_scope(name);
 
     if(scope.constants[name] == undefined) {
       var strname = this.id2text(name)
