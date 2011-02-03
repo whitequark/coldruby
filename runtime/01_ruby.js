@@ -581,7 +581,7 @@ var $ = {
       ivs: {},
       toplevel: true
     };
-    this.define_singleton_method(toplevel, 'inspect', 0, function(self) {
+    this.define_singleton_method(toplevel, 'to_s', 0, function(self) {
       return "main";
     });
     return toplevel;
