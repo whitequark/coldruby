@@ -22,9 +22,9 @@ API
 ---
 
 The API provided is, by an interesting coincidence, very similar to the Ruby C 
-API (I, the author of ColdRuby, personally think that it is one of the bese C 
-API's). It still may undergo major changes, so it won't be documented now; you 
-can look in a generic runtime class implementation (like `runtime/05_hash.js`) 
+API (I, the author of ColdRuby, personally think that it is one of the best C 
+APIs ever). It still may undergo major changes, so it won't be documented now;
+you can look in a generic runtime class implementation (like `runtime/05_hash.js`) 
 or in the Ruby runtime itself (`runtime/01_ruby.js`).
 
 Usage
