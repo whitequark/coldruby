@@ -38,16 +38,17 @@ def compile(what, where, is_file)
     iseq = RubyVM::InstructionSequence
     if is_file
       ruby_iseq = nil
-      tryload = lambda { |file|
-        ruby_iseq = iseq.compile File.read(file), what, File.realpath(file), 1,
+      tryload = lambda { |file, suffix|
+        load = File.realpath(file + suffix)
+        ruby_iseq = iseq.compile File.read(load), what+suffix, load, 1,
                     CompilerOptions
       }
       where.each do |dir|
         file = File.join(dir, what)
-        if File.exists? file
-          tryload[file]
-        elsif File.exists?(file+'.rb')
-          tryload[file+'.rb']
+        if File.file? file
+          tryload[file, '']
+        elsif File.file?(file+'.rb')
+          tryload[file, '.rb']
         else
           next
         end
