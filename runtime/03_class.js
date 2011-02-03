@@ -31,6 +31,14 @@ $.define_method($c.Module, 'include', 1, function(self, module) {
   return Qnil;
 });
 
+$.define_method($c.Module, 'module_function', -1, function(self, args) {
+  for(var i = 0; i < args.length; i++) {
+    var name = $.any2id(args[i]);
+    self.singleton_methods[name] = self.instance_methods[name];
+  }
+  return Qnil;
+});
+
 $.define_method($c.Module, 'attr_reader', -1, function(self, args) {
   $.attr('reader', self, args);
   return Qnil;
