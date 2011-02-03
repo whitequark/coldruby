@@ -82,7 +82,20 @@ def compile(what, where, is_file)
     ddef: toplevel,
     cref: [$c.Object],
   };
-  $.execute(context, sf_opts, iseq, []);
+  $.protect(context, function() {
+    $.execute(context, sf_opts, iseq, []);
+  }, function(e) {
+    if(e.klass) {
+      var message   = $.invoke_method(this, e, 'message',   []);
+      var backtrace = $.invoke_method(this, e, 'backtrace', []);
+      $i.print(e.klass.klass_name + ": " + message + "\\n");
+      for(var i = backtrace.length - 1; i >= 0; i--) {
+        $i.print("\tfrom " + backtrace[i] + "\\n");
+      }
+    } else {
+      $i.print(e);
+    }
+  });
 })();
   EPILOGUE
 

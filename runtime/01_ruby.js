@@ -1,6 +1,8 @@
 var $ = {
   constants: {},
   internal_constants: {}, // analogue of rb_c*
+  c: null,
+  e: null,
   globals: {},
   globals_aliases: {},
   builtin: {
@@ -10,6 +12,8 @@ var $ = {
 
       $.gvar_set('$:', ['./stdlib']);
       $.gvar_alias('$LOAD_PATH', '$:');
+
+      $.e = $.c = $.internal_constants;
     },
 
     allocate: function(self) {
@@ -75,7 +79,7 @@ var $ = {
 
   const_get: function(scope, name, inherit) {
     if(scope == this.builtin.Qnil) scope = this;
-    name = $.any2id(name);
+    name = this.any2id(name);
 
     if(scope.constants[name] == undefined) {
       throw "constant " + this.id2text(name) + " is undefined";
@@ -131,7 +135,7 @@ var $ = {
     var ruby = this, wrapper;
 
     if(typeof method != 'function' &&
-         method.klass == this.internal_constants.InstructionSequence) {
+         method.klass == this.c.InstructionSequence) {
       return method;
     }
 
@@ -178,15 +182,15 @@ var $ = {
     }
 
     for(var i = 0; i < methods.length; i++) {
-      var method = this.any2id(methods[i]);
+      var method = this.any2id(methods[i]), v = '@' + this.id2text(method);
       if(type == 'reader' || type == 'accessor') {
         this.define_method(klass, method, 0, function(self) {
-          return self.ivs[method] || ruby.builtin.Qnil;
+          return self.ivs[v] || ruby.builtin.Qnil;
         });
       }
       if(type == 'writer' || type == 'accessor') {
         this.define_method(klass, this.id2text(method) + '=', 1, function(self, value) {
-          self.ivs[method] = value;
+          self.ivs[v] = value;
           return value;
         });
       }
@@ -235,21 +239,21 @@ var $ = {
     return find_method(object, method) != null;
   },
 
-  check_args: function(args, count) {
-    if(args.length != count) {
-      throw "wrong argument count: " + args.length + " != " + count;
+  check_args: function(ctx, args, req, opt) {
+    if(args.length < req || args.length > req + opt) {
+      this.raise(ctx, this.e.ArgumentError, "Wrong argument count: " + args.length + " != " + count);
     }
   },
 
-  check_type: function(arg, type) {
+  check_type: function(ctx, arg, type) {
     if(type instanceof Array) {
       for(var i = 0; i < type.length; i++) {
         if(arg.klass == type[i]) return arg;
       }
-      throw "type mismatch: " + arg.klass.klass_name + " is not expected";
+      this.raise(ctx, this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not expected");
     } else {
       if(arg.klass != type) {
-        throw "type mismatch: " + arg.klass.klass_name + " != " + type.klass_name;
+        this.raise(ctx, this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not " + type.klass_name);
       }
       return arg;
     }
@@ -263,11 +267,48 @@ var $ = {
     }
   },
 
+  raise: function(ctx, template, message, backtrace, skip) {
+    var args = (message != undefined) ? [message] : [];
+    if(typeof template == 'string') {
+      var exception = this.invoke_method(ctx, this.internal_constants.RuntimeError, 'new', [template]);
+    } else {
+      var exception = this.invoke_method(ctx, template, 'exception', args);
+    }
+    if(!backtrace) {
+      backtrace = [];
+
+      var sf = ctx.sf;
+      while(sf) {
+        if(sf.iseq && sf.iseq.info) {
+          backtrace.push(sf.iseq.info.file + ':' + sf.iseq.info.line +
+              ': in `' + sf.iseq.info.func + '\'');
+        } else {
+          //backtrace.push('<native code>');
+        }
+        sf = sf.parent;
+      }
+    }
+    if(skip) {
+      backtrace = backtrace.slice(0, backtrace.length - skip);
+    }
+    this.invoke_method(ctx, exception, 'set_backtrace', [backtrace]);
+
+    throw exception;
+  },
+
+  protect: function(ctx, code, rescue) {
+    try {
+      return code.call(ctx);
+    } catch(e) {
+      return rescue.call(ctx, e);
+    }
+  },
+
   execute_class: function(ctx, cbase, name, superklass, is_class, iseq) {
     if(name != null) {
       if(!this.const_defined(cbase, name)) {
         if(superklass.singleton) {
-          throw "can't make subclass of singleton";
+          this.raise(ctx, "Cannot make subclass of singleton");
         }
 
         var klass = {
@@ -345,7 +386,7 @@ var $ = {
     var iseq = ctx.sf.block;
 
     if(!iseq) {
-      throw "block is needed";
+      this.raise(ctx, this.e.LocalJumpError, "Block is required");
     }
 
     var sf = iseq.stack_frame;
@@ -375,6 +416,8 @@ var $ = {
       self: null,
       ddef: null,
       cref: null,
+
+      iseq: iseq,
     };
 
     for(var key in opts) {
@@ -481,4 +524,4 @@ var $ = {
   }
 };
 
-var $c = $.internal_constants;
+var $c = $.internal_constants, $e = $c;

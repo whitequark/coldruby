@@ -3,7 +3,7 @@ $c.Kernel = $.define_module('Kernel'); // while we have no mixins
 $.module_include($c.Object, $c.Kernel);
 
 $.define_method($c.Kernel, 'block_given?', 0, function(self) {
-  return $.block_given() ? Qtrue : Qfalse;
+  return $.block_given(this) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Kernel, 'proc', 0, function(self) {
@@ -36,13 +36,18 @@ $.define_method($c.Kernel, 'lambda', 0, function(self) {
   };
 });
 
+$.define_method($c.Kernel, 'raise', -1, function(self, args) {
+  $.check_args(this, args, 1, 2);
+  $.raise(this, args[0], args[1], args[2], 1);
+});
+
 $.define_method($c.Kernel, 'load', 1, function(self, file) {
-  file = $.check_type(file, $c.String);
+  file = $.check_type(this, file, $c.String);
   $it.compile(file, $.invoke_method(this, $.gvar_get('$:'), 'inspect', []));
 });
 
 $.define_method($c.Kernel, 'require', 1, function(self, file) {
-  file = $.check_type(file, $c.String);
+  file = $.check_type(this, file, $c.String);
 
   var features = $.gvar_get('$"');
   for(var i = 0; i < features.length; i++) {
@@ -56,7 +61,7 @@ $.define_method($c.Kernel, 'require', 1, function(self, file) {
 });
 
 $.define_method($c.Kernel, 'eval', 1, function(self, code) {
-  code = $.check_type(code, $c.String);
+  code = $.check_type(this, code, $c.String);
   $it.eval(code, '[\"(eval)\",null,1]');
 });
 

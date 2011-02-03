@@ -28,7 +28,7 @@ $.define_singleton_method($c.Hash, '[]', -1, function(self, args) {
 });
 
 $.define_singleton_method($c.Hash, 'new', -1, function(self, args) {
-  $.check_args(args, 0, 1);
+  $.check_args(this, args, 0, 1);
 
   var hash = $.builtin.make_hash([]);
   if($.has_block(this)) {
