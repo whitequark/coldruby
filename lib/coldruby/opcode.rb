@@ -133,6 +133,8 @@ module ColdRuby
       when :getconstant
         [
           %Q{var module = #{POP};},
+          %Q{if(module == this.ruby.builtin.Qnil)},
+          %Q{  module = this.sf.cref[0];},
           %Q{#{PUSH} = this.ruby.const_get(module, #{SYMBOL[self, @info[0]]})}
         ]
 
