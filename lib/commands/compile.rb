@@ -102,7 +102,7 @@ if __FILE__ == $0
   print runtime
 
   loop do
-    trap("TERM") { break }
+    trap("TERM") { exit }
 
     file = gets.strip
     if file == '-'

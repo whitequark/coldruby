@@ -58,7 +58,7 @@ bool fork_compiler() {
   pipe(in);
   pipe(out);
 
-  pid_t c_pid = fork();
+  c_pid = fork();
   if(c_pid == 0) {
     dup2(in[0], 0);
     close(in[0]);
