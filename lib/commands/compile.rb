@@ -113,8 +113,10 @@ HANDLER
       for(var i = 0; i < backtrace.length; i++) {
         $i.print("\tfrom " + backtrace[i] + "\\n");
       }
-    } else {
+    } else if(e.stack) {
       $i.print("Native exception: " + e.stack + "\\n");
+    } else {
+      $i.print("Native exception: " + e + "\\n");
     }
   });
 })();
