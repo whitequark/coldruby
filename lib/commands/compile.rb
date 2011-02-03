@@ -81,25 +81,25 @@ def compile(what, where, is_file)
     $.symbols[k] = parseInt($.text2sym(new_symbols[k]).value);
   }
 
-  var context = $.create_context();
-  var toplevel = $.create_toplevel();
-  var sf_opts = {
-    self: toplevel,
-    ddef: toplevel,
-    cref: [$c.Object],
-  };
-  $.protect(context, function() {
-    $.execute(context, sf_opts, iseq, []);
+  var ruby = $.create_ruby();
+  ruby.protect(function() {
+    var toplevel = ruby.create_toplevel();
+    var sf_opts = {
+      self: toplevel,
+      ddef: toplevel,
+      cref: [$c.Object],
+      };
+    ruby.execute(sf_opts, iseq, []);
   }, function(e) {
-    if(e.klass) {
-      var message   = $.invoke_method(this, e, 'message',   []);
-      var backtrace = $.invoke_method(this, e, 'backtrace', []);
+    if(e.klass && typeof e != 'string') {
+      var message   = e.ivs['@message'];
+      var backtrace = e.ivs['@backtrace'];
       $i.print(e.klass.klass_name + ": " + message + "\\n");
       for(var i = backtrace.length - 1; i >= 0; i--) {
         $i.print("\tfrom " + backtrace[i] + "\\n");
       }
     } else {
-      $i.print(e);
+      $i.print("Native exception: " + e.stack + "\\n");
     }
   });
 })();

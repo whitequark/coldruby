@@ -56,27 +56,27 @@ $.define_method($c.Module, 'attr_accessor', -1, function(self, args) {
 });
 
 $.define_method($c.Module, 'const_get', -1, function(self, args) {
-  $.check_args(this, args, 1, 1);
-  var name    = $.check_convert_type(this, args[0], $c.Symbol, 'to_sym');
+  this.check_args(args, 1, 1);
+  var name    = this.check_convert_type(args[0], $c.Symbol, 'to_sym');
   var inherit = $.test(args[1] || Qtrue);
   return $.const_get(self, name, inherit);
 });
 
 $.define_method($c.Module, 'const_defined?', -1, function(self, args) {
-  $.check_args(this, args, 1, 1);
-  var name    = $.check_convert_type(this, args[0], $c.Symbol, 'to_sym');
+  this.check_args(args, 1, 1);
+  var name    = this.check_convert_type(args[0], $c.Symbol, 'to_sym');
   var inherit = $.test(args[1] || Qtrue);
   return $.const_defined(self, name, inherit) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
-  var name = $.check_convert_type(this, name, $c.Symbol, 'to_sym');
-  return $.const_set(self, name, value);
+  var name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  return this.const_set(self, name, value);
 });
 
 $.define_method($c.Module, 'constants', -1, function(self, args) {
-  $.check_args(this, args, 0, 1);
-  var inherit = $.test(args[1] || Qtrue);
+  this.check_args(args, 0, 1);
+  var inherit = this.test(args[1] || Qtrue);
 
   var constants = [];
   for(var name in self.constants)

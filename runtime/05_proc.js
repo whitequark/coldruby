@@ -8,10 +8,10 @@ $.builtin.make_proc = function(iseq) {
 }
 
 $.define_method($c.Proc, 'initialize', 0, function(self) {
-  if($.block_given(this)) {
-    self.iseq = this.sf.block;
+  if(this.block_given()) {
+    self.iseq = this.context.sf.block;
   } else if(this.sf.parent.block) {
-    self.iseq = this.sf.parent.block;
+    self.iseq = this.context.sf.parent.block;
   } else {
     throw "Proc.new requires a block"
   }
@@ -32,7 +32,7 @@ $.define_method($c.Proc, 'call', -1, function(self, args) {
     outer: sf,
   };
 
-  return $.execute(this, sf_opts, self.iseq, args)
+  return this.execute(sf_opts, self.iseq, args)
 });
 $.alias_method($c.Proc, 'yield', 'call');
 $.alias_method($c.Proc, '[]', 'call');

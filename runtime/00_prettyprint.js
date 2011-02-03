@@ -59,5 +59,5 @@ function dump_object(obj, ex)
 }
 
 function pp(object) {
-  print(dump_object(object, {}).dump);
+  $i.print(dump_object(object, {}).dump);
 }

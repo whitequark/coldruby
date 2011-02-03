@@ -58,12 +58,12 @@ module ColdRuby
       "<%#{@type}: #{@info.inspect}>"
     end
 
-    PUSH   = 'this.sf.stack[this.sf.sp++]'
-    POP    = 'this.sf.stack[--this.sf.sp]'
-    TOP    = 'this.sf.stack[this.sf.sp - 1]'
+    PUSH   = 'sf.stack[sf.sp++]'
+    POP    = 'sf.stack[--sf.sp]'
+    TOP    = 'sf.stack[sf.sp - 1]'
     SYMBOL = lambda { |opcode, symbol|
                       opcode.pool.register_symbol(symbol);
-                      %Q{this.ruby.id2sym(this.ruby.symbols[#{symbol.object_id}])}
+                      %Q{this.id2sym(this.symbols[#{symbol.object_id}])}
                     }
 
     # Here I'd like to express my appreciation to everyone who has thoroughly documented
@@ -77,9 +77,9 @@ module ColdRuby
         nil # Ignore
 
       when :putnil
-        %Q{#{PUSH} = this.ruby.builtin.Qnil;}
+        %Q{#{PUSH} = this.builtin.Qnil;}
       when :putself
-        %Q{#{PUSH} = this.sf.self;}
+        %Q{#{PUSH} = sf.self;}
       when :putobject, :putstring
         object = @info[0]
         case object
@@ -88,29 +88,29 @@ module ColdRuby
         when String
           %Q{#{PUSH} = #{@info[0].to_json};}
         when Float
-          %Q{#{PUSH} = this.ruby.builtin.make_float(#{@info[0].inspect});}
+          %Q{#{PUSH} = this.builtin.make_float(#{@info[0].inspect});}
         when Range
-          %Q{#{PUSH} = this.ruby.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
+          %Q{#{PUSH} = this.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
         when Symbol
           %Q{#{PUSH} = #{SYMBOL[self, object]};}
         when true
-          %Q{#{PUSH} = this.ruby.builtin.Qtrue;}
+          %Q{#{PUSH} = this.builtin.Qtrue;}
         when false
-          %Q{#{PUSH} = this.ruby.builtin.Qfalse;}
+          %Q{#{PUSH} = this.builtin.Qfalse;}
         when Object
-          %Q{#{PUSH} = this.ruby.internal_constants.Object;}
+          %Q{#{PUSH} = this.internal_constants.Object;}
         else
           raise UnknownFeatureException, "putobject type #{object}"
         end
       when :putspecialobject
         case @info[0]
         when VM_SPECIAL_OBJECT_VMCORE
-          %Q{#{PUSH} = this.ruby.builtin.vmcore;}
+          %Q{#{PUSH} = this.builtin.vmcore;}
         when VM_SPECIAL_OBJECT_CBASE
-          %Q{#{PUSH} = this.sf.ddef;}
+          %Q{#{PUSH} = sf.ddef;}
         when VM_SPECIAL_OBJECT_CONST_BASE
           # Just guessing.
-          %Q{#{PUSH} = this.sf.cref[0];}
+          %Q{#{PUSH} = sf.cref[0];}
 
         else
           raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
@@ -121,33 +121,31 @@ module ColdRuby
       when :tostring
         [
           %Q{if((typeof #{TOP}) != 'string')},
-          %Q{  #{TOP} = $.invoke_method(this, #{TOP}, 'to_s', []);}
+          %Q{  #{TOP} = this.funcall(#{TOP}, 'to_s');}
         ]
       when :concatstrings
         [
-          %Q{var strings = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp);},
-          %Q{this.sf.sp -= #{@info[0]};},
+          %Q{var strings = sf.stack.slice(sf.sp - #{@info[0]}, sf.sp);},
+          %Q{sf.sp -= #{@info[0]};},
           %Q{#{PUSH} = strings.join('');}
         ]
 
       when :getconstant
         [
           %Q{var module = #{POP};},
-          %Q{if(module == this.ruby.builtin.Qnil)},
-          %Q{  module = this.sf.cref[0];},
-          %Q{#{PUSH} = this.ruby.const_get(module, #{SYMBOL[self, @info[0]]})}
+          %Q{#{PUSH} = this.const_get(module, #{SYMBOL[self, @info[0]]})}
         ]
 
       when :setconstant
         [
           %Q{var module = #{POP};},
-          %Q{this.ruby.const_set(module, #{SYMBOL[self, @info[0]]}, #{POP})}
+          %Q{this.const_set(module, #{SYMBOL[self, @info[0]]}, #{POP})}
         ]
 
       when :newarray
         [
-          %Q{var value = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp);},
-          %Q{this.sf.sp -= #{@info[0]};},
+          %Q{var value = sf.stack.slice(sf.sp - #{@info[0]}, sf.sp);},
+          %Q{sf.sp -= #{@info[0]};},
           %Q{#{PUSH} = value;}
         ]
       when :duparray
@@ -167,8 +165,8 @@ module ColdRuby
 
         [
           %Q{var array = #{POP};},
-          %Q{array = this.ruby.check_convert_type(array, this.ruby.constants.Array, 'to_a');},
-          %Q{if(array == this.ruby.builtin.Qnil)},
+          %Q{array = this.check_convert_type(array, this.internal_constants.Array, 'to_a');},
+          %Q{if(array == this.builtin.Qnil)},
           %Q{  array = [];},
           %Q{#{PUSH} = array;}
         ]
@@ -176,7 +174,7 @@ module ColdRuby
         code = []
 
         code << %Q{var array = #{POP};}
-        code << %Q{this.ruby.check_type(array, this.ruby.constants.Array);}
+        code << %Q{this.check_type(array, this.internal_constants.Array);}
 
         if (@info[1] & C_VM_ARRAY_REMAINS) != 0 # pack remainings into other array
           code << %Q{#{PUSH} = array.slice(#{@info[0]}, array.length);}
@@ -197,59 +195,59 @@ module ColdRuby
 
       when :newhash
         [
-          %Q{var hash = this.sf.stack.slice(this.sf.sp - #{@info[0]}, this.sf.sp)},
-          %Q{this.sf.sp -= #{@info[0]}},
-          %Q{#{PUSH} = this.ruby.builtin.make_hash(hash);}
+          %Q{var hash = sf.stack.slice(sf.sp - #{@info[0]}, sf.sp)},
+          %Q{sf.sp -= #{@info[0]}},
+          %Q{#{PUSH} = this.builtin.make_hash(hash);}
         ]
 
       when :pop
-        %Q{this.sf.sp--;}
+        %Q{sf.sp--;}
       when :adjuststack
-        %Q{this.sf.sp -= #{@info[0]};}
+        %Q{sf.sp -= #{@info[0]};}
       when :dup
         [
-          %Q{this.sf.stack[this.sf.sp] = this.sf.stack[this.sf.sp - 1];},
-          %Q{this.sf.sp++;},
+          %Q{sf.stack[sf.sp] = sf.stack[sf.sp - 1];},
+          %Q{sf.sp++;},
         ]
       when :dupn
         [
           %Q{for(var i = 0; i < #{@info[0]}; i++)},
-          %Q{  this.sf.stack[this.sf.sp + i] = this.sf.stack[this.sf.sp + i - #{@info[0]}];},
-          %Q{this.sf.sp += #{@info[0]};}
+          %Q{  sf.stack[sf.sp + i] = sf.stack[sf.sp + i - #{@info[0]}];},
+          %Q{sf.sp += #{@info[0]};}
         ]
       when :topn
         [
-          %Q{this.sf.stack[this.sf.sp] = this.sf.stack[this.sf.sp - #{@info[0]}];},
-          %Q{this.sf.sp++;}
+          %Q{sf.stack[sf.sp] = sf.stack[sf.sp - #{@info[0]}];},
+          %Q{sf.sp++;}
         ]
       when :setn
-        %Q{this.sf.stack[this.sf.sp - #{@info[0]}] = this.sf.stack[this.sf.sp - 1];}
+        %Q{sf.stack[sf.sp - #{@info[0] - 1}] = sf.stack[sf.sp - 1];}
       when :swap
         [
-          %Q{var tmp = this.sf.stack[this.sf.sp - 1];},
-          %Q{this.sf.stack[this.sf.sp - 1] = this.sf.stack[this.sf.sp - 2];},
-          %Q{this.sf.stack[this.sf.sp - 2] = tmp;},
+          %Q{var tmp = sf.stack[sf.sp - 1];},
+          %Q{sf.stack[sf.sp - 1] = sf.stack[sf.sp - 2];},
+          %Q{sf.stack[sf.sp - 2] = tmp;},
         ]
 
       when :setlocal
-        %Q{this.sf.osf.locals[#{@info[0]}] = #{POP};}
+        %Q{sf.osf.locals[#{@info[0]}] = #{POP};}
       when :getlocal
-        %Q{#{PUSH} = this.sf.osf.locals[#{@info[0]}];}
+        %Q{#{PUSH} = sf.osf.locals[#{@info[0]}];}
 
       when :setdynamic
-        %Q{this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}] = #{POP};}
+        %Q{sf.dynamic[#{@info[1]}].locals[#{@info[0]}] = #{POP};}
       when :getdynamic
-        %Q{#{PUSH} = this.sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
+        %Q{#{PUSH} = sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
-        %Q{this.ruby.gvar_set(#{@info[0].to_json}, #{POP});}
+        %Q{this.gvar_set(#{@info[0].to_json}, #{POP});}
       when :getglobal
-        %Q{#{PUSH} = this.ruby.gvar_get(#{@info[0].to_json});}
+        %Q{#{PUSH} = this.gvar_get(#{@info[0].to_json});}
 
       when :setinstancevariable
-        %Q{this.sf.self.ivs[#{@info[0].to_json}] = #{POP};}
+        %Q{sf.self.ivs[#{@info[0].to_json}] = #{POP};}
       when :getinstancevariable
-        %Q{#{PUSH} = this.sf.self.ivs[#{@info[0].to_json}];}
+        %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_json}];}
 
       when :send, :invokeblock
         code = []
@@ -268,8 +266,8 @@ module ColdRuby
         end
 
         if argcount > 0
-          code << %Q{var args = this.sf.stack.slice(this.sf.sp - #{argcount}, this.sf.sp);}
-          code << %Q{this.sf.sp -= #{argcount};}
+          code << %Q{var args = sf.stack.slice(sf.sp - #{argcount}, sf.sp);}
+          code << %Q{sf.sp -= #{argcount};}
 
           if (options & VM_CALL_ARGS_SPLAT_BIT) != 0
             code << %Q{args = args.concat(args.pop());}
@@ -288,25 +286,25 @@ module ColdRuby
 
         if type == :send
           if (options & VM_CALL_FCALL_BIT) != 0
-            code << %Q{this.sf.sp--;} # remove nil, which apparently means self
-            receiver = %Q{this.sf.self}
+            code << %Q{sf.sp--;} # remove nil, which apparently means self
+            receiver = %Q{sf.self}
           else
             receiver = %Q{#{POP}}
           end
 
           if @info[2]
             code << %Q{var iseq = #{ISeq.new(@pool, @info[2], @level + 1).compile};}
-            code << %Q{iseq.stack_frame = this.sf;}
+            code << %Q{iseq.stack_frame = sf;}
             args << ', iseq'
           end
 
           method = @info[0].to_sym
           @pool.register_symbol method
 
-          code << %Q[var ret = this.ruby.invoke_method(this, #{receiver}, ] +
-                  %Q[this.ruby.symbols[#{method.object_id}], #{args});]
+          code << %Q[var ret = this.funcall2(#{receiver}, ] +
+                  %Q[this.symbols[#{method.object_id}], #{args});]
         elsif type == :invokeblock
-          code << %Q[var ret = this.ruby.yield(this, #{args});]
+          code << %Q[var ret = this.yield2(#{args});]
         end
 
         code << %Q{#{PUSH} = ret;}
@@ -323,10 +321,10 @@ module ColdRuby
         case @info[2]
         when VM_DEFINE_MODULE, VM_DEFINE_CLASS
           define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
-          code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, } +
+          code << %Q{#{PUSH} = this.execute_class(cbase, } +
                   %Q{#{@info[0].to_json}, superklass, #{define_class}, iseq);}
         when VM_SINGLETON_CLASS
-          code << %Q{#{PUSH} = this.ruby.execute_class(this, cbase, null, null, null, iseq);}
+          code << %Q{#{PUSH} = this.execute_class(cbase, null, null, null, iseq);}
         else
           raise UnknownFeatureException, "defineclass type #{@info[2]}"
         end
@@ -342,14 +340,14 @@ module ColdRuby
 
         code = [
           %Q{var obj = #{POP};},
-          %Q{if(obj == this.ruby.builtin.Qnil)},
-          %Q{  obj = this.sf.self; }
+          %Q{if(obj == this.builtin.Qnil)},
+          %Q{  obj = sf.self; }
         ]
 
         if @info[2]
-          code << %Q{#{PUSH} = (#{cond}) ? '#{str}' : this.ruby.builtin.Qnil;}
+          code << %Q{#{PUSH} = (#{cond}) ? '#{str}' : this.builtin.Qnil;}
         else
-          code << %Q{#{PUSH} = (#{cond}) ? this.ruby.builtin.Qtrue : this.ruby.builtin.Qfalse;}
+          code << %Q{#{PUSH} = (#{cond}) ? this.builtin.Qtrue : this.builtin.Qfalse;}
         end
 
         code
@@ -359,7 +357,7 @@ module ColdRuby
       when :branchif, :branchunless
         mode = ("!" if type == :branchunless)
         [
-          %Q{if(#{mode}this.ruby.test(#{POP}))},
+          %Q{if(#{mode}this.test(#{POP}))},
           %Q{  return #{self.class.label_to_id(@info[0])};}
         ]
 

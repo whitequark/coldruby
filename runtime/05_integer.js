@@ -12,15 +12,15 @@ $.alias_method($c.Integer, 'truncate', 'to_i');
 $.define_method($c.Integer, 'times', 0, function(self) {
   if(typeof self == 'number') {
     for(var i = 0; i < self; i++) {
-      $.yield(this, [i]);
+      this.yield(i);
     }
   } else {
     var i = 0;
 
-    while($.test($.invoke_method(this, i, '<', [self]))) {
-      $.yield(this, [i]);
+    while($.test(this.funcall(i, '<', self))) {
+      this.yield(i);
 
-      i = $.invoke_method(this, i, '+', [1]);
+      i = this.funcall(i, '+', 1);
     }
   }
 
@@ -30,15 +30,15 @@ $.define_method($c.Integer, 'times', 0, function(self) {
 $.define_method($c.Integer, 'upto', 1, function(from, to) {
   if(typeof from == 'number' && typeof to == 'number') {
     for(var i = from; i <= to; i++) {
-      $.yield(this, [i]);
+      this.yield(i);
     }
   } else {
     var i = 0;
 
-    while(!$.test($.invoke_method(this, i, '>', [self]))) {
-      $.yield(this, [i]);
+    while(!$.test(this.funcall(i, '>', self))) {
+      this.yield(i);
 
-      i = $.invoke_method(this, i, '+', [1]);
+      i = this.funcall(i, '+', 1);
     }
   }
 
@@ -48,15 +48,15 @@ $.define_method($c.Integer, 'upto', 1, function(from, to) {
 $.define_method($c.Integer, 'downto', 1, function(from, to) {
   if(typeof from == 'number' && typeof to == 'number') {
     for(var i = from; i >= to; i--) {
-      $.yield(this, [i]);
+      this.yield(i);
     }
   } else {
     var i = 0;
 
-    while(!$.test($.invoke_method(this, i, '<', [self]))) {
-      $.yield(this, [i]);
+    while(!$.test(this.funcall(i, '<', self))) {
+      this.yield(i);
 
-      i = $.invoke_method(this, i, '-', [1]);
+      i = this.funcall(i, '-', 1);
     }
   }
 
@@ -68,11 +68,11 @@ $.define_method($c.Integer, 'integer?', 0, function(self) {
 });
 
 $.define_method($c.Integer, 'even?', 0, function(self) {
-  return $.invoke_method(this, self, '%', [2]) == 0 ? Qtrue : Qfalse;
+  return this.funcall(self, '%', 2) == 0 ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Integer, 'odd?', 0, function(self) {
-  return $.invoke_method(this, self, '%', [2]) != 0 ? Qtrue : Qfalse;
+  return this.funcall(self, '%', 2) != 0 ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Integer, 'succ', 0, function(self) {
@@ -80,7 +80,7 @@ $.define_method($c.Integer, 'succ', 0, function(self) {
     return self + 1;
   }
 
-  return $.invoke_method(this, self, '+', [1]);
+  return this.funcall(self, '+', 1);
 });
 $.alias_method($c.Integer, 'next', 'succ');
 
@@ -89,7 +89,7 @@ $.define_method($c.Integer, 'pred', 0, function(self) {
     return self - 1;
   }
 
-  return $.invoke_method(this, self, '-', [1]);
+  return this.funcall(self, '-', 1);
 });
 
 $.define_method($c.Integer, 'numerator', 0, function(self) {

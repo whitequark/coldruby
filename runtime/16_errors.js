@@ -13,8 +13,8 @@ $.define_class('ZeroDivisionError', $e.StandardError);
 $.define_class('NameError',     $e.StandardError);
 $.attr('reader', $e.NameError, 'name');
 $.define_method($e.NameError, 'initialize', -1, function(self, args) {
-  $.check_args(args, 1, 1);
-  $.super([args[0]]);
+  this.check_args(args, 1, 1);
+  this.super(args[0]);
 
   this.ivs['@name'] = args[1] || Qnil;
 });
@@ -22,8 +22,8 @@ $.define_method($e.NameError, 'initialize', -1, function(self, args) {
 $.define_class('NoMethodError', $e.NameError);
 $.attr('reader', $e.NoMethodError, 'args');
 $.define_method($e.NoMethodError, 'initialize', -1, function(self, args) {
-  $.check_args(args, 2, 1);
-  $.super([args[0], args[1]]);
+  this.check_args(args, 2, 1);
+  this.super(args[0], args[1]);
 
   this.ivs['@args'] = args
 });
@@ -39,7 +39,7 @@ $.attr('reader', $e.StopIteration, 'result');
 $.define_class('SystemExit', $e.Exception);
 $.attr('reader', $e.SystemExit, 'status');
 $.define_method($e.SystemExit, 'initialize', -1, function(self, args) {
-  $.check_args(args, 0, 1);
+  this.check_args(args, 0, 1);
   this.ivs['@status'] = args[0] || 0;
 });
 $.define_method($e.SystemExit, 'success?', 0, function(self) {

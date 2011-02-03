@@ -20,5 +20,5 @@ $.define_method($c.Object, 'to_s', 0, function(self) {
 });
 
 $.define_method($c.Object, 'inspect', 0, function(self) {
-  return $.invoke_method(this, self, 'to_s', []);
+  return this.funcall(self, 'to_s');
 });

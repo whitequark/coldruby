@@ -23,8 +23,8 @@ var $ = {
       };
     },
     'new': function(self, args) {
-      var object = this.ruby.builtin.allocate(self);
-      $.invoke_method(this, object, 'initialize', args);
+      var object = this.builtin.allocate(self);
+      this.funcall2(object, 'initialize', args);
       return object;
     },
   },
@@ -71,18 +71,21 @@ var $ = {
 
   /* === CONSTANTS === */
   const_defined: function(scope, name, inherit) {
-    if(scope == this.builtin.Qnil) scope = this;
-    name = $.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.context.sf.cref[0];
+    name = this.any2id(name);
 
     return (name in scope.constants);
   },
 
   const_get: function(scope, name, inherit) {
-    if(scope == this.builtin.Qnil) scope = this;
+    if(scope == this.builtin.Qnil)
+      scope = this.context.sf.cref[0];
     name = this.any2id(name);
 
     if(scope.constants[name] == undefined) {
-      throw "constant " + this.id2text(name) + " is undefined";
+      var strname = this.id2text(name)
+      this.raise2(this.e.NameError, ["Constant " + strname + " is undefined", strname]);
     }
 
     return scope.constants[name];
@@ -90,10 +93,11 @@ var $ = {
 
   const_set: function(scope, name, value) {
     if(scope == this.builtin.Qnil) scope = this;
-    name = $.any2id(name);
+    name = this.any2id(name);
 
     if(scope.constants[name] != undefined) {
-      throw "constant " + this.id2text(name) + " is already defined";
+      var strname = this.id2text(name)
+      this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
     }
 
     scope.constants[name] = value;
@@ -132,16 +136,19 @@ var $ = {
   },
 
   wrap_method: function(want_args, method) {
-    var ruby = this, wrapper;
+    var wrapper;
 
-    if(typeof method != 'function' &&
-         method.klass == this.c.InstructionSequence) {
-      return method;
+    if(typeof method != 'function') {
+      if(method.klass == this.c.InstructionSequence) {
+        return method;
+      } else {
+        throw "wrap_method: invalid object";
+      }
     }
 
     if(want_args >= 0) {
       wrapper = function(self, args) {
-        ruby.check_args(args, want_args);
+        this.check_args(args, want_args);
         args.unshift(self);
         return method.apply(this, args);
       };
@@ -151,17 +158,19 @@ var $ = {
       throw "wrap_method: unknown want_args type " + want_args;
     }
 
+    method.native_method = this.id2text(method);
+
     return wrapper;
   },
 
   define_method: function(klass, name, want_args, method) {
-    name = $.any2id(name);
+    name = this.any2id(name);
 
     klass.instance_methods[name] = this.wrap_method(want_args, method);
   },
 
   define_singleton_method: function(klass, name, want_args, method) {
-    name = $.any2id(name);
+    name = this.any2id(name);
 
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
@@ -169,10 +178,10 @@ var $ = {
   },
 
   alias_method: function(klass, name, other_name) {
-    name       = $.any2id(name);
-    other_name = $.any2id(other_name);
+    name       = this.any2id(name);
+    other_name = this.any2id(other_name);
 
-    klass.instance_methods[name] = $.find_method(klass, other_name, true);
+    klass.instance_methods[name] = this.find_method(klass, other_name, true);
   },
 
   attr: function(type, klass, methods) {
@@ -203,14 +212,18 @@ var $ = {
     if(object != null) {
       // Search singleton methods, and then class hierarchy
       if(!search_klass) {
-        if(object.singleton_methods != null) {
-          func = object.singleton_methods[method];
+        var singleton = object;
+        while(func == null && singleton != null) {
+          if(singleton.singleton_methods != null) {
+            func = singleton.singleton_methods[method];
+          }
+          singleton = singleton.superklass;
         }
       }
 
       var klass = search_klass ? object : object.klass;
       while(func == null && klass != null) {
-        if(!search_klass && klass.included_modules) {
+        if(klass.included_modules) {
           for(var i = 0; i < klass.included_modules.length && func == null; i++) {
             func = klass.included_modules[i].instance_methods[method];
           }
@@ -239,51 +252,60 @@ var $ = {
     return find_method(object, method) != null;
   },
 
-  check_args: function(ctx, args, req, opt) {
+  check_args: function(args, req, opt) {
+    opt = opt || 0;
     if(args.length < req || args.length > req + opt) {
-      this.raise(ctx, this.e.ArgumentError, "Wrong argument count: " + args.length + " != " + count);
+      if(opt == 0) {
+        this.raise(this.e.ArgumentError, "Wrong argument count: " + args.length +
+            " is not " + req);
+      } else {
+        this.raise(this.e.ArgumentError, "Wrong argument count: " + args.length +
+            " not in " + req + '..' + (req+opt));
+      }
     }
   },
 
-  check_type: function(ctx, arg, type) {
+  check_type: function(arg, type) {
     if(type instanceof Array) {
       for(var i = 0; i < type.length; i++) {
         if(arg.klass == type[i]) return arg;
       }
-      this.raise(ctx, this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not expected");
+      this.raise(this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not expected");
     } else {
       if(arg.klass != type) {
-        this.raise(ctx, this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not " + type.klass_name);
+        this.raise(this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not " + type.klass_name);
       }
       return arg;
     }
   },
 
-  check_convert_type: function(ctx, arg, type, converter) {
+  check_convert_type: function(arg, type, converter) {
     if(arg.klass != type) {
-      return $.invoke_method(ctx, arg, converter, []);
+      return this.funcall(arg, converter);
     } else {
       return arg;
     }
   },
 
-  raise: function(ctx, template, message, backtrace, skip) {
+  raise: function(template, message, backtrace, skip) {
     var args = (message != undefined) ? [message] : [];
     if(typeof template == 'string') {
-      var exception = this.invoke_method(ctx, this.internal_constants.RuntimeError, 'new', [template]);
+      var exception = this.funcall2(this.internal_constants.RuntimeError, 'new', [template]);
     } else {
-      var exception = this.invoke_method(ctx, template, 'exception', args);
+      var exception = this.funcall2(template, 'exception', args);
     }
     if(!backtrace) {
       backtrace = [];
 
-      var sf = ctx.sf;
+      var sf = this.context.sf;
       while(sf) {
-        if(sf.iseq && sf.iseq.info) {
+        if(sf.iseq.info) { // YARV bytecode
           backtrace.push(sf.iseq.info.file + ':' + sf.iseq.info.line +
               ': in `' + sf.iseq.info.func + '\'');
+        } else if(sf.iseq.native_method) {
+          backtrace.push('unknown:0: in `<native:' + sf.iseq.native_method + '>\'');
         } else {
-          //backtrace.push('<native code>');
+          backtrace.push('unknown:0: in `<native:unknown>\'');
         }
         sf = sf.parent;
       }
@@ -291,24 +313,29 @@ var $ = {
     if(skip) {
       backtrace = backtrace.slice(0, backtrace.length - skip);
     }
-    this.invoke_method(ctx, exception, 'set_backtrace', [backtrace]);
+    this.funcall(exception, 'set_backtrace', backtrace);
 
     throw exception;
   },
 
-  protect: function(ctx, code, rescue) {
+  raise2: function(klass, args, backtrace, skip) {
+    var exception = this.funcall2(klass, 'exception', args);
+    this.raise(exception, undefined, backtrace, skip);
+  },
+
+  protect: function(code, rescue) {
     try {
-      return code.call(ctx);
+      return code.call(this);
     } catch(e) {
-      return rescue.call(ctx, e);
+      return rescue.call(this, e);
     }
   },
 
-  execute_class: function(ctx, cbase, name, superklass, is_class, iseq) {
+  execute_class: function(cbase, name, superklass, is_class, iseq) {
     if(name != null) {
       if(!this.const_defined(cbase, name)) {
         if(superklass.singleton) {
-          this.raise(ctx, "Cannot make subclass of singleton");
+          this.raise(this.e.TypeError, "Cannot make subclass of singleton class.");
         }
 
         var klass = {
@@ -344,8 +371,8 @@ var $ = {
     }
 
     var cref = [ klass ];
-    for(var i = 0; i < ctx.sf.cref.length; i++) {
-      cref.push(ctx.sf.cref[i]);
+    for(var i = 0; i < this.context.sf.cref.length; i++) {
+      cref.push(this.context.sf.cref[i]);
     }
 
     var sf_opts = {
@@ -354,10 +381,18 @@ var $ = {
       cref: cref,
     };
 
-    return $.execute(ctx, sf_opts, iseq, []);
+    return this.execute(sf_opts, iseq, []);
   },
 
-  invoke_method: function(ctx, receiver, method, args, block) {
+  funcall: function(receiver, method) {
+    var args_array = [];
+    for(var i = 2; i < arguments.length; i++) {
+      args_array.push(arguments[i]);
+    }
+    return this.funcall2(receiver, method, args_array);
+  },
+
+  funcall2: function(receiver, method, args, block) {
     method = this.any2id(method);
 
     func = this.find_method(receiver, method);
@@ -366,27 +401,31 @@ var $ = {
       block: block,
 
       self: receiver,
-      ddef: ctx.sf.ddef,
-      cref: ctx.sf.cref,
+      ddef: this.context.sf.ddef,
+      cref: this.context.sf.cref,
     };
 
     var retval;
     if(func == undefined) {
-      throw "cannot find method " + this.id2text(method);
+      this.raise(this.internal_constants.NameError, "Cannot find method " + this.id2text(method));
     } else {
-      return $.execute(ctx, sf_opts, func, args);
+      return this.execute(sf_opts, func, args);
     }
   },
 
-  block_given: function(ctx) {
-    return !!ctx.sf.block;
+  block_given: function() {
+    return !!this.context.sf.block;
   },
 
-  yield: function(ctx, args, iseq) {
-    var iseq = ctx.sf.block;
+  yield: function() {
+    return this.yield2(arguments);
+  },
+
+  yield2: function(args) {
+    var iseq = this.context.sf.block;
 
     if(!iseq) {
-      this.raise(ctx, this.e.LocalJumpError, "Block is required");
+      this.raise(this.e.LocalJumpError, "Block is required");
     }
 
     var sf = iseq.stack_frame;
@@ -399,12 +438,12 @@ var $ = {
       outer: sf,
     };
 
-    return this.execute(ctx, sf_opts, iseq, args)
+    return this.execute(sf_opts, iseq, args);
   },
 
-  execute: function(ctx, opts, iseq, args) {
+  execute: function(opts, iseq, args) {
     var new_sf = {
-      parent:  ctx.sf,
+      parent:  this.context.sf,
 
       stack:   [],
       sp:      0,
@@ -424,13 +463,12 @@ var $ = {
       new_sf[key] = opts[key];
     }
 
-/*  if(typeof iseq == 'object') {
+/*    if(typeof iseq == 'object') {
       var method = iseq.info.func;
     } else {
       var method = '!native';
     }
-    this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);
-*/
+    this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);*/
 
     if(typeof iseq == 'object') {
       if(args.length < iseq.info.args.argc && (iseq.info.type == 'method' || iseq.lambda)) {
@@ -470,17 +508,17 @@ var $ = {
         new_sf.dynamic.push(new_sf.outer.dynamic[i]);
       }
 
-      new_sf.osf = ctx.sf;
+      new_sf.osf = this.context.sf;
     } else {
       new_sf.osf = new_sf;
     }
 
-    ctx.sf = new_sf;
+    this.context.sf = new_sf;
 
     if(typeof iseq == 'object') {
       var chunk = 0;
       while(chunk != null) {
-        chunk = iseq[chunk].call(ctx);
+        chunk = iseq[chunk].call(this);
       }
 
       if(new_sf.sp != 1) {
@@ -489,10 +527,10 @@ var $ = {
 
       var retval = new_sf.stack[0];
     } else {
-      var retval = iseq.call(ctx, new_sf.self, args);
+      var retval = iseq.call(this, new_sf.self, args);
     }
 
-    ctx.sf = new_sf.parent;
+    this.context.sf = new_sf.parent;
 
     return retval;
   },
@@ -510,16 +548,18 @@ var $ = {
     return toplevel;
   },
 
-  create_context: function() {
+  create_ruby: function() {
     return {
-      ruby: this,
-      sf:   null,
-      osf:  null,
+      __proto__: this,
+      context: {
+        sf:        null,
+        osf:       null,
+      }
     };
   },
 
   ps: function(ctx, where) {
-    print("> Stack Frame ("+where+") <");
+    $i.print("> Stack Frame ("+where+") <");
     pp(ctx.sf)
   }
 };
