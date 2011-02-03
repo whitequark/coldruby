@@ -492,6 +492,14 @@ var $ = {
     }
     this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);*/
 
+    if(!(args instanceof Array)) { // `arguments' internal isn't array
+      var old_args = args;
+      args = [];
+      for(var i = 0; i < old_args.length; i++) {
+        args.push(old_args[i]);
+      }
+    }
+
     if(typeof iseq == 'object') {
       if(args.length < iseq.info.args.argc && (iseq.info.type == 'method' || iseq.lambda)) {
         throw "argument count mismatch: " + args.length + " < " + iseq.info.args.argc;
@@ -508,8 +516,9 @@ var $ = {
         }
       }
       for(var i = 0; i < argsinfo.argc; i++) {
-        new_args[i] = args.shift();
+        new_args[i] = args[i];
       }
+      args = args.splice(argsinfo.argc);
       if(argsinfo.rest > -1) {
         new_args[argsinfo.rest] = args;
         args = [];
@@ -520,7 +529,7 @@ var $ = {
       }
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
-        new_sf.locals[2 + i] = new_args[iseq.info.arg_size - i - 1] || this.builtin.Qnil;
+        new_sf.locals[iseq.info.local_size - i] = new_args[i] || this.builtin.Qnil;
       }
     }
 
