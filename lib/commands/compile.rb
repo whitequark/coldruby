@@ -7,6 +7,16 @@ rescue LoadError
   retry
 end
 
+def get_runtime
+  runtime = ''
+  Dir[File.join(File.dirname(__FILE__), '..', '..', 'runtime', '*')].sort.each do |runtime_part|
+    runtime << "/* Runtime: #{runtime_part} */\n\n"
+    runtime << File.read(runtime_part)
+    runtime << "\n\n"
+  end
+  runtime
+end
+
 CompilerOptions = {
   :peephole_optimization    => false,
   :tailcall_optimization    => false,
@@ -87,9 +97,22 @@ $.execute(context, sf_opts, iseq, []);
 end
 
 if __FILE__ == $0
-  if ARGV[0] == '-'
-    print compile(read, nil, false)
-  else
-    print compile(ARGV[0], eval(ARGV[1]), true)
+  runtime = get_runtime
+  puts runtime.length
+  print runtime
+
+  loop do
+    trap("TERM") { break }
+
+    file = gets.strip
+    if file == '-'
+      length = gets.to_i
+      code = compile(read(length), nil, false)
+    else
+      scope = gets.strip
+      code = compile(file, JSON.parse(scope), true)
+    end
+    puts code.length; $>.flush
+    print code; $>.flush
   end
 end

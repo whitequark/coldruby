@@ -1,7 +1,9 @@
 #include <v8.h>
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 #include <sys/wait.h>
+#include <signal.h>
 
 // This complete file is an example of how not to write interface glue.
 // But I'm almost forgot C++ and it's the first time I'm using V8,
@@ -10,14 +12,16 @@
 using namespace v8;
 using namespace std;
 
+#define COMPILER "lib/commands/compile.rb"
+
 const char* prelude = " \
-$i.print('Loading runtime\\n'); \
-$i.eval($i.exec(null, 'lib/commands/get_runtime.rb')); \
 $it = { \
-  eval:    function(code) { $i.eval($i.exec(code, 'lib/commands/compile.rb', '-')); }, \
-  compile: function(file, path) { $i.print('Compiling ' + file + '\\n'); \
-       $i.eval($i.exec(null, 'lib/commands/compile.rb', file, path)); }, \
+  eval:    function(code) { $i.eval($i.exec('-', code.length, code)); }, \
+  compile: function(file, path) { $i.print('] Compiling ' + file + '\\n'); \
+       $i.eval($i.exec(file, path)); }, \
 }; \
+$i.print('] Loading runtime\\n'); \
+$i.eval($i.exec()); \
 ";
 const char* compile = "$it.compile('%s', '[]');";
 
@@ -46,20 +50,16 @@ Handle<Value> API_eval(const Arguments& args) {
   return Script::Compile(Handle<String>::Cast(arg))->Run();
 }
 
-Handle<Value> API_exec(const Arguments& args) {
-  if (args.Length() < 2) return Undefined();
+static int c_in, c_out;
+static pid_t c_pid;
 
-  HandleScope handle_scope;
-
-  string input    = ObjectToString(args[0]);
-  string filename = ObjectToString(args[1]);
-
+bool fork_compiler() {
   int in[2], out[2];
   pipe(in);
   pipe(out);
 
-  pid_t child = fork();
-  if(child == 0) {
+  pid_t c_pid = fork();
+  if(c_pid == 0) {
     dup2(in[0], 0);
     close(in[0]);
     close(in[1]);
@@ -68,40 +68,60 @@ Handle<Value> API_exec(const Arguments& args) {
     close(out[0]);
     close(out[1]);
 
-    int argc = args.Length() - 1;
-    char* argv[argc + 1];
-    argv[argc] = NULL;
+    char* argv[2] = {0};
+    argv[0] = strdup(COMPILER);
 
-    for(int i = 0; i < argc; i++) {
-      argv[i] = strdup(ObjectToString(args[i + 1]).c_str());
-    }
+    execv(argv[0], argv);
+    perror("execv");
 
-    execv(filename.c_str(), argv);
+    return false;
   } else {
     close(in[0]);
     close(out[1]);
 
-    while(input.length() > 0) {
-      int bytes = write(in[1], input.c_str(), input.length());
-      input = input.substr(bytes, input.length() - bytes);
-    }
-    close(in[1]);
+    c_in  = in[1];
+    c_out = out[0];
 
-    string outputString;
-    char buffer[2048];
-    while(true) {
-      int bytes = read(out[0], buffer, sizeof(buffer));
-      if(bytes <= 0 && waitpid(child, NULL, WNOHANG) != 0)
-        break;
-
-      outputString += string(buffer, bytes);
-    }
-
-    return String::New(outputString.c_str(), outputString.length());
+    return true;
   }
 }
 
+Handle<Value> API_exec(const Arguments& args) {
+  HandleScope handle_scope;
+
+  for(int i = 0; i < args.Length(); i++) {
+    string input = ObjectToString(args[i]) + "\n";
+    while(input.length() > 0) {
+      int bytes = write(c_in, input.c_str(), input.length());
+      input = input.substr(bytes, input.length() - bytes);
+    }
+  }
+
+  string lengthString;
+  char lBuffer = 0;
+  while(lBuffer != '\n') {
+    read(c_out, &lBuffer, 1);
+    lengthString += lBuffer;
+  }
+
+  int length = atoi(lengthString.c_str());
+
+  string outputString;
+  char buffer[2048];
+  while(length > 0) {
+    int bytes = read(c_out, buffer, length > sizeof(buffer) ? sizeof(buffer) : length);
+    outputString += string(buffer, bytes);
+    length -= bytes;
+  }
+
+  return String::New(outputString.c_str(), outputString.length());
+}
+
 int main(int argc, char* argv[]) {
+  if(!fork_compiler()) {
+    return 1;
+  }
+
   HandleScope handle_scope;
 
   Handle<ObjectTemplate> interp = ObjectTemplate::New();
@@ -125,6 +145,8 @@ int main(int argc, char* argv[]) {
   }
 
   context.Dispose();
+
+  kill(c_pid, SIGTERM);
 
   return 0;
 }
