@@ -31,10 +31,10 @@ $.any2id = function(obj) {
     } else {
       return obj;
     }
-  } else if(obj.klass == this.internal_constants.Symbol) {
+  } else if(obj && obj.klass == this.internal_constants.Symbol) {
     return obj.value;
   } else {
-    throw "unknown object for any2id: " + obj;
+    throw new Error("unknown object for any2id: " + obj);
   }
 };
 
