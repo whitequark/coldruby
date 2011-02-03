@@ -4,4 +4,4 @@ $: << './lib'
 
 require 'commands/compile'
 
-print get_runtime, compile(ARGV[0], %w{.}, true)
+print get_runtime(true).join, compile(ARGV[0], %w{.}, true)

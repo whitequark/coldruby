@@ -20,7 +20,7 @@ $it = { \
   compile: function(file, path) { $i.print('] Compiling ' + file + '\\n'); \
        $i.eval($i.exec(file, path)); }, \
 }; \
-$i.print('] Loading runtime\\n'); \
+$i.print('] Loading runtime'); \
 $i.eval($i.exec()); \
 ";
 const char* compile = "$it.compile('%s', '[]');";
@@ -33,7 +33,7 @@ string ObjectToString(Local<Value> value) {
 Handle<Value> API_print(const Arguments& args) {
   if (args.Length() != 1) return Undefined();
 
-  cout << ObjectToString(args[0]);
+  cout << ObjectToString(args[0]) << flush;
 
   return Null();
 }
@@ -97,11 +97,24 @@ Handle<Value> API_exec(const Arguments& args) {
     }
   }
 
+  char tmp;
+
+  string fileString;
+
+  tmp = 0;
+  while(tmp != '\n') {
+    read(c_out, &tmp, 1);
+    fileString += tmp;
+  }
+
+  fileString = fileString.substr(0, fileString.length() - 1);
+
   string lengthString;
-  char lBuffer = 0;
-  while(lBuffer != '\n') {
-    read(c_out, &lBuffer, 1);
-    lengthString += lBuffer;
+
+  tmp = 0;
+  while(tmp != '\n') {
+    read(c_out, &tmp, 1);
+    lengthString += tmp;
   }
 
   int length = atoi(lengthString.c_str());

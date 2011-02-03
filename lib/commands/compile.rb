@@ -7,12 +7,18 @@ rescue LoadError
   retry
 end
 
-def get_runtime
-  runtime = ''
-  Dir[File.join(File.dirname(__FILE__), '..', '..', 'runtime', '*')].sort.each do |runtime_part|
-    runtime << "/* Runtime: #{runtime_part} */\n\n"
-    runtime << File.read(runtime_part)
-    runtime << "\n\n"
+def get_runtime(plaintext=false)
+  runtime = []
+  Dir[File.join(File.dirname(__FILE__), '..', '..', 'runtime', '*')].sort.each do |runtime_file|
+    if plaintext
+      runtime_part = ''
+      runtime_part << "/* Runtime: #{runtime_file} */\n\n" if plaintext
+      runtime_part << File.read(runtime_file)
+      runtime_part << "\n\n"
+      runtime << runtime_part
+    else
+      runtime << [runtime_file, File.read(runtime_file)]
+    end
   end
   runtime
 end
@@ -112,8 +118,17 @@ end
 
 if __FILE__ == $0
   runtime = get_runtime
-  puts runtime.length
-  print runtime
+  runtime.each_with_index do |(file, code), i|
+    puts file;        $>.flush
+    code << %{$i.print('.');}
+    if i < runtime.length - 1
+      code << %{$i.eval($i.exec());}
+    else
+      code << %{$i.print('\\n');}
+    end
+    puts code.length; $>.flush
+    print code;       $>.flush
+  end
 
   loop do
     trap("TERM") { exit }
@@ -125,7 +140,8 @@ if __FILE__ == $0
     else
       code = compile(file, scope, true)
     end
+    puts file;        $>.flush
     puts code.length; $>.flush
-    print code; $>.flush
+    print code;       $>.flush
   end
 end

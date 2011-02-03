@@ -32,7 +32,7 @@ module ColdRuby
       translation << "/* Default next chunk */" <<
                      "return #{@next};" if @next && !last_leaves
 
-      "function() {\n    #{translation.join "\n    "}\n  }"
+      "function() {\n    var sf = this.context.sf;\n    #{translation.join "\n    "}\n  }"
     end
   end
 end
