@@ -105,8 +105,8 @@ var $ = {
       scope = this.const_find_scope(name);
 
     if(scope.constants[name] == undefined) {
-      var strname = this.id2text(name)
-      this.raise2(this.e.NameError, ["Constant " + strname + " is undefined", strname]);
+      this.raise2(this.e.NameError, ["uninitialized constant " +
+          scope.klass_name + '::' + this.id2text(name), this.id2sym(name)]);
     }
 
     return scope.constants[name];
@@ -117,8 +117,9 @@ var $ = {
     name = this.any2id(name);
 
     if(scope.constants[name] != undefined) {
-      var strname = this.id2text(name)
-      this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
+      var strname = this.id2text(name);
+      // TODO warn
+      //this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
     }
 
     scope.constants[name] = value;
@@ -156,7 +157,7 @@ var $ = {
     target.included_modules.push(module);
   },
 
-  wrap_method: function(want_args, method) {
+  wrap_method: function(name, want_args, method) {
     var wrapper;
 
     if(typeof method != 'function') {
@@ -179,7 +180,14 @@ var $ = {
       throw "wrap_method: unknown want_args type " + want_args;
     }
 
-    method.native_method = this.id2text(method);
+    method.info = {
+      type: 'method',
+
+      path: '<native>',
+      file: '<native>',
+      line: 0,
+      func: this.id2text(name),
+    };
 
     return wrapper;
   },
@@ -187,7 +195,7 @@ var $ = {
   define_method: function(klass, name, want_args, method) {
     name = this.any2id(name);
 
-    klass.instance_methods[name] = this.wrap_method(want_args, method);
+    klass.instance_methods[name] = this.wrap_method(name, want_args, method);
   },
 
   define_singleton_method: function(klass, name, want_args, method) {
@@ -195,7 +203,7 @@ var $ = {
 
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
-    klass.singleton_methods[name] = this.wrap_method(want_args, method);
+    klass.singleton_methods[name] = this.wrap_method(name, want_args, method);
   },
 
   alias_method: function(klass, name, other_name) {
@@ -323,8 +331,6 @@ var $ = {
         if(sf.iseq.info) { // YARV bytecode
           backtrace.push(sf.iseq.info.file + ':' + (sf.line || sf.iseq.info.line) +
               ': in `' + sf.iseq.info.func + '\'');
-        } else if(sf.iseq.native_method) {
-          backtrace.push('unknown:0: in `<native:' + sf.iseq.native_method + '>\'');
         } else {
           backtrace.push('unknown:0: in `<native:unknown>\'');
         }
@@ -356,7 +362,7 @@ var $ = {
     if(name != null) {
       if(!this.const_defined(cbase, name)) {
         if(superklass.singleton) {
-          this.raise(this.e.TypeError, "Cannot make subclass of singleton class.");
+          this.raise(this.e.TypeError, "can't make subclass of singleton class");
         }
 
         var klass = {
@@ -428,7 +434,9 @@ var $ = {
 
     var retval;
     if(func == undefined) {
-      this.raise(this.internal_constants.NameError, "Cannot find method " + this.id2text(method));
+      this.raise2(this.internal_constants.NameError,
+            ["undefined local variable or method " + this.id2text(method),
+             this.id2sym(method)]);
     } else {
       return this.execute(sf_opts, func, args);
     }
@@ -446,7 +454,7 @@ var $ = {
     var iseq = this.context.sf.block;
 
     if(!iseq) {
-      this.raise(this.e.LocalJumpError, "Block is required");
+      this.raise(this.e.LocalJumpError, "no block given (yield)");
     }
 
     var sf = iseq.stack_frame;
