@@ -154,7 +154,7 @@ module ColdRuby
       when :duparray
         # Looks like this instruction will only work with arrays of same elements.
         case @info[0][0]
-        when String
+        when String, Fixnum
           %Q{#{PUSH} = #{@info[0].to_json};}
         when Symbol
           %Q<#{PUSH} = [#{ @info[0].map { |s| SYMBOL[self, s]}.join ', ' }];>
