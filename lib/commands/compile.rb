@@ -44,8 +44,7 @@ def compile(what, where, is_file)
       ruby_iseq = iseq.compile what, CompilerOptions
     end
   rescue Exception => e
-    print %Q{throw 'Assembly error: #{e.class.to_s}: #{e.to_s.gsub "'", "\\\\\'"}'\n}
-    exit
+    return %Q{throw 'Assembly error: #{e.class.to_s}: #{e.to_s.gsub "'", "\\\\\'"}'\n}
   end
 
   pool = ColdRuby::Pool.new
