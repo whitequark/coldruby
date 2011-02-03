@@ -164,7 +164,7 @@ var $ = {
       if(method.klass == this.c.InstructionSequence) {
         return method;
       } else {
-        throw "wrap_method: invalid object";
+        throw new Error("wrap_method: invalid object");
       }
     }
 
@@ -177,7 +177,7 @@ var $ = {
     } else if(want_args == -1) {
       wrapper = method;
     } else {
-      throw "wrap_method: unknown want_args type " + want_args;
+      throw new Error("wrap_method: unknown want_args type " + want_args);
     }
 
     method.info = {
@@ -533,7 +533,7 @@ var $ = {
       }
 
       if(args.length > 0) {
-        throw "[internal] incorrect argument exploding"
+        throw new Error("Incorrect argument exploding");
       }
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
@@ -561,7 +561,7 @@ var $ = {
       }
 
       if(new_sf.sp != 1) {
-        throw "Invalid stack frame at exit"
+        throw new Error("Invalid stack frame at exit");
       }
 
       var retval = new_sf.stack[0];

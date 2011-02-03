@@ -2,7 +2,7 @@ $.define_module('Hash', $c.Class);
 
 $.builtin.make_hash = function(elements) {
   if(elements.length % 2 != 0) {
-    throw "cannot make hash with odd number of arguments";
+    this.raise(this.e.ArgumentError, "odd number of arguments for Hash");
   }
 
   var hash = {

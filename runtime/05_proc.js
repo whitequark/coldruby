@@ -13,7 +13,7 @@ $.define_method($c.Proc, 'initialize', 0, function(self) {
   } else if(this.sf.parent.block) {
     self.iseq = this.context.sf.parent.block;
   } else {
-    throw "Proc.new requires a block"
+    this.raise(this.e.ArgumentError, "tried to create Proc object without a block");
   }
 
   if(self.iseq.lambda == undefined) {
