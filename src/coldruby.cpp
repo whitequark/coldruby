@@ -23,7 +23,7 @@ $it = { \
 $i.print('] Loading runtime'); \
 $i.exec(); \
 ";
-const char* compile = "$it.compile('%s', '[]');";
+const char* compile = "$it.compile('%s', '[\".\"]');";
 
 string ObjectToString(Local<Value> value) {
   String::Utf8Value utf8_value(value);

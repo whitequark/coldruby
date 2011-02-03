@@ -38,19 +38,33 @@ def compile(what, where, is_file)
     iseq = RubyVM::InstructionSequence
     if is_file
       ruby_iseq = nil
+      tryload = lambda { |file|
+        ruby_iseq = iseq.compile File.read(file), what, File.realpath(file), 1,
+                    CompilerOptions
+      }
       where.each do |dir|
-        file = File.join(dir, what) + '.rb'
+        file = File.join(dir, what)
         if File.exists? file
-          ruby_iseq = iseq.compile_file file, CompilerOptions
-          break
+          tryload[file]
+        elsif File.exists?(file+'.rb')
+          tryload[file+'.rb']
+        else
+          next
         end
+        break
       end
-      ruby_iseq = iseq.compile_file what, CompilerOptions if ruby_iseq.nil?
+      raise LoadError, "no such file to load: #{what}" if ruby_iseq.nil?
     else
       ruby_iseq = iseq.compile what, *where, CompilerOptions
     end
   rescue Exception => e
-    return %Q{throw 'Assembly error: #{e.class.to_s}: #{e.to_s.gsub "'", "\\\\\'"}'\n}
+    return <<-HANDLER
+if($it.load_context) {
+  $it.load_context.raise($e.#{e.class.to_s}, '#{e.to_s.gsub "'", "\\\\\'"}');
+} else {
+  throw '#{e.class.to_s}: #{e.to_s.gsub "'", "\\\\\'"}'
+}
+HANDLER
   end
 
   pool = ColdRuby::Pool.new

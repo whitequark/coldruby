@@ -43,6 +43,8 @@ $.define_method($c.Kernel, 'raise', -1, function(self, args) {
 
 $.define_method($c.Kernel, 'load', 1, function(self, file) {
   file = this.check_type(file, $c.String);
+
+  $it.load_context = this;
   $it.compile(file, this.funcall($.gvar_get('$:'), 'inspect'));
 });
 
@@ -54,6 +56,7 @@ $.define_method($c.Kernel, 'require', 1, function(self, file) {
     if(features[i] == file) return Qfalse;
   }
 
+  $it.load_context = this;
   $it.compile(file, this.funcall($.gvar_get('$:'), 'inspect'));
   features.push(file);
 
