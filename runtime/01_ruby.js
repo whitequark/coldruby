@@ -321,7 +321,7 @@ var $ = {
       var sf = this.context.sf;
       while(sf) {
         if(sf.iseq.info) { // YARV bytecode
-          backtrace.push(sf.iseq.info.file + ':' + sf.iseq.info.line +
+          backtrace.push(sf.iseq.info.file + ':' + (sf.line || sf.iseq.info.line) +
               ': in `' + sf.iseq.info.func + '\'');
         } else if(sf.iseq.native_method) {
           backtrace.push('unknown:0: in `<native:' + sf.iseq.native_method + '>\'');
@@ -478,6 +478,7 @@ var $ = {
       cref: null,
 
       iseq: iseq,
+      line: null,
     };
 
     for(var key in opts) {

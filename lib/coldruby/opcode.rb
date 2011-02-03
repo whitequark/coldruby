@@ -71,10 +71,13 @@ module ColdRuby
     # documentation should definitely exist (apart from random japanese blog entries).
     def to_js
       case type
-      when :line, :label
+      when :label
         nil # Handled specially in ISeq/Chunk, no code generation needed
       when :nop, :trace
         nil # Ignore
+
+      when :line
+        %Q{sf.line = #{@info};}
 
       when :putnil
         %Q{#{PUSH} = this.builtin.Qnil;}
