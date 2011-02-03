@@ -1,5 +1,5 @@
-ColdRuby YARV Interpreter
-=========================
+ColdRuby YARV Translator
+========================
 
 Overview
 --------
