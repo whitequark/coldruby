@@ -93,7 +93,7 @@ module ColdRuby
       INFO
       elems += chunks.map { |chunk| "  #{chunk.id}: #{chunk.to_js}" }
 
-      pad = "  " * @level * 2
+      pad = "  " + "  " * @level
       output = "{\n#{elems.join ",\n"}\n}"
 
       output.gsub(/^/, pad).lstrip
