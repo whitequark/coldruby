@@ -31,6 +31,22 @@ $.define_method($c.Module, 'include', 1, function(self, module) {
   return Qnil;
 });
 
+$.define_method($c.Module, 'attr_reader', -1, function(self, args) {
+  $.attr('reader', self, args);
+  return Qnil;
+});
+$.alias_method($c.Module, 'attr', 'attr_reader')
+
+$.define_method($c.Module, 'attr_writer', -1, function(self, args) {
+  $.attr('writer', self, args);
+  return Qnil;
+});
+
+$.define_method($c.Module, 'attr_accessor', -1, function(self, args) {
+  $.attr('accessor', self, args);
+  return Qnil;
+});
+
 $.define_method($c.Module, 'const_get', -1, function(self, args) {
   $.check_args(args, 1, 1);
   var name    = $.check_convert_type(this, args[0], $c.Symbol, 'to_sym');

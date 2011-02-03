@@ -178,18 +178,16 @@ var $ = {
     }
 
     for(var i = 0; i < methods.length; i++) {
-      var method = methods[i];
+      var method = this.any2id(methods[i]);
       if(type == 'reader' || type == 'accessor') {
         this.define_method(klass, method, 0, function(self) {
-          return self.iv[method] || ruby.builtin.Qnil;
+          return self.ivs[method] || ruby.builtin.Qnil;
         });
       }
       if(type == 'writer' || type == 'accessor') {
-        if(method.klass == this.internal_constants.Symbol) {
-          method = this.id2text(method.value);
-        }
-        this.define_method(klass, method + '=', 0, function(self) {
-          return self.iv[method] || ruby.builtin.Qnil;
+        this.define_method(klass, this.id2text(method) + '=', 1, function(self, value) {
+          self.ivs[method] = value;
+          return value;
         });
       }
     }
