@@ -97,6 +97,8 @@ module ColdRuby
           %Q{#{PUSH} = this.ruby.builtin.Qtrue;}
         when false
           %Q{#{PUSH} = this.ruby.builtin.Qfalse;}
+        when Object
+          %Q{#{PUSH} = this.ruby.internal_constants.Object;}
         else
           raise UnknownFeatureException, "putobject type #{object}"
         end
@@ -147,7 +149,15 @@ module ColdRuby
           %Q{#{PUSH} = value;}
         ]
       when :duparray
-        %Q{#{PUSH} = #{@info[0]};}
+        # Looks like this instruction will only work with arrays of same elements.
+        case @info[0][0]
+        when String
+          %Q{#{PUSH} = #{@info[0].to_json};}
+        when Symbol
+          %Q<#{PUSH} = [#{ @info[0].map { |s| SYMBOL[self, s]}.join ', ' }];>
+        else
+          raise UnknownFeatureException, "unknown duparray elem (#{@info[0][0].class})"
+        end
       when :splatarray
         if @info[0] != false
           raise UnknownFeatureException, "unknown splatarray flags (#{@info[0]})"
