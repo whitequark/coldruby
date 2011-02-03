@@ -140,13 +140,16 @@ int main(int argc, char* argv[]) {
   Persistent<Context> context = Context::New(NULL, global);
   Context::Scope context_scope(context);
 
-  Script::Compile(String::New(prelude))->Run();
+  ScriptOrigin preludeOrigin(String::New("<internal:prelude>"));
+  ScriptOrigin compileOrigin(String::New("<internal:compile>"));
+
+  Script::Compile(String::New(prelude), &preludeOrigin)->Run();
 
   for(int i = 1; i < argc; i++) {
     char buffer[2048];
     int len = snprintf(buffer, 2048, compile, argv[i]);
 
-    Script::Compile(String::New(buffer, len))->Run();
+    Script::Compile(String::New(buffer, len), &compileOrigin)->Run();
   }
 
   context.Dispose();
