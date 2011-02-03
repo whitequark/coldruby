@@ -41,7 +41,7 @@ def compile(what, where, is_file)
       end
       ruby_iseq = iseq.compile_file what, CompilerOptions if ruby_iseq.nil?
     else
-      ruby_iseq = iseq.compile what, CompilerOptions
+      ruby_iseq = iseq.compile what, *where, CompilerOptions
     end
   rescue Exception => e
     return %Q{throw 'Assembly error: #{e.class.to_s}: #{e.to_s.gsub "'", "\\\\\'"}'\n}
@@ -66,31 +66,33 @@ def compile(what, where, is_file)
 
   code = iseq.compile
 
+  compiled = <<-EPILOGUE
+(function() {
+  var iseq = #{code};
+
+  var new_symbols = #{pool.symbols};
+  for(var k in new_symbols) {
+    $.symbols[k] = parseInt($.text2sym(new_symbols[k]).value);
+  }
+
+  var context = $.create_context();
+  var toplevel = $.create_toplevel();
+  var sf_opts = {
+    self: toplevel,
+    ddef: toplevel,
+    cref: [$c.Object],
+  };
+  $.execute(context, sf_opts, iseq, []);
+})();
+  EPILOGUE
+
   if ColdRuby.debug
     puts ">>>>>>>>>>>>> COMPILE"
-    puts code
+    puts compiled
     puts
 
     $> = STDOUT
   end
-
-  compiled = <<-EPILOGUE
-var iseq = #{code};
-
-var new_symbols = #{pool.symbols};
-for(var k in new_symbols) {
-  $.symbols[k] = parseInt($.text2sym(new_symbols[k]).value);
-}
-
-var context = $.create_context();
-var toplevel = $.create_toplevel();
-var sf_opts = {
-  self: toplevel,
-  ddef: toplevel,
-  cref: [$c.Object],
-};
-$.execute(context, sf_opts, iseq, []);
-  EPILOGUE
 
   compiled
 end
@@ -103,13 +105,12 @@ if __FILE__ == $0
   loop do
     trap("TERM") { exit }
 
-    file = gets.strip
+    file, scope = gets.strip, JSON.parse(gets.strip)
     if file == '-'
       length = gets.to_i
-      code = compile(read(length), nil, false)
+      code = compile($<.read(length), scope, false)
     else
-      scope = gets.strip
-      code = compile(file, JSON.parse(scope), true)
+      code = compile(file, scope, true)
     end
     puts code.length; $>.flush
     print code; $>.flush
