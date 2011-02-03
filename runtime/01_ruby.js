@@ -332,7 +332,7 @@ var $ = {
       }
     }
     if(skip) {
-      backtrace = backtrace.slice(0, backtrace.length - skip);
+      backtrace = backtrace.slice(skip);
     }
     this.funcall(exception, 'set_backtrace', backtrace);
 
