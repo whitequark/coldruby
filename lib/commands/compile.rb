@@ -95,7 +95,7 @@ def compile(what, where, is_file)
       var message   = e.ivs['@message'];
       var backtrace = e.ivs['@backtrace'];
       $i.print(e.klass.klass_name + ": " + message + "\\n");
-      for(var i = backtrace.length - 1; i >= 0; i--) {
+      for(var i = 0; i < backtrace.length; i++) {
         $i.print("\tfrom " + backtrace[i] + "\\n");
       }
     } else {
