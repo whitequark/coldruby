@@ -1,4 +1,4 @@
-$.define_module('Fixnum', $c.Class, $c.Integer);
+$.define_class('Fixnum', $c.Integer, true);
 
 $.define_method($c.Fixnum, 'to_s', 0, function(self) {
   return self.toString();
