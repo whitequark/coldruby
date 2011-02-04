@@ -33,7 +33,7 @@ CompilerOptions = {
   :stack_caching            => false,
 }
 
-def compile(what, where, is_file)
+def compile(what, where, is_file, is_toplevel=false)
   begin
     iseq = RubyVM::InstructionSequence
     if is_file
@@ -107,6 +107,10 @@ HANDLER
     return ruby.execute(sf_opts, iseq, []);
   }, function(e) {
     if(e.hasOwnProperty('klass') && typeof e != 'string') {
+      if(e.klass == ruby.e.SystemExit) {
+        #{is_toplevel ? 'return' : 'throw e'};
+      }
+
       var message   = e.ivs['@message'];
       var backtrace = e.ivs['@backtrace'];
       $i.print(e.klass.klass_name + ": " + message + "\\n");
@@ -155,7 +159,8 @@ if __FILE__ == $0
       length = gets.to_i
       code = compile($<.read(length), scope, false)
     else
-      code = compile(file, scope, true)
+      toplevel = gets.strip
+      code = compile(file, scope, true, toplevel == 'true')
     end
     puts file;        $>.flush
     puts code.length; $>.flush

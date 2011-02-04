@@ -30,6 +30,10 @@ $.define_method($c.Kernel, 'loop', 0, function(self) {
   return Qnil;
 });
 
+$.define_method($c.Kernel, 'exit', -1, function(self, args) {
+  this.raise2($e.SystemExit, args);
+})
+
 // Requires interpreter support at $it
 
 $.define_method($c.Kernel, 'load', 1, function(self, file) {

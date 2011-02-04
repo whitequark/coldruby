@@ -17,13 +17,13 @@ using namespace std;
 const char* prelude = " \
 $it = { \
   eval:    function(code, info) { return $i.exec('-', info, code.length+1, code); }, \
-  compile: function(file, path) { $i.print('] Compiling ' + file + '\\n'); \
-                                  $i.exec(file, path); }, \
+  compile: function(file, path, toplevel) { $i.print('] Compiling ' + file + '\\n'); \
+                                  $i.exec(file, path, toplevel ? 'true' : 'false'); }, \
 }; \
 $i.print('] Loading runtime'); \
 $i.exec(); \
 ";
-const char* compile = "$it.compile('%s', '[\".\"]');";
+const char* compile = "$it.compile('%s', '[\".\"]', true);";
 
 string ObjectToString(Local<Value> value) {
   String::Utf8Value utf8_value(value);

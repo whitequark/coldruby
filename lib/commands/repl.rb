@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-puts "Simple REPL. No line editing is supported. Exit with ^D."
+puts "Simple REPL. No line editing is supported. Exit with ^D or type `exit'."
 
 loop do
   print ">> "

@@ -40,6 +40,11 @@ $.define_class('SystemExit', $e.Exception);
 $.attr('reader', $e.SystemExit, 'status');
 $.define_method($e.SystemExit, 'initialize', -1, function(self, args) {
   this.check_args(args, 0, 1);
+  if(args.length > 0) {
+    this.check_convert_type(args[0], $c.Fixnum, 'to_i');
+  }
+  this.super('exit');
+
   self.ivs['@status'] = args[0] || 0;
 });
 $.define_method($e.SystemExit, 'success?', 0, function(self) {
