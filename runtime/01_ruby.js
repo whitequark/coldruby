@@ -15,18 +15,6 @@ var $ = {
 
       $.e = $.c = $.internal_constants;
     },
-
-    allocate: function(self) {
-      return {
-        klass:            self,
-        ivs:              {},
-      };
-    },
-    'new': function(self, args) {
-      var object = this.builtin.allocate(self);
-      this.funcall2(object, 'initialize', args);
-      return object;
-    },
   },
 
   /* === GLOBAL VARIABLES === */
@@ -145,10 +133,7 @@ var $ = {
   },
 
   define_class: function(name, superklass) {
-    var klass = this.define_module(name, this.internal_constants.Class, superklass);
-    klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
-    klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
-    return klass;
+    return this.define_module(name, this.internal_constants.Class, superklass);
   },
 
   module_include: function(target, module) {
@@ -158,37 +143,49 @@ var $ = {
     target.included_modules.push(module);
   },
 
-  wrap_method: function(name, want_args, method) {
+  wrap_method: function(klass, name, want_args, method) {
     var wrapper;
 
     if(typeof method != 'function') {
       if(method.klass == this.c.InstructionSequence) {
-        return method;
+        wrapper = method;
       } else {
         throw new Error("wrap_method: invalid object");
       }
-    }
-
-    if(want_args >= 0) {
-      wrapper = function(self, args) {
-        this.check_args(args, want_args);
-        args.unshift(self);
-        return method.apply(this, args);
-      };
-    } else if(want_args == -1) {
-      wrapper = method;
     } else {
-      throw new Error("wrap_method: unknown want_args type " + want_args);
+      if(want_args >= 0) {
+        wrapper = function(self, args) {
+          this.check_args(args, want_args);
+          args.unshift(self);
+          return method.apply(this, args);
+        };
+      } else if(want_args == -1) {
+        wrapper = method;
+      } else {
+        throw new Error("wrap_method: unknown want_args type " + want_args);
+      }
+
+      wrapper.info = {
+        type: 'method',
+
+        path: '<native>',
+        file: '<native>',
+        line: 0,
+        func: this.id2text(name),
+      };
     }
 
-    method.info = {
-      type: 'method',
-
-      path: '<native>',
-      file: '<native>',
-      line: 0,
-      func: this.id2text(name),
-    };
+    if(this.context && this.context.sf) {
+      wrapper.context = {
+        ddef: this.context.sf.ddef,
+        cref: this.context.sf.cref,
+      };
+    } else {
+      wrapper.context = {
+        ddef: klass,
+        cref: [klass],
+      };
+    }
 
     return wrapper;
   },
@@ -196,7 +193,7 @@ var $ = {
   define_method: function(klass, name, want_args, method) {
     name = this.any2id(name);
 
-    klass.instance_methods[name] = this.wrap_method(name, want_args, method);
+    klass.instance_methods[name] = this.wrap_method(klass, name, want_args, method);
   },
 
   define_singleton_method: function(klass, name, want_args, method) {
@@ -204,7 +201,8 @@ var $ = {
 
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
-    klass.singleton_methods[name] = this.wrap_method(name, want_args, method);
+
+    klass.singleton_methods[name] = this.wrap_method(klass, name, want_args, method);
   },
 
   alias_method: function(klass, name, other_name) {
@@ -480,8 +478,8 @@ var $ = {
       super: super ? super.superklass : undefined,
 
       self: c_receiver,
-      ddef: this.context.sf.ddef,
-      cref: this.context.sf.cref,
+      ddef: func.context.ddef,
+      cref: func.context.cref,
     };
 
     return this.execute(sf_opts, func, args);

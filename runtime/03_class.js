@@ -11,6 +11,24 @@ $c.Class.superklass = $c.Module;
 $c.Symbol.klass = $c.Class;
 $c.Symbol.superklass = $c.Object;
 
+$.define_method($c.Class, 'allocate', 0, function(self) {
+  return {
+    klass: self,
+    ivs:   {},
+  };
+});
+
+$.define_method($c.Class, 'new', -1, function(self, args) {
+  var object = {
+    klass: self,
+    ivs:   {},
+  };
+
+  this.funcall2(object, 'initialize', args);
+
+  return object;
+});
+
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
 });
