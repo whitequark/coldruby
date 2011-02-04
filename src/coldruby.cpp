@@ -42,7 +42,7 @@ Handle<Value> API_gets(const Arguments& args) {
   if (args.Length() != 0) return Undefined();
 
   string input;
-  cin >> input;
+  getline(cin, input);
 
   if(cin.eof()) {
     return Null();
