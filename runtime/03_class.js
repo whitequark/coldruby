@@ -49,6 +49,11 @@ $.define_method($c.Module, 'include', 1, function(self, module) {
   return Qnil;
 });
 
+$.define_method($c.Module, 'alias_method', 2, function(self, alias, method) {
+  this.alias_method(self, alias, method);
+  return Qnil;
+});
+
 $.define_method($c.Module, 'module_function', -1, function(self, args) {
   for(var i = 0; i < args.length; i++) {
     var name = $.any2id(args[i]);
