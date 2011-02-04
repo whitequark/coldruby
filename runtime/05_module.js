@@ -33,6 +33,61 @@ $.define_method($c.Module, 'include?', 1, function(self, module) {
   return Qfalse;
 });
 
+var with_each_method = function(what, type, include_super, kind, change, f) {
+  include_super = $.test(include_super || Qtrue);
+
+  var object = what;
+  while(object) {
+    for(var id in object[kind]) {
+      var method = object[kind][id];
+      if(method.visibility == type) {
+        f($.id2sym(id));
+      }
+    }
+
+    if(!include_super) break;
+    object = object[change];
+  }
+}
+
+var make_reflectors = function(type) {
+  var visibility = (type == 'public' ? null : type);
+
+  $.define_method($c.Kernel, type+'_methods', -1, function(self, args) {
+    this.check_args(args, 0, 1);
+
+    var methods = [];
+    with_each_method(self, visibility, args[0], 'singleton_methods', 'superklass',
+        function(method) {
+      methods.push(method);
+    });
+    with_each_method(klass, visibility, args[0], 'instance_methods', 'parentklass',
+        function(method) {
+      methods.push(method);
+    });
+    return this.funcall(methods, 'uniq!');
+  });
+
+  $.define_method($c.Module, type+'_instance_methods', -1, function(self, args) {
+    this.check_args(args, 0, 1);
+
+    var methods = [];
+    with_each_method(self, visibility, args[0], 'instance_methods', 'parentklass',
+        function(method) {
+      methods.push(method);
+    });
+    return this.funcall(methods, 'uniq!');
+  });
+};
+
+var types = ['public', 'private', 'protected'];
+for(var i = 0; i < types.length; i++) {
+  make_reflectors(types[i]);
+}
+
+$.alias_method($c.Kernel, 'methods', 'public_methods');
+$.alias_method($c.Module, 'instance_methods', 'public_instance_methods');
+
 $.define_method($c.Module, 'module_function', -1, function(self, args) {
   for(var i = 0; i < args.length; i++) {
     var name = $.any2id(args[i]);
@@ -40,6 +95,10 @@ $.define_method($c.Module, 'module_function', -1, function(self, args) {
   }
   return Qnil;
 });
+
+/* === PRIVATE === */
+
+// $.private($c.Module);
 
 $.define_method($c.Module, 'include', 1, function(self, module) {
   this.check_type(module, $c.Module);

@@ -1,7 +1,3 @@
-$c.Kernel = $.define_module('Kernel');
-
-$.module_include($c.Object, $c.Kernel);
-
 $.define_method($c.Kernel, 'block_given?', 0, function(self) {
   return this.block_given() ? Qtrue : Qfalse;
 });

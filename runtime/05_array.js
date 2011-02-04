@@ -45,6 +45,11 @@ $.define_method($c.Array, 'shift', 0, function(self) {
   return self.shift();
 });
 
+$.define_method($c.Array, 'uniq!', 0, function(self) {
+  // TODO
+  return self;
+});
+
 $.define_method($c.Array, 'inspect', 0, function(self) {
   var desc = [];
   for(var i = 0; i < self.length; i++) {

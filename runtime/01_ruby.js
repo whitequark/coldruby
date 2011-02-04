@@ -385,7 +385,7 @@ var $ = {
           singleton_methods: {},
           ivs:               {},
         };
-        klass.parentklass = klass.superklass;
+        klass.parentklass = is_class ? klass.superklass : null;
         this.const_set(cbase, name, klass);
       } else {
         var klass = this.const_get(cbase, name);

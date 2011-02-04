@@ -10,6 +10,10 @@ $c.BasicObject.klass = $c.Object.klass = $c.Module.klass = $c.Class.klass = $c.C
 $c.Symbol.klass = $c.Class;
 $c.Symbol.parentklass = $c.Symbol.superklass = $c.Object;
 
+$c.Kernel = $.define_module('Kernel');
+
+$.module_include($c.Object, $c.Kernel);
+
 $.define_method($c.Class, 'allocate', 0, function(self) {
   return {
     klass: self,
