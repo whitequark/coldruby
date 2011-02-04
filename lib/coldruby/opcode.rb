@@ -376,8 +376,8 @@ module ColdRuby
 
       when :throw
         case @info[0]
-        when 2 # break
-          %Q{throw { ruby_mode: 2, object: #{POP} };}
+        when 1, 2 # break
+          %Q{throw { ruby_mode: #{@info[0]}, object: #{POP} };}
         else
           raise UnknownFeatureException, "throw type #{@info[0]}"
         end

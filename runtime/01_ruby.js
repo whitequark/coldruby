@@ -558,13 +558,6 @@ var $ = {
       new_sf[key] = opts[key];
     }
 
-/*    if(typeof iseq == 'object') {
-      var method = iseq.info.func;
-    } else {
-      var method = '!native';
-    }
-    this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);*/
-
     var old_args = args;
     args = [];
     for(var i = 0; i < old_args.length; i++) {
@@ -629,7 +622,25 @@ var $ = {
             type = e.ruby_mode;
           } else throw e; // dooooown to the basement
 
-          var catches = iseq.info.catch_table, found = false;
+          var found = false;
+
+          switch(type) {
+            case 1: // return
+            if(iseq.info.type != 'method') {
+              throw e;
+            } else {
+              chunk = null;
+              found = true;
+              new_sf.sp = 0;
+            }
+            break;
+
+            case 2: // break
+            type = 'break';
+            break;
+          }
+
+          var catches = iseq.info.catch_table;
           for(var i = 0; i < catches.length; i++) {
             if(catches[i].type == type &&
                 catches[i].st <= chunk && catches[i].ed > chunk) {
