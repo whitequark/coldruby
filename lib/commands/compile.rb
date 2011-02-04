@@ -106,7 +106,7 @@ HANDLER
       };
     return ruby.execute(sf_opts, iseq, []);
   }, function(e) {
-    if(e.klass && typeof e != 'string') {
+    if(e.hasOwnProperty('klass') && typeof e != 'string') {
       var message   = e.ivs['@message'];
       var backtrace = e.ivs['@backtrace'];
       $i.print(e.klass.klass_name + ": " + message + "\\n");
