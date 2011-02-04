@@ -7,33 +7,15 @@ $.define_method($c.Kernel, 'block_given?', 0, function(self) {
 });
 
 $.define_method($c.Kernel, 'proc', 0, function(self) {
-  if(!this.block_given()) {
-    throw "proc requires a block";
-  }
-
-  if(this.context.sf.block.lambda == undefined) {
-    this.context.sf.block.lambda = false;
-  }
-
-  return {
-    klass: $c.Proc,
-    iseq:  this.context.sf.block,
-  };
+  return this.funcall(this.c.Proc, 'new');
 });
 
 $.define_method($c.Kernel, 'lambda', 0, function(self) {
-  if(!this.block_given()) {
-    throw "lambda requires a block";
-  }
-
   if(this.context.sf.block.lambda == undefined) {
     this.context.sf.block.lambda = true;
   }
 
-  return {
-    klass: $c.Proc,
-    iseq:  this.context.sf.block,
-  };
+  return this.funcall(this.c.Proc, 'new');
 });
 
 $.define_method($c.Kernel, 'raise', -1, function(self, args) {
