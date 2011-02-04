@@ -16,8 +16,7 @@ $.define_method($e.NameError, 'initialize', -1, function(self, args) {
   this.check_args(args, 1, 1);
   this.super(args[0]);
 
-  self.ivs['@message'] = args[0];
-  self.ivs['@name'] = args[1] || Qnil;
+  self.ivs['@name'] = args[1];
 });
 
 $.define_class('NoMethodError', $e.NameError);
@@ -26,7 +25,7 @@ $.define_method($e.NoMethodError, 'initialize', -1, function(self, args) {
   this.check_args(args, 2, 1);
   this.super(args[0], args[1]);
 
-  self.ivs['@args'] = args
+  self.ivs['@args'] = args[2] || Qnil;
 });
 
 $.define_class('ScriptError',         $e.StandardError);

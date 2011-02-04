@@ -211,7 +211,7 @@ var $ = {
     name       = this.any2id(name);
     other_name = this.any2id(other_name);
 
-    klass.instance_methods[name] = this.find_method(klass, other_name, true);
+    klass.instance_methods[name] = this.find_method(klass, other_name, false, true);
   },
 
   attr: function(type, klass, methods) {
@@ -237,12 +237,12 @@ var $ = {
     }
   },
 
-  find_method: function(object, method, search_klass) {
+  find_method: function(object, method, super, search_klass) {
     var func = null;
 
     if(object != null) {
       // Search singleton methods, and then class hierarchy
-      if(!search_klass) {
+      if(!search_klass && !super) {
         var singleton = object;
         while(func == null && singleton != null) {
           if(singleton.singleton_methods != null) {
@@ -252,16 +252,17 @@ var $ = {
         }
       }
 
-      var klass = search_klass ? object : object.klass;
+      var klass = search_klass ? object : (super ? super.superklass : object.klass);
+
       while(func == null && klass != null) {
+        if(func == null && klass.instance_methods) {
+          func = klass.instance_methods[method];
+        }
+
         if(klass.included_modules) {
           for(var i = 0; i < klass.included_modules.length && func == null; i++) {
             func = klass.included_modules[i].instance_methods[method];
           }
-        }
-
-        if(func == null && klass.instance_methods) {
-          func = klass.instance_methods[method];
         }
 
         klass = klass.superklass;
@@ -421,27 +422,81 @@ var $ = {
     return this.funcall2(receiver, method, args_array);
   },
 
-  funcall2: function(receiver, method, args, block) {
-    method = this.any2id(method);
+  funcall2: function(receiver, method, args, block, vcall) {
+    if(receiver == null || method == null) {
+      var c_receiver = this.context.sf.self;
+    } else {
+      var c_receiver = receiver;
+    }
 
-    func = this.find_method(receiver, method);
+    if(method == null) { // super
+      // magic belongs here
+
+      // we can safely skip non-osf's, as they all belong to closures
+      var sf = this.context.sf.osf;
+      while(sf && sf.iseq.info.type != 'method') {
+        if(sf == sf.osf) {
+          sf = null;
+          break;
+        }
+        sf = sf.osf;
+      }
+
+      if(!sf) {
+        this.raise2(this.internal_constants.NoMethodError,
+          ["super called outside of method", this.builtin.Qnil, args]);
+      }
+
+      var c_method = this.any2id(sf.iseq.info.func);
+      var super = sf.super || c_receiver.klass;
+    } else {
+      var c_method = this.any2id(method);
+      var super = null;
+    }
+
+    func = this.find_method(c_receiver, c_method, super);
+
+    if(func == undefined) {
+      var for_obj = " `" + this.id2text(c_method) + "' for " +
+            this.funcall(c_receiver, 'inspect') + ':' + c_receiver.klass.klass_name;
+      var sym = this.id2sym(c_method);
+
+      if(method) {
+        if(!vcall) {
+          this.raise2(this.internal_constants.NoMethodError,
+            ["undefined method" + for_obj, sym, args]);
+        } else {
+          this.raise2(this.internal_constants.NameError,
+            ["undefined local variable or method" + for_obj, sym]);
+        }
+      } else {
+        this.raise2(this.internal_constants.NoMethodError,
+          ["super: no superclass method" + for_obj, sym, args]);
+      }
+    }
 
     var sf_opts = {
       block: block,
+      super: super ? super.superklass : undefined,
 
-      self: receiver,
+      self: c_receiver,
       ddef: this.context.sf.ddef,
       cref: this.context.sf.cref,
     };
 
-    var retval;
-    if(func == undefined) {
-      this.raise2(this.internal_constants.NameError,
-            ["undefined local variable or method " + this.id2text(method),
-             this.id2sym(method)]);
-    } else {
-      return this.execute(sf_opts, func, args);
-    }
+    return this.execute(sf_opts, func, args);
+  },
+
+  super: function() {
+    return this.funcall2(null, null, arguments);
+  },
+
+  super2: function(args, block) {
+    return this.funcall2(null, null, args, block);
+  },
+
+  super3: function() {
+    return this.funcall2(null, null, this.context.sf.args, this.context.sf.block);
   },
 
   block_given: function() {
@@ -489,6 +544,7 @@ var $ = {
 
       iseq: iseq,
       line: null,
+      args: args,
     };
 
     for(var key in opts) {
@@ -502,12 +558,10 @@ var $ = {
     }
     this.ps(ctx, new_sf.self.klass.klass_name + '#' + method + ' in ' + new_sf.self);*/
 
-    if(!(args instanceof Array)) { // `arguments' internal isn't array
-      var old_args = args;
-      args = [];
-      for(var i = 0; i < old_args.length; i++) {
-        args.push(old_args[i]);
-      }
+    var old_args = args;
+    args = [];
+    for(var i = 0; i < old_args.length; i++) {
+      args.push(old_args[i]);
     }
 
     if(typeof iseq == 'object') {
@@ -595,7 +649,6 @@ var $ = {
       __proto__: this,
       context: {
         sf:        null,
-        osf:       null,
       }
     };
   },

@@ -252,19 +252,19 @@ module ColdRuby
       when :getinstancevariable
         %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_json}];}
 
-      when :send, :invokeblock
+      when :send, :invokeblock, :invokesuper
         code = []
 
         if type == :send
-          argcount, options = @info[1], @info[3]
+          argcount, block, options = @info[1], @info[2], @info[3]
         elsif type == :invokeblock
-          argcount, options = @info[0], @info[1]
+          argcount, block, options = @info[0], nil,      @info[1]
+        elsif type == :invokesuper
+          argcount, block, options = @info[0], @info[1], @info[2]
         end
 
         if (options & ~(VM_CALL_ARGS_SPLAT_BIT | VM_CALL_FCALL_BIT |
                         VM_CALL_ARGS_BLOCKARG_BIT | VM_CALL_VCALL_BIT)) != 0
-          # Honestly, I don't know what VM_CALL_VCALL_BIT _really_ does.
-          # But it works this way, so I accept it.
           raise UnknownFeatureException, "#{type} opcode flags #{options}"
         end
 
@@ -286,28 +286,39 @@ module ColdRuby
           args << ', block'
         end
 
+        if block
+          code << %Q{var iseq = #{ISeq.new(@pool, block, @level + 1).compile};}
+          code << %Q{iseq.stack_frame = sf;}
+          args << ', iseq'
+        else
+          args << ', null'
+        end
 
         if type == :send
+          # this is a method, not a local variable
           if (options & VM_CALL_FCALL_BIT) != 0
-            code << %Q{sf.sp--;} # remove nil, which apparently means self
-            receiver = %Q{sf.self}
+            receiver = %Q{#{POP} == this.builtin.Qnil ? null : sf.stack[sf.sp]}
           else
             receiver = %Q{#{POP}}
-          end
-
-          if @info[2]
-            code << %Q{var iseq = #{ISeq.new(@pool, @info[2], @level + 1).compile};}
-            code << %Q{iseq.stack_frame = sf;}
-            args << ', iseq'
           end
 
           method = @info[0].to_sym
           @pool.register_symbol method
 
           code << %Q[var ret = this.funcall2(#{receiver}, ] +
-                  %Q[this.symbols[#{method.object_id}], #{args});]
+                  %Q[this.symbols[#{method.object_id}], #{args}, ] +
+                  %Q[#{(options & VM_CALL_VCALL_BIT) != 0});]
         elsif type == :invokeblock
           code << %Q[var ret = this.yield2(#{args});]
+        elsif type == :invokesuper
+          # Completely no idea what should this do. Here's an attempt
+          # of reverse engineering.
+          code << %Q[var pass_mode = #{POP}; // passAllArgs?]
+          code << %Q[if(pass_mode == this.builtin.Qfalse) {]
+          code << %Q[  var ret = this.super3();]
+          code << %Q[} else {]
+          code << %Q[  var ret = this.super2(#{args});]
+          code << %Q[}]
         end
 
         code << %Q{#{PUSH} = ret;}
