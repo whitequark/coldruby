@@ -1,4 +1,4 @@
-$c.Kernel = $.define_module('Kernel'); // while we have no mixins
+$c.Kernel = $.define_module('Kernel');
 
 $.module_include($c.Object, $c.Kernel);
 

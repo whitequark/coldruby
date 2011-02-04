@@ -1,1 +1,1 @@
-$.define_module('InstructionSequence', $c.Class);
+$.define_class('InstructionSequence', $c.Object, true);

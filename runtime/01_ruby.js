@@ -117,11 +117,10 @@ var $ = {
   },
 
   /* === CLASSES AND MODULES === */
-  define_module: function(name, self_klass, superklass) {
+  define_module: function(name, self_klass) {
     var klass = {
       klass_name:        name,
       klass:             self_klass || this.internal_constants.Module,
-      superklass:        superklass || this.internal_constants.Object,
       constants:         {},
       instance_methods:  {},
       singleton_methods: {},
@@ -133,14 +132,30 @@ var $ = {
   },
 
   define_class: function(name, superklass) {
-    return this.define_module(name, this.internal_constants.Class, superklass);
+    var module = this.define_module(name, this.internal_constants.Class);
+    module.superklass = superklass || this.internal_constants.Object,
+    module.parentklass = module.superklass;
+    return module;
   },
 
   module_include: function(target, module) {
-    if(target.included_modules == undefined) {
-      target.included_modules = [];
+    var klass = target;
+    while(klass) {
+      if(klass == module || klass.origin == module) {
+        return;
+      }
+      klass = klass.parentklass;
     }
-    target.included_modules.push(module);
+
+    var proxy = {
+      klass_name:       module.klass_name,
+      klass:            module.klass,
+      parentklass:      target.parentklass,
+      constants:        module.constants,
+      instance_methods: module.instance_methods,
+    };
+
+    target.parentklass = proxy;
   },
 
   wrap_method: function(klass, name, want_args, method) {
@@ -257,13 +272,7 @@ var $ = {
           func = klass.instance_methods[method];
         }
 
-        if(klass.included_modules) {
-          for(var i = 0; i < klass.included_modules.length && func == null; i++) {
-            func = klass.included_modules[i].instance_methods[method];
-          }
-        }
-
-        klass = klass.superklass;
+        klass = klass.parentklass;
       }
     }
 
