@@ -397,6 +397,12 @@ module ColdRuby
       # Optimized versions. Just skip them now.
       when :opt_case_dispatch
 
+      when :bitblt
+        %Q{#{PUSH} = "a bit of bacon, lettuce and tomato";}
+
+      when :answer
+        %Q{#{PUSH} = 42;}
+
       else
         raise UnknownFeatureException, "opcode #{self.inspect}"
       end
