@@ -38,6 +38,19 @@ Handle<Value> API_print(const Arguments& args) {
   return Null();
 }
 
+Handle<Value> API_gets(const Arguments& args) {
+  if (args.Length() != 0) return Undefined();
+
+  string input;
+  cin >> input;
+
+  if(cin.eof()) {
+    return Null();
+  } else {
+    return String::New(input.c_str(), input.length());
+  }
+}
+
 static int c_in, c_out;
 static pid_t c_pid;
 
@@ -145,6 +158,7 @@ int main(int argc, char* argv[]) {
 
   Handle<ObjectTemplate> interp = ObjectTemplate::New();
   interp->Set(String::New("print"), FunctionTemplate::New(API_print));
+  interp->Set(String::New("gets"),  FunctionTemplate::New(API_gets));
   interp->Set(String::New("exec"),  FunctionTemplate::New(API_exec));
 
   Handle<ObjectTemplate> global = ObjectTemplate::New();

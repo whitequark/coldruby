@@ -27,4 +27,8 @@ $.define_method($c.Fixnum, '<=>', 1, function(self, other) {
   }
 });
 
+$.define_method($c.Fixnum, 'size', 0, function(self) {
+  return 4;
+});
+
 Number.prototype.klass = $c.Fixnum;

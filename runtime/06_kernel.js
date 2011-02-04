@@ -23,6 +23,15 @@ $.define_method($c.Kernel, 'raise', -1, function(self, args) {
   this.raise(args[0], args[1], args[2], 1);
 });
 
+$.define_method($c.Kernel, 'loop', 0, function(self) {
+  while(true) {
+    this.yield();
+  }
+  return Qnil;
+});
+
+// Requires interpreter support at $it
+
 $.define_method($c.Kernel, 'load', 1, function(self, file) {
   file = this.check_type(file, $c.String);
 
@@ -51,6 +60,9 @@ $.define_method($c.Kernel, 'eval', 1, function(self, code) {
   return $it.eval(code, '[\"(eval)\",null,1]');
 });
 
+// A (hacky) console user interface
+// Requires interpreter support at $i
+
 $.define_method($c.Kernel, 'p', -1, function(self, args) {
   for(var i = 0; i < args.length; i++) {
     $i.print(this.funcall(args[i], 'inspect') + "\n");
@@ -63,4 +75,16 @@ $.define_method($c.Kernel, 'puts', -1, function(self, args) {
     $i.print(this.funcall(args[i], 'to_s') + "\n");
   }
   return Qnil;
+});
+
+$.define_method($c.Kernel, 'print', -1, function(self, args) {
+  for(var i = 0; i < args.length; i++) {
+    $i.print(this.funcall(args[i], 'to_s'));
+  }
+  return Qnil;
+});
+
+$.define_method($c.Kernel, 'gets', 0, function(self) {
+  var str = $i.gets();
+  return str == null ? Qnil : str;
 });
