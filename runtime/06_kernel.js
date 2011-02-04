@@ -78,6 +78,9 @@ $.define_method($c.Kernel, 'puts', -1, function(self, args) {
   for(var i = 0; i < args.length; i++) {
     $i.print(this.funcall(args[i], 'to_s') + "\n");
   }
+  if(args.length == 0) {
+    $i.print("\n");
+  }
   return Qnil;
 });
 
