@@ -16,7 +16,7 @@ using namespace std;
 
 const char* prelude = " \
 $it = { \
-  eval:    function(code, info) { $i.exec('-', info, code.length, code); }, \
+  eval:    function(code, info) { return $i.exec('-', info, code.length+1, code); }, \
   compile: function(file, path) { $i.print('] Compiling ' + file + '\\n'); \
                                   $i.exec(file, path); }, \
 }; \

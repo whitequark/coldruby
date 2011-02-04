@@ -47,7 +47,8 @@ $.define_method($c.Kernel, 'require', 1, function(self, file) {
 
 $.define_method($c.Kernel, 'eval', 1, function(self, code) {
   code = this.check_type(code, $c.String);
-  $it.eval(code, '[\"(eval)\",null,1]');
+  $it.load_context = this;
+  return $it.eval(code, '[\"(eval)\",null,1]');
 });
 
 $.define_method($c.Kernel, 'p', -1, function(self, args) {

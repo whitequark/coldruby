@@ -97,14 +97,14 @@ HANDLER
   }
 
   var ruby = $.create_ruby();
-  ruby.protect(function() {
+  return ruby.protect(function() {
     var toplevel = ruby.create_toplevel();
     var sf_opts = {
       self: toplevel,
       ddef: toplevel,
       cref: [$c.Object],
       };
-    ruby.execute(sf_opts, iseq, []);
+    return ruby.execute(sf_opts, iseq, []);
   }, function(e) {
     if(e.klass && typeof e != 'string') {
       var message   = e.ivs['@message'];
