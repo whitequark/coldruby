@@ -203,6 +203,14 @@ module ColdRuby
           %Q{#{PUSH} = this.builtin.make_hash(hash);}
         ]
 
+      when :newrange
+        code = [ %Q{var end = #{POP}, begin = #{POP};} ]
+        if (@info[0] & ~1) == 0
+          code << %Q{#{PUSH} = this.builtin.make_range(begin, end, #{@info[0] == 0 ? false : true});}
+        else
+          raise UnknownFeatureException, "newrange flags #{@info[0]}"
+        end
+
       when :pop
         %Q{sf.sp--;}
       when :adjuststack
