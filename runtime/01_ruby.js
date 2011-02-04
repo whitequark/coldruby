@@ -148,6 +148,7 @@ var $ = {
     }
 
     var proxy = {
+      real_module:      module,
       klass_name:       module.klass_name,
       klass:            module.klass,
       parentklass:      target.parentklass,
@@ -384,8 +385,7 @@ var $ = {
           singleton_methods: {},
           ivs:               {},
         };
-        klass.singleton_methods[this.any2id('allocate')] = this.builtin['allocate'];
-        klass.singleton_methods[this.any2id('new')]      = this.builtin['new'];
+        klass.parentklass = klass.superklass;
         this.const_set(cbase, name, klass);
       } else {
         var klass = this.const_get(cbase, name);
