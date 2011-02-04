@@ -59,7 +59,8 @@ var $ = {
    * Retrieve contents of global variable +name+.
    */
   gvar_get: function(name) {
-    return this.globals[this.gvar_normalize(name)] || this.builtin.Qnil;
+    var v = this.globals[this.gvar_normalize(name)]
+    return v == null ? this.builtin.Qnil : v;
   },
 
   /*
@@ -223,7 +224,8 @@ var $ = {
       var method = this.any2id(methods[i]), v = '@' + this.id2text(method);
       if(type == 'reader' || type == 'accessor') {
         this.define_method(klass, method, 0, function(self) {
-          return self.ivs[v] || ruby.builtin.Qnil;
+          var iv = self.ivs[v];
+          return iv == null ? ruby.builtin.Qnil : iv;
         });
       }
       if(type == 'writer' || type == 'accessor') {
@@ -537,7 +539,8 @@ var $ = {
       }
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
-        new_sf.locals[iseq.info.local_size - i] = new_args[i] || this.builtin.Qnil;
+        new_sf.locals[iseq.info.local_size - i] =
+            new_args[i] == null ? this.builtin.Qnil : new_args[i];
       }
     }
 

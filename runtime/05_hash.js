@@ -45,7 +45,7 @@ $.define_method($c.Hash, '[]', 1, function(self, key) {
   if(value == undefined && self.iv.default_proc != undefined) {
     return this.funcall(self.iv.default_proc, 'call', self, key);
   } else {
-    return value || self.ivs['@default'];
+    return value == null ? self.ivs['@default'] : value;
   }
 });
 

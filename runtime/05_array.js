@@ -7,6 +7,10 @@ $.define_method($c.Array, 'each', 0, function(self) {
   return self;
 });
 
+$.define_method($c.Array, '[]', 1, function(self, index) {
+  return self[index] == null ? Qnil : self[index];
+});
+
 $.define_method($c.Array, 'push', 1, function(self, obj) {
   self.push(obj);
   return self;
