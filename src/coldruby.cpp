@@ -74,6 +74,13 @@ bool fork_compiler() {
   }
 }
 
+void check_compiler() {
+  if(waitpid(c_pid, 0, WNOHANG) != 0) {
+    cout << "] Compiler died, exiting." << endl;
+    exit(1);
+  }
+}
+
 Handle<Value> API_exec(const Arguments& args) {
   HandleScope handle_scope;
 
@@ -91,6 +98,8 @@ Handle<Value> API_exec(const Arguments& args) {
 
   tmp = 0;
   while(tmp != '\n') {
+    check_compiler();
+
     read(c_out, &tmp, 1);
     fileString += tmp;
   }
@@ -101,6 +110,8 @@ Handle<Value> API_exec(const Arguments& args) {
 
   tmp = 0;
   while(tmp != '\n') {
+    check_compiler();
+
     read(c_out, &tmp, 1);
     lengthString += tmp;
   }
@@ -110,6 +121,8 @@ Handle<Value> API_exec(const Arguments& args) {
   string outputString;
   char buffer[2048];
   while(length > 0) {
+    check_compiler();
+
     int bytes = read(c_out, buffer, length > sizeof(buffer) ? sizeof(buffer) : length);
     outputString += string(buffer, bytes);
     length -= bytes;
