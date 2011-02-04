@@ -374,6 +374,14 @@ module ColdRuby
 
         code
 
+      when :throw
+        case @info[0]
+        when 2 # break
+          %Q{throw { ruby_mode: 2, object: #{POP} };}
+        else
+          raise UnknownFeatureException, "throw type #{@info[0]}"
+        end
+
       when :jump
         %Q{return #{self.class.label_to_id(@info[0])};}
       when :branchif, :branchunless

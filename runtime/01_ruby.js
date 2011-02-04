@@ -612,7 +612,31 @@ var $ = {
     if(typeof iseq == 'object') {
       var chunk = 0;
       while(chunk != null) {
-        chunk = iseq[chunk].call(this);
+        try {
+          chunk = iseq[chunk].call(this);
+        } catch(e) {
+          var type = null;
+          if(e.hasOwnProperty('ruby_mode')) {
+            type = e.ruby_mode;
+          } else throw e; // dooooown to the basement
+
+          var catches = iseq.info.catch_table, found = false;
+          for(var i = 0; i < catches.length; i++) {
+            if(catches[i].type == type &&
+                catches[i].st <= chunk && catches[i].ed > chunk) {
+              chunk = catches[i].cont;
+              found = true;
+              break;
+            }
+          }
+
+          if(!found) {
+            this.context.sf = new_sf.parent;
+            throw e;
+          }
+
+          new_sf.stack[new_sf.sp++] = e.object;
+        }
       }
 
       if(new_sf.sp != 1) {

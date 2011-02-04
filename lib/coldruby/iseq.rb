@@ -31,6 +31,8 @@ module ColdRuby
         @args   = args
       end
 
+      @catch_table = opcodes[12]
+
       @pool   = pool
       @level  = level
       @seq    = Opcode.parse(@pool, opcodes[13], level)
@@ -68,6 +70,29 @@ module ColdRuby
       end
       chunks << chunk
 
+      catch_table = []
+
+      @catch_table.each do |type, iseq, st, ed, cont, sp|
+        st, ed, cont = *[st, ed, cont].map { |l| Opcode.label_to_id l }
+        if sp != 0
+          raise UnknownFeatureException, "catch sp != 0"
+        end
+        if type == :break
+          ent = ""
+          ent << %Q<{ type: 2, st: #{st}, ed: #{ed}, cont: #{cont}, sp: #{sp}>
+          if iseq.nil?
+            ent << %Q< }>
+          else
+            ent << %Q<\n      iseq: #{ISeq.new(@pool, iseq, @level + 1).compile} }>
+          end
+          catch_table << ent
+        elsif type == :redo || type == :next
+          # Ignore?
+        else
+          raise UnknownFeatureException, "catch type: #{type}"
+        end
+      end
+
       elems = []
       elems << "  klass: $c.InstructionSequence"
       elems << <<-INFO.rstrip
@@ -75,6 +100,10 @@ module ColdRuby
     arg_size:   #{@arg_size},
     local_size: #{@local_size},
     stack_max:  #{@stack_max},
+
+    catch_table: [
+      #{catch_table.join ",\n      "}
+    ],
 
     args: {
       argc:  #{@args[0]},
