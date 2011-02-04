@@ -1,12 +1,7 @@
 module ColdRuby
-  @@debug = false
-
-  def self.debug=(value)
-    @@debug = value
-  end
-
-  def self.debug
-    @@debug
+  class << self
+    attr_accessor :debug
+    @debug = false
   end
 
   VERSION = '0.1'
