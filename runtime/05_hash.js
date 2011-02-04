@@ -42,8 +42,8 @@ $.define_method($c.Hash, '[]', 1, function(self, key) {
   var hash = this.funcall(key, 'hash');
 
   var value = self.values[hash];
-  if(value == undefined && self.iv.default_proc != undefined) {
-    return this.funcall(self.iv.default_proc, 'call', self, key);
+  if(value == undefined && self.ivs['@default_proc'] != undefined) {
+    return this.funcall(self.ivs['@default_proc'], 'call', self, key);
   } else {
     return value == null ? self.ivs['@default'] : value;
   }
