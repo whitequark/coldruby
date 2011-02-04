@@ -64,10 +64,14 @@ $.define_method($c.Kernel, 'eval', 1, function(self, code) {
 // Requires interpreter support at $i
 
 $.define_method($c.Kernel, 'p', -1, function(self, args) {
-  for(var i = 0; i < args.length; i++) {
-    $i.print(this.funcall(args[i], 'inspect') + "\n");
+  for(var i = 0; i < args.length; i++)
+    this.funcall(self, 'puts', this.funcall(args[i], 'inspect'));
+
+  if(args.length > 1) {
+    return args;
+  } else {
+    return args[0] == null ? Qnil : args[0];
   }
-  return args;
 });
 
 $.define_method($c.Kernel, 'puts', -1, function(self, args) {
