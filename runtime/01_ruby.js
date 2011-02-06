@@ -618,25 +618,31 @@ var $ = {
           chunk = iseq[chunk].call(this);
         } catch(e) {
           var type = null;
-          if(e.hasOwnProperty('ruby_mode')) {
-            type = e.ruby_mode;
+          if(e.hasOwnProperty('op')) {
+            type = e.op;
           } else throw e; // dooooown to the basement
 
           var found = false;
 
           switch(type) {
             case 1: // return
-            if(iseq.info.type != 'method') {
-              throw e;
-            } else {
+            if(iseq.lambda || iseq.info.type == 'method') {
               chunk = null;
               found = true;
               new_sf.sp = 0;
+            } else {
+              throw e;
             }
             break;
 
             case 2: // break
-            type = 'break';
+            if(iseq.info.type == 'method') {
+              chunk = null;
+              found = true;
+              new_sf.sp = 0;
+            } else {
+              throw e;
+            }
             break;
           }
 

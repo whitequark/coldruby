@@ -375,12 +375,11 @@ module ColdRuby
         code
 
       when :throw
-        case @info[0]
-        when 1, 2 # break
-          %Q{throw { ruby_mode: #{@info[0]}, object: #{POP} };}
-        else
+        if ![1, 2].include? @info[0]
           raise UnknownFeatureException, "throw type #{@info[0]}"
         end
+
+        %Q{throw { op: #{@info[0]}, object: #{POP} }}
 
       when :jump
         %Q{return #{self.class.label_to_id(@info[0])};}
