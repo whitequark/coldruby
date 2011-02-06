@@ -159,6 +159,26 @@ var $ = {
     target.parentklass = proxy;
   },
 
+  visibility: function(klass, visibility) {
+    var type;
+    if(visibility == 'public') {
+      type = null;
+    } else if(visibility == 'private' || visibility == 'protected') {
+      type = visibility;
+    } else {
+      throw new Error("Unknown visibility " + visibility);
+    }
+
+    if(arguments.length > 2) {
+      for(var i = 2; i < arguments.length; i++) {
+        var method = this.any2id(arguments[i]);
+        //klass.instance_methods[method].visibility = type;
+      }
+    } else {
+      klass.default_visibility = type;
+    }
+  },
+
   wrap_method: function(klass, name, want_args, method) {
     var wrapper;
 

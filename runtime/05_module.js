@@ -51,7 +51,16 @@ var with_each_method = function(what, type, include_super, kind, change, f) {
 }
 
 var make_reflectors = function(type) {
+  $.define_method($c.Kernel, type, -1, function(self, args) {
+    // stub
+  });
+
   var visibility = (type == 'public' ? null : type);
+
+  $.define_method($c.Kernel, type+'_method_defined?', 1, function(self, method) {
+    return $.find_method(self, $.any2id(method)) ? Qtrue : Qfalse;
+  });
+
 
   $.define_method($c.Kernel, type+'_methods', -1, function(self, args) {
     this.check_args(args, 0, 1);
@@ -85,6 +94,7 @@ for(var i = 0; i < types.length; i++) {
   make_reflectors(types[i]);
 }
 
+$.alias_method($c.Kernel, 'method_defined?', 'public_method_defined?');
 $.alias_method($c.Kernel, 'methods', 'public_methods');
 $.alias_method($c.Module, 'instance_methods', 'public_instance_methods');
 
@@ -96,9 +106,14 @@ $.define_method($c.Module, 'module_function', -1, function(self, args) {
   return Qnil;
 });
 
+$.define_method($c.Module, 'private_class_method', -1, function(self, args) {
+  // stub
+  return Qnil;
+});
+
 /* === PRIVATE === */
 
-// $.private($c.Module);
+$.visibility($c.Module, 'private');
 
 $.define_method($c.Module, 'include', 1, function(self, module) {
   this.check_type(module, $c.Module);
