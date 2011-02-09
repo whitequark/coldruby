@@ -70,7 +70,7 @@ var make_reflectors = function(type) {
         function(method) {
       methods.push(method);
     });
-    with_each_method(klass, visibility, args[0], 'instance_methods', 'parentklass',
+    with_each_method(self.klass, visibility, args[0], 'instance_methods', 'parentklass',
         function(method) {
       methods.push(method);
     });
@@ -151,14 +151,14 @@ $.define_method($c.Module, 'const_get', -1, function(self, args) {
   this.check_args(args, 1, 1);
   var name    = this.check_convert_type(args[0], $c.Symbol, 'to_sym');
   var inherit = $.test(args[1] || Qtrue);
-  return $.const_get(self, name, inherit);
+  return this.const_get(self, name, inherit);
 });
 
 $.define_method($c.Module, 'const_defined?', -1, function(self, args) {
   this.check_args(args, 1, 1);
   var name    = this.check_convert_type(args[0], $c.Symbol, 'to_sym');
   var inherit = $.test(args[1] || Qtrue);
-  return $.const_defined(self, name, inherit) ? Qtrue : Qfalse;
+  return this.const_defined(self, name, inherit) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
