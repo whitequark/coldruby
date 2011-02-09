@@ -161,6 +161,19 @@ $.define_method($c.Module, 'const_defined?', -1, function(self, args) {
   return this.const_defined(self, name, inherit) ? Qtrue : Qfalse;
 });
 
+$.define_method($c.Module, 'const_missing', 1, function(self, name) {
+  name = this.check_type(name, $c.Symbol);
+
+  var autoload = $c.Kernel.autoload[name.value];
+  if(autoload) {
+    this.funcall(self, 'require', autoload);
+    return this.const_get(self, name);
+  }
+
+  this.raise2(this.e.NameError, ["uninitialized constant " +
+      self.klass_name + '::' + this.id2text(name.value), name], undefined, 1);
+});
+
 $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
   var name = this.check_convert_type(name, $c.Symbol, 'to_sym');
   return this.const_set(self, name, value);

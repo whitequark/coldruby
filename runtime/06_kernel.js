@@ -28,7 +28,24 @@ $.define_method($c.Kernel, 'loop', 0, function(self) {
 
 $.define_method($c.Kernel, 'exit', -1, function(self, args) {
   this.raise2($e.SystemExit, args);
-})
+});
+
+$c.Kernel.autoload = {};
+
+$.define_method($c.Kernel, 'autoload', 2, function(self, constant, file) {
+  this.check_type(constant, $c.Symbol);
+  this.check_type(file,     $c.String);
+
+  $c.Kernel.autoload[constant.value] = file;
+
+  return Qnil;
+});
+
+$.define_method($c.Kernel, 'autoload?', 1, function(self, constant) {
+  this.check_type(constant, $c.Symbol);
+
+  return $c.Kernel.autoload[constant.value] || Qnil;
+});
 
 // Requires interpreter support at $it
 

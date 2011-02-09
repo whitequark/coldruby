@@ -162,10 +162,8 @@ var $ = {
     if(scope == this.builtin.Qnil)
       scope = this.const_find_scope(name);
 
-    if(scope.constants[name] == undefined) {
-      this.raise2(this.e.NameError, ["uninitialized constant " +
-          scope.klass_name + '::' + this.id2text(name), this.id2sym(name)]);
-    }
+    if(scope.constants[name] == undefined)
+      return this.funcall(scope, 'const_missing', this.id2sym(name));
 
     return scope.constants[name];
   },
