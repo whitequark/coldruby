@@ -611,7 +611,7 @@ var $ = {
         args = [];
       }
 
-      if(args.length > 0) {
+      if(args.length > 0 && !(iseq.info.type == 'block' && !iseq.lambda)) {
         throw new Error("Incorrect argument exploding");
       }
 
