@@ -10,14 +10,26 @@ end
 def get_runtime(plaintext=false)
   runtime = []
   Dir[File.join(File.dirname(__FILE__), '..', '..', 'runtime', '*')].sort.each do |runtime_file|
+    # Preprocess
+    lines = File.readlines(runtime_file)
+    last_definition = nil
+    lines.each_with_index { |line, index|
+      if line =~ %r{^\$\.define_method\(}
+        last_definition = index
+      elsif last_definition && line == "});\n"
+        lines[index] = "}, { file: #{File.basename(runtime_file).inspect}," <<
+                       " line: #{last_definition} });\n"
+      end
+    }
+
     if plaintext
       runtime_part = ''
       runtime_part << "/* Runtime: #{runtime_file} */\n\n" if plaintext
-      runtime_part << File.read(runtime_file)
+      runtime_part << lines.join
       runtime_part << "\n\n"
       runtime << runtime_part
     else
-      runtime << [File.basename(runtime_file), File.read(runtime_file)]
+      runtime << [File.basename(runtime_file), lines.join]
     end
   end
   runtime

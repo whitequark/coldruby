@@ -179,7 +179,7 @@ var $ = {
     }
   },
 
-  wrap_method: function(klass, name, want_args, method) {
+  wrap_method: function(klass, name, want_args, method, native_info) {
     var wrapper;
 
     if(typeof method != 'function') {
@@ -201,12 +201,15 @@ var $ = {
         throw new Error("wrap_method: unknown want_args type " + want_args);
       }
 
+      if(!native_info)
+        native_info = { file: '<unknown>', line: 0 };
+
       wrapper.info = {
         type: 'method',
 
-        path: '<native>',
-        file: '<native>',
-        line: 0,
+        file: '<runtime:' + native_info.file + '>',
+        path: '<runtime:' + native_info.file + '>',
+        line: native_info.line,
         func: this.id2text(name),
       };
     }
@@ -226,19 +229,19 @@ var $ = {
     return wrapper;
   },
 
-  define_method: function(klass, name, want_args, method) {
+  define_method: function(klass, name, want_args, method, native_info) {
     name = this.any2id(name);
 
-    klass.instance_methods[name] = this.wrap_method(klass, name, want_args, method);
+    klass.instance_methods[name] = this.wrap_method(klass, name, want_args, method, native_info);
   },
 
-  define_singleton_method: function(klass, name, want_args, method) {
+  define_singleton_method: function(klass, name, want_args, method, native_info) {
     name = this.any2id(name);
 
     if(klass.singleton_methods == undefined)
       klass.singleton_methods = {};
 
-    klass.singleton_methods[name] = this.wrap_method(klass, name, want_args, method);
+    klass.singleton_methods[name] = this.wrap_method(klass, name, want_args, method, native_info);
   },
 
   alias_method: function(klass, name, other_name) {
