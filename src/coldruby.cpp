@@ -23,6 +23,7 @@ $it = { \
 }; \
 $i.print('] Loading runtime'); \
 $i.exec(); \
+$it.eval(\"require 'coldruby'\", '[\"<internal:prelude>\",null,1]'); \
 ";
 const char* compile = "$it.compile('%s', '[\".\"]', true);";
 
