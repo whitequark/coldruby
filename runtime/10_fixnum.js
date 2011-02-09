@@ -4,6 +4,10 @@ $.define_method($c.Fixnum, 'to_s', 0, function(self) {
   return self.toString();
 });
 
+$.define_method($c.Fixnum, 'to_f', 0, function(self) {
+  return $.builtin.make_float(self);
+});
+
 $.define_method($c.Fixnum, '+', 1, function(self, other) {
   return self + other;
 });
