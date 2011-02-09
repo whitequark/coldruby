@@ -1,8 +1,9 @@
 module ColdRuby
   class << self
     attr_accessor :debug
-    @debug = false
   end
+
+  @debug = false
 
   VERSION = '0.1'
 end
