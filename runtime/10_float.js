@@ -1,4 +1,4 @@
-$.define_module('Float', $c.Class);
+$.define_class('Float', $c.Object, true);
 
 $.builtin.make_float = function(value) {
   return {
