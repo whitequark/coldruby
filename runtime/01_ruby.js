@@ -694,7 +694,31 @@ var $ = {
 
       var retval = new_sf.stack[0];
     } else {
-      var retval = iseq.call(this, new_sf.self, args);
+      try {
+        var retval = iseq.call(this, new_sf.self, args);
+      } catch(e) {
+        var type = null;
+        if(e.hasOwnProperty('op')) {
+          type = e.op;
+        } else throw e; // dooooown to the basement
+
+        var found = false;
+
+        switch(type) {
+          case 1:
+          case 2:
+          new_sf.sp = null;
+          found = true;
+          break;
+        }
+
+        if(!found) {
+          this.context.sf = new_sf.parent;
+          throw e;
+        }
+
+        retval = e.object;
+      }
     }
 
     this.context.sf = new_sf.parent;
