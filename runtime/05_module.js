@@ -175,3 +175,30 @@ $.define_method($c.Module, 'constants', -1, function(self, args) {
     constants.push($.id2sym(name));
   return constants;
 });
+
+$.define_method($c.Module, 'class_variable_get', 1, function(self, name) {
+  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  return this.cvar_get(self, name);
+});
+
+$.define_method($c.Module, 'class_variable_defined?', 1, function(self, name) {
+  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  return this.cvar_defined(self, name) ? Qtrue : Qfalse;
+});
+
+$.define_method($c.Module, 'class_variable_set', 2, function(self, name, value) {
+  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  return this.cvar_set(self, name, value);
+});
+
+$.define_method($c.Module, 'remove_class_variable', 2, function(self, name) {
+  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  return this.cvar_set(self, name, value);
+});
+
+$.define_method($c.Module, 'class_variables', 0, function(self) {
+  var cvars = [];
+  for(var name in self.class_variables)
+    cvars.push($.id2sym(name));
+  return cvars;
+});

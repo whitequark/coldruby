@@ -58,6 +58,75 @@ var $ = {
     this.globals[this.gvar_normalize(name)] = value;
   },
 
+  /* === CLASS VARIABLES === */
+
+  cvar_find_scope: function(name) {
+    var cref = this.context.sf.cref;
+
+    var klass = cref[0];
+    while(klass) {
+      if(name in klass.class_variables)
+        return klass;
+      klass = klass.superklass;
+    }
+
+    // Return the inner class, which is subject to definition of
+    // unknown constants.
+    return cref[0];
+  },
+
+  cvar_defined: function(scope, name) {
+    name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.cvar_find_scope(name);
+
+    return (name in scope.class_variables);
+  },
+
+  cvar_get: function(scope, name) {
+    name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.cvar_find_scope(name);
+
+    if(!(name in scope.class_variables)) {
+      this.raise2(this.e.NameError, ["uninitialized class variable " +
+          this.id2text(name) + ' in ' + scope.klass_name, this.id2sym(name)]);
+    }
+
+    return scope.class_variables[name];
+  },
+
+  cvar_set: function(scope, name, value) {
+    name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.cvar_find_scope(name);
+
+    scope.class_variables[name] = value;
+
+    return value;
+  },
+
+  cvar_remove: function(scope, name) {
+    name = this.any2id(name);
+    var real_scope = this.cvar_find_scope(name);
+
+    if(real_scope.class_variables[name] != undefined && real_scope != scope) {
+      this.raise2(this.e.NameError, ["cannot remove " +
+          this.id2text(name) + ' for ' + scope.klass_name, this.id2sym(name)]);
+    }
+
+    if(scope.class_variables[name] == undefined) {
+      this.raise2(this.e.NameError, ["class variable " +
+          this.id2text(name) + ' not defined for ' + scope.klass_name, this.id2sym(name)]);
+    }
+
+    var value = scope.class_variables[name];
+
+    delete scope.class_variables[name];
+
+    return value;
+  },
+
   /* === CONSTANTS === */
   const_find_scope: function(name) {
     var cref = this.context.sf.cref;
@@ -121,6 +190,7 @@ var $ = {
     var klass = {
       klass_name:        name,
       klass:             self_klass || this.internal_constants.Module,
+      class_variables:   {},
       constants:         {},
       instance_methods:  {},
       singleton_methods: {},
@@ -404,6 +474,7 @@ var $ = {
           klass:             is_class ? this.internal_constants.Class : this.internal_constants.Module,
           superklass:        superklass == this.builtin.Qnil ? this.internal_constants.Object : superklass,
           constants:         {},
+          class_variables:   {},
           instance_methods:  {},
           singleton_methods: {},
           ivs:               {},
@@ -728,10 +799,11 @@ var $ = {
 
   create_toplevel: function() {
     var toplevel = {
-      klass: this.internal_constants.Object,
+      klass:             this.internal_constants.Object,
       singleton_methods: {},
-      ivs: {},
-      toplevel: true
+      class_variables:   {},
+      ivs:               {},
+      toplevel:          true
     };
     this.define_singleton_method(toplevel, 'to_s', 0, function(self) {
       return "main";

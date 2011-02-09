@@ -145,6 +145,12 @@ module ColdRuby
           %Q{this.const_set(module, #{SYMBOL[self, @info[0]]}, #{POP})}
         ]
 
+      when :getclassvariable
+        %Q{#{PUSH} = this.cvar_get(Qnil, #{SYMBOL[self, @info[0]]})}
+
+      when :setclassvariable
+        %Q{this.cvar_set(Qnil, #{SYMBOL[self, @info[0]]}, #{POP})}
+
       when :newarray
         [
           %Q{var value = sf.stack.slice(sf.sp - #{@info[0]}, sf.sp);},
