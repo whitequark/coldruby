@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <sys/wait.h>
+#include <sys/time.h>
 #include <signal.h>
 
 // This complete file is an example of how not to write interface glue.
@@ -49,6 +50,17 @@ Handle<Value> API_gets(const Arguments& args) {
   } else {
     return String::New(input.c_str(), input.length());
   }
+}
+
+Handle<Value> API_time_now(const Arguments& args) {
+  if (args.Length() != 0) return Undefined();
+
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  double usec = now.tv_sec + ((double) now.tv_usec) / 1000000;
+
+  return Number::New(usec);
 }
 
 static int c_in, c_out;
@@ -157,9 +169,10 @@ int main(int argc, char* argv[]) {
   HandleScope handle_scope;
 
   Handle<ObjectTemplate> interp = ObjectTemplate::New();
-  interp->Set(String::New("print"), FunctionTemplate::New(API_print));
-  interp->Set(String::New("gets"),  FunctionTemplate::New(API_gets));
-  interp->Set(String::New("exec"),  FunctionTemplate::New(API_exec));
+  interp->Set(String::New("print"),     FunctionTemplate::New(API_print));
+  interp->Set(String::New("gets"),      FunctionTemplate::New(API_gets));
+  interp->Set(String::New("time_now"),  FunctionTemplate::New(API_time_now));
+  interp->Set(String::New("exec"),      FunctionTemplate::New(API_exec));
 
   Handle<ObjectTemplate> global = ObjectTemplate::New();
   global->Set(String::New("$i"), interp);
