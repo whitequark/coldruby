@@ -42,11 +42,13 @@ $.define_method($c.Hash, '[]', 1, function(self, key) {
   var hash = this.funcall(key, 'hash');
 
   var value = self.values[hash];
-  if(value == undefined && self.ivs['@default_proc'] != undefined) {
+  if(value) {
+    return value;
+  } else if(self.ivs['@default_proc'] != undefined) {
     return this.funcall(self.ivs['@default_proc'], 'call', self, key);
-  } else {
-    return value == null ? self.ivs['@default'] : value;
   }
+
+  return self.ivs['@default'];
 });
 
 $.define_method($c.Hash, '[]=', 2, function(self, key, value) {
