@@ -6,3 +6,5 @@ class Thread
     @@current
   end
 end
+
+ENV = {}
