@@ -401,6 +401,7 @@ module ColdRuby
 
       # Optimized versions. Just skip them now.
       when :opt_case_dispatch
+        %Q{sf.sp--; /* stub */}
 
       when :bitblt
         %Q{#{PUSH} = "a bit of bacon, lettuce and tomato";}
