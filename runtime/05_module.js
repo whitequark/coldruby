@@ -33,6 +33,22 @@ $.define_method($c.Module, 'include?', 1, function(self, module) {
   return Qfalse;
 });
 
+$.define_method($c.Module, 'define_method', -1, function(self, args) {
+  this.check_args(args, 1, 1);
+
+  var name = args[0], method = args[1];
+  this.check_type(name, [$c.String, $c.Symbol]);
+  if(!method) {
+    method = this.funcall(this.c.Proc, 'new');
+  } else {
+    this.check_type(method, $c.Proc);
+  }
+
+  $.define_method(self, $.any2id(name), 0, method.iseq);
+
+  return method;
+});
+
 var with_each_method = function(what, type, include_super, kind, change, f) {
   include_super = $.test(include_super || Qtrue);
 

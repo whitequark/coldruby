@@ -10,7 +10,7 @@ $.builtin.make_proc = function(iseq) {
 $.define_method($c.Proc, 'initialize', 0, function(self) {
   if(this.block_given()) {
     self.iseq = this.context.sf.block;
-    } else if(this.context.sf.parent.parent.block) { // Proc#initialize->Proc.new->caller
+  } else if(this.context.sf.parent.parent.block) { // Proc#initialize->Proc.new->caller
     self.iseq = this.context.sf.parent.parent.block;
   } else {
     this.raise(this.e.ArgumentError, "tried to create Proc object without a block");
