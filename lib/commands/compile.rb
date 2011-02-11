@@ -118,6 +118,9 @@ HANDLER
       };
     return ruby.execute(sf_opts, iseq, []);
   }, function(e) {
+    if($i.fail_in_eval && #{!is_toplevel})
+      throw e;
+
     if(e.hasOwnProperty('klass') && typeof e != 'string') {
       if(e.klass == ruby.e.SystemExit) {
         #{is_toplevel ? 'return' : 'throw e'};

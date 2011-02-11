@@ -52,8 +52,10 @@ $.define_method($c.Kernel, 'autoload?', 1, function(self, constant) {
 $.define_method($c.Kernel, 'load', 1, function(self, file) {
   file = this.check_type(file, $c.String);
 
+  $i.fail_in_eval = true;
   $it.load_context = this;
   $it.compile(file, this.funcall($.gvar_get('$:'), 'inspect'));
+  $i.fail_in_eval = false;
 });
 
 $.define_method($c.Kernel, 'require', 1, function(self, file) {
@@ -64,8 +66,8 @@ $.define_method($c.Kernel, 'require', 1, function(self, file) {
     if(features[i] == file) return Qfalse;
   }
 
-  $it.load_context = this;
-  $it.compile(file, this.funcall($.gvar_get('$:'), 'inspect'));
+  this.funcall(self, 'load', file);
+
   features.push(file);
 
   return Qtrue;
