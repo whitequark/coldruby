@@ -49,20 +49,20 @@ $.define_method($c.Module, 'define_method', -1, function(self, args) {
   return method;
 });
 
-var with_each_method = function(what, type, include_super, kind, change, f) {
+var with_each_method = function(what, type, include_super, f) {
   include_super = $.test(include_super || Qtrue);
 
   var object = what;
   while(object) {
-    for(var id in object[kind]) {
-      var method = object[kind][id];
+    for(var id in object.instance_methods) {
+      var method = object.instance_methods[id];
       if(method.visibility == type) {
         f($.id2sym(id));
       }
     }
 
     if(!include_super) break;
-    object = object[change];
+    object = object.parentklass;
   }
 }
 
@@ -82,12 +82,10 @@ var make_reflectors = function(type) {
     this.check_args(args, 0, 1);
 
     var methods = [];
-    with_each_method(self, visibility, args[0], 'singleton_methods', 'superklass',
-        function(method) {
+    with_each_method(self.singleton_klass, visibility, args[0], function(method) {
       methods.push(method);
     });
-    with_each_method(self.klass, visibility, args[0], 'instance_methods', 'parentklass',
-        function(method) {
+    with_each_method(self.klass, visibility, args[0], function(method) {
       methods.push(method);
     });
     return this.funcall(methods, 'uniq!');
@@ -97,8 +95,7 @@ var make_reflectors = function(type) {
     this.check_args(args, 0, 1);
 
     var methods = [];
-    with_each_method(self, visibility, args[0], 'instance_methods', 'parentklass',
-        function(method) {
+    with_each_method(self, visibility, args[0], function(method) {
       methods.push(method);
     });
     return this.funcall(methods, 'uniq!');
@@ -115,10 +112,13 @@ $.alias_method($c.Kernel, 'methods', 'public_methods');
 $.alias_method($c.Module, 'instance_methods', 'public_instance_methods');
 
 $.define_method($c.Module, 'module_function', -1, function(self, args) {
+  var singleton = this.get_singleton(self);
+
   for(var i = 0; i < args.length; i++) {
     var name = $.any2id(args[i]);
-    self.singleton_methods[name] = self.instance_methods[name];
+    singleton.instance_methods[name] = self.instance_methods[name];
   }
+
   return Qnil;
 });
 

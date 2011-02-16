@@ -1,5 +1,4 @@
 $.builtin.vmcore = {
-  singleton_methods: {},
   klass: {
     klass_name: 'core'
   }

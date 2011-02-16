@@ -188,10 +188,10 @@ var $ = {
     var klass = {
       klass_name:        name,
       klass:             self_klass || this.internal_constants.Module,
-      class_variables:   {},
+      singleton_klass:   null,
       constants:         {},
+      class_variables:   {},
       instance_methods:  {},
-      singleton_methods: {},
       ivs:               {},
     };
     this.constants[this.any2id(name)] = klass;
@@ -204,6 +204,25 @@ var $ = {
     module.superklass = superklass || this.internal_constants.Object,
     module.parentklass = module.superklass;
     return module;
+  },
+
+  get_singleton: function(klass) {
+    if(klass.singleton_klass)
+      return klass.singleton_klass;
+
+    var singleton = {
+      klass_name:        '<eigenclass>',
+      klass:             this.internal_constants.Class,
+      superklass:        null,
+      parentklass:       null,
+      constants:         {},
+      instance_methods:  {},
+      ivs:               {},
+      singleton:         true,
+    };
+
+    klass.singleton_klass = singleton;
+    return singleton;
   },
 
   module_include: function(target, module) {
@@ -306,10 +325,8 @@ var $ = {
   define_singleton_method: function(klass, name, want_args, method, native_info) {
     name = this.any2id(name);
 
-    if(klass.singleton_methods == undefined)
-      klass.singleton_methods = {};
-
-    klass.singleton_methods[name] = this.wrap_method(klass, name, want_args, method, native_info);
+    var singleton = this.get_singleton(klass);
+    singleton.instance_methods[name] = this.wrap_method(klass, name, want_args, method, native_info);
   },
 
   alias_method: function(klass, name, other_name) {
@@ -346,23 +363,27 @@ var $ = {
     var func = null;
 
     if(object != null) {
-      // Search singleton methods, and then class hierarchy
+      var klass;
+
       if(!search_klass && !super) {
-        var singleton = object;
-        while(func == null && singleton != null) {
-          if(singleton.singleton_methods != null) {
-            func = singleton.singleton_methods[method];
-          }
-          singleton = singleton.superklass;
+        func = this.find_method(object.singleton_klass, method, false, true);
+
+        if(func == null && object.klass == this.internal_constants.Class &&
+                  !object.singleton) {
+          klass = object.superklass;
+
+          do {
+            func = this.find_method(klass.singleton_klass, method, false, true);
+            klass = klass.superklass;
+          } while(!func && klass);
         }
       }
 
-      var klass = search_klass ? object : (super ? super.superklass : object.klass);
+      klass = search_klass ? object : (super ? super.superklass : object.klass);
 
       while(func == null && klass != null) {
-        if(func == null && klass.instance_methods) {
+        if(func == null && klass.instance_methods)
           func = klass.instance_methods[method];
-        }
 
         klass = klass.parentklass;
       }
@@ -471,10 +492,10 @@ var $ = {
           klass_name:        name,
           klass:             is_class ? this.internal_constants.Class : this.internal_constants.Module,
           superklass:        superklass == this.builtin.Qnil ? this.internal_constants.Object : superklass,
+          singleton_klass:   null,
           constants:         {},
           class_variables:   {},
           instance_methods:  {},
-          singleton_methods: {},
           ivs:               {},
         };
         klass.parentklass = is_class ? klass.superklass : null;
@@ -483,20 +504,7 @@ var $ = {
         var klass = this.const_get(cbase, name);
       }
     } else { // singleton
-      if(!cbase.singleton_methods) {
-        cbase.singleton_methods = {}
-      }
-
-      var klass = {
-        klass_name:        'singleton',
-        klass:             this.internal_constants.Class,
-        superklass:        this.internal_constants.Object,
-        constants:         {},
-        instance_methods:  cbase.singleton_methods,
-        singleton_methods: {},
-        ivs:               {},
-        singleton:         true,
-      }
+      var klass = this.get_singleton(cbase);
     }
 
     var cref = [ klass ];
@@ -798,7 +806,6 @@ var $ = {
   create_toplevel: function() {
     var toplevel = {
       klass:             this.internal_constants.Object,
-      singleton_methods: {},
       class_variables:   {},
       ivs:               {},
       toplevel:          true
