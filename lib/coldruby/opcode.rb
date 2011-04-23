@@ -5,7 +5,7 @@ module ColdRuby
     def initialize(message, *args)
       super("You have encountered an unknown (to the developer(s) of " <<
             "ColdRuby) feature in Ruby (#{message}). Please, contact them and " <<
-            "send the relevant code for the feature to be added.")
+            "send the relevant code for the feature to be added.", *args)
     end
   end
 
