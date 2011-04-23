@@ -25,6 +25,13 @@ $.define_method($c.Float, 'to_i', 0, function(self) {
 $.alias_method($c.Float, 'floor', 'to_i');
 $.alias_method($c.Float, 'truncate', 'to_i');
 
+$.define_method($c.Float, '-@', 1, function(self) {
+  return $.builtin.make_float(-self.value);
+});
+$.define_method($c.Float, '+@', 1, function(self) {
+  return self;
+});
+
 $.define_method($c.Float, '+', 1, function(self, other) {
   other = this.funcall(other, 'to_f');
   return $.builtin.make_float(self.value + other.value);
