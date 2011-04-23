@@ -157,11 +157,8 @@ if __FILE__ == $0
   runtime = get_runtime
   runtime.each_with_index do |(file, code), i|
     puts file;        $>.flush
-    code << %{$i.print('.');}
     if i < runtime.length - 1
       code << %{$i.exec();}
-    else
-      code << %{$i.print('\\n');}
     end
     puts code.length; $>.flush
     print code;       $>.flush
