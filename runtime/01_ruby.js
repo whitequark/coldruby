@@ -1,10 +1,4 @@
 var $ = {
-  constants: {},
-  internal_constants: {}, // analogue of rb_c*
-  c: null,
-  e: null,
-  globals: {},
-  globals_aliases: {},
   builtin: {
     setup: function() {
       $.gvar_set('$"', []);
@@ -18,6 +12,14 @@ var $ = {
   },
 
   /* === GLOBAL VARIABLES === */
+  globals: {},
+  globals_aliases: {},
+
+  /*
+   * call-seq: gvar_normalize(name) -> string
+   *
+   * Normalize a global variable name by expanding all aliases.
+   */
   gvar_normalize: function(name) {
     name = this.any2id(name);
     if(name in this.globals_aliases) {
@@ -27,7 +29,8 @@ var $ = {
   },
 
   /*
-   * call-seq: -> Boolean
+   * call-seq: gvar_defined(name) -> true or false
+   *
    * Check if a global variable +name+ is defined.
    */
   gvar_defined: function(name) {
@@ -36,6 +39,8 @@ var $ = {
   },
 
   /*
+   * call-seq: gvar_alias(name, other) -> null
+   *
    * Set an alias +name+ for global variable +other_name+.
    */
   gvar_alias: function(name, other_name) {
@@ -44,7 +49,9 @@ var $ = {
   },
 
   /*
-   * Retrieve contents of global variable +name+.
+   * call-seq: gvar_get(name) -> value or Qnil
+   *
+   * Retrieve contents of global variable +name+ or nil if it does not exist.
    */
   gvar_get: function(name) {
     var v = this.globals[this.gvar_normalize(name)]
@@ -52,14 +59,30 @@ var $ = {
   },
 
   /*
+   * call-seq: gvar_set(name, value) -> value
+   *
    * Set contents of global variable +name+ to +value+.
    */
   gvar_set: function(name, value) {
     this.globals[this.gvar_normalize(name)] = value;
+
+    return value;
   },
 
   /* === CLASS VARIABLES === */
+  constants: {},
+  internal_constants: {},
+  c: null, // like rb_cSomething
+  e: null,
 
+  /*
+   * call-seq: cvar_find_scope(name) -> module instance
+   *
+   * Find a scope where class variable +name+ exists, starting from the
+   * current context. The innermost scope (cref head) is returned if the
+   * variable is not found.
+   * TODO: check the search rules (comparing to MRI)
+   */
   cvar_find_scope: function(name) {
     var cref = this.context.sf.cref;
 
@@ -75,6 +98,12 @@ var $ = {
     return cref[0];
   },
 
+  /*
+   * call-seq: cvar_defined(scope, name) -> true or false
+   *
+   * Check existence of a class variable +name+ in scope +scope+.
+   * Scope search is performed if +scope+ is Qnil.
+   */
   cvar_defined: function(scope, name) {
     name = this.any2id(name);
     if(scope == this.builtin.Qnil)
@@ -83,6 +112,13 @@ var $ = {
     return (name in scope.class_variables);
   },
 
+  /*
+   * call-seq: cvar_get(scope, name) -> value
+   *
+   * Get a value of class variable +name+ in scope +scope+.
+   * Scope search is performed if +scope+ is Qnil.
+   * If such a variable does not exist, exception is raised.
+   */
   cvar_get: function(scope, name) {
     name = this.any2id(name);
     if(scope == this.builtin.Qnil)
@@ -96,6 +132,13 @@ var $ = {
     return scope.class_variables[name];
   },
 
+  /*
+   * call-seq: cvar_set(scope, name, value) -> null
+   *
+   * Set a value of class variable +name+ in scope +scope+.
+   * Value of existing variables is changed, retaining the scope of variable;
+   * new variables are defined in innermost scope (current klass).
+   */
   cvar_set: function(scope, name, value) {
     name = this.any2id(name);
     if(scope == this.builtin.Qnil)
@@ -106,6 +149,13 @@ var $ = {
     return value;
   },
 
+  /*
+   * call-seq: cvar_remove(scope, name) -> value
+   *
+   * Remove a class variable +name+ from scope +scope+. Its value is returned.
+   * Exception is raised if there is no such variable in the scope, or if
+   * the variable exists in the scope, but is inherited from other one.
+   */
   cvar_remove: function(scope, name) {
     name = this.any2id(name);
     var real_scope = this.cvar_find_scope(name);
@@ -128,6 +178,18 @@ var $ = {
   },
 
   /* === CONSTANTS === */
+  constants: {},
+  internal_constants: {}, // analogue of rb_c*
+  c: null,
+  e: null,
+
+  /*
+   * call-seq: const_find_scope(name) -> module instance
+   *
+   * Find a scope in which constant +name+ is defined, starting from the
+   * innermost stack frame.
+   * TODO: check the search rules (comparing to MRI)
+   */
   const_find_scope: function(name) {
     var cref = this.context.sf.cref;
 
@@ -149,6 +211,12 @@ var $ = {
     return cref[0];
   },
 
+  /*
+   * call-seq: const_defined(scope, name, inherit) -> true or false
+   *
+   * Check if the constant +name+ is defined in scope +scope+.
+   * TODO: respect +inherit+
+   */
   const_defined: function(scope, name, inherit) {
     name = this.any2id(name);
     if(scope == this.builtin.Qnil)
@@ -157,6 +225,13 @@ var $ = {
     return (name in scope.constants);
   },
 
+  /*
+   * call-seq: const_get(scope, name, inherit) -> value
+   *
+   * Return the value of constant +name+ from scope +scope+.
+   * If the constant is not found, +const_missing+ is invoked on the +scope+.
+   * TODO: respect +inherit+
+   */
   const_get: function(scope, name, inherit) {
     name = this.any2id(name);
     if(scope == this.builtin.Qnil)
@@ -168,13 +243,18 @@ var $ = {
     return scope.constants[name];
   },
 
+  /*
+   * call-seq: const_set(scope, name, value) -> value
+   *
+   * Add a constant +name+ in scope +scope+ with the value +value+.
+   * TODO: emit a warning if the constant is already defined
+   */
   const_set: function(scope, name, value) {
     if(scope == this.builtin.Qnil) scope = this;
     name = this.any2id(name);
 
     if(scope.constants[name] != undefined) {
       var strname = this.id2text(name);
-      // TODO warn
       //this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
     }
 
@@ -594,14 +674,31 @@ var $ = {
     return this.execute(sf_opts, func, args);
   },
 
+  /*
+   * call-seq: super(...) -> value
+   *
+   * Call a superclass method. Arguments are interpreted as a vararg list.
+   */
   super: function() {
     return this.funcall2(null, null, arguments);
   },
 
+  /*
+   * call-seq: super2(args, block) -> value
+   *
+   * Call a superclass method. +block+ is optional.
+   * Equivalent to Ruby `super *args, &block'.
+   */
   super2: function(args, block) {
     return this.funcall2(null, null, args, block);
   },
 
+  /*
+   * call-seq: super3() -> value
+   *
+   * Call a superclass method with arguments from the current context.
+   * Internal.
+   */
   super3: function() {
     return this.funcall2(null, null, this.context.sf.args, this.context.sf.block);
   },
@@ -610,10 +707,21 @@ var $ = {
     return !!this.context.sf.block;
   },
 
+  /*
+   * call-seq: yield(...) -> value
+   *
+   * Yield to a block. Equivalent to Ruby `yield' with vararg list as
+   * arguments.
+   */
   yield: function() {
     return this.yield2(arguments);
   },
 
+  /*
+   * call-seq: yield2(args) -> value
+   *
+   * Yield to a block. Equivalent to Ruby `yield *args'.
+   */
   yield2: function(args) {
     var iseq = this.context.sf.block;
 
