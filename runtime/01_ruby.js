@@ -989,21 +989,24 @@ var $ = {
           if(!found) {
             this.context.sf = new_sf.parent;
             throw e;
-          } else if(catches[i].iseq) {
-            var sf_opts = {
-              self: this.context.sf.self,
-              ddef: this.context.sf.ddef,
-              cref: this.context.sf.cref,
-
-              outer: this.context.sf,
-            };
-
-            return this.execute(sf_opts, caught.iseq, [], e.object);
           } else {
             chunk = caught.cont;
-          }
 
-          new_sf.stack[new_sf.sp++] = e.object;
+            if(catches[i].iseq) {
+              var sf_opts = {
+                self: this.context.sf.self,
+                ddef: this.context.sf.ddef,
+                cref: this.context.sf.cref,
+
+                outer: this.context.sf,
+              };
+
+              new_sf.stack[new_sf.sp++] =
+                      this.execute(sf_opts, caught.iseq, [], e.object);
+            } else {
+              new_sf.stack[new_sf.sp++] = e.object;
+            }
+          }
         }
       }
 
