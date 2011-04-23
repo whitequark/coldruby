@@ -1011,7 +1011,7 @@ var $ = {
       }
 
       if(new_sf.sp != 1) {
-        throw new Error("Invalid stack frame at exit");
+        throw new Error("Invalid stack frame at exit: sp (" + new_sf.sp + ") != 1");
       }
 
       var retval = new_sf.stack[0];
