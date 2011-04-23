@@ -610,6 +610,11 @@ var $ = {
     return this.execute(sf_opts, iseq, []);
   },
 
+  /*
+   * call-seq: funcall(receiver, method, ...) -> value
+   *
+   * Call +method+ on +receiver+ with arguments from vararg list.
+   */
   funcall: function(receiver, method) {
     var args_array = [];
     for(var i = 2; i < arguments.length; i++) {
@@ -618,6 +623,14 @@ var $ = {
     return this.funcall2(receiver, method, args_array);
   },
 
+  /*
+   * call-seq: funcall(receiver, method, args, block, vcall) -> value
+   *
+   * Call +method+ on +receiver+ with arguments +args+ and passing
+   * block +block+. If +vcall+ is true, the +method+ may also be a local
+   * variable, and, if method is missing, the error message will be
+   * formatted accordingly.
+   */
   funcall2: function(receiver, method, args, block, vcall) {
     if(receiver == null || method == null) {
       var c_receiver = this.context.sf.self;
