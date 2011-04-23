@@ -18,7 +18,7 @@ def get_runtime(plaintext=false)
         last_definition = index
       elsif last_definition && line == "});\n"
         lines[index] = "}, { file: #{File.basename(runtime_file).inspect}," <<
-                       " line: #{last_definition} });\n"
+                       " line: #{last_definition + 1} });\n"
       end
     }
 
