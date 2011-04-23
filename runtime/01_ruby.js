@@ -69,6 +69,92 @@ var $ = {
     return value;
   },
 
+  /* === CONSTANTS === */
+  constants: {},
+  internal_constants: {}, // analogue of rb_c*
+  c: null,
+  e: null,
+
+  /*
+   * call-seq: const_find_scope(name) -> module instance
+   *
+   * Find a scope in which constant +name+ is defined, starting from the
+   * innermost stack frame.
+   * TODO: check the search rules (comparing to MRI)
+   */
+  const_find_scope: function(name) {
+    var cref = this.context.sf.cref;
+
+    // Skip outermost context; it has precedence lower than superklasses
+    for(var i = 0; i < cref.length - 1; i++) {
+      if(name in cref[i].constants)
+        return cref[i];
+    }
+
+    var klass = cref[0];
+    while(klass) {
+      if(name in klass.constants)
+        return klass;
+      klass = klass.superklass;
+    }
+
+    // Return the inner scope. It does not really matter what to
+    // return, as the constant won't be found anyway.
+    return cref[0];
+  },
+
+  /*
+   * call-seq: const_defined(scope, name, inherit) -> true or false
+   *
+   * Check if the constant +name+ is defined in scope +scope+.
+   * TODO: respect +inherit+
+   */
+  const_defined: function(scope, name, inherit) {
+    name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.const_find_scope(name);
+
+    return (name in scope.constants);
+  },
+
+  /*
+   * call-seq: const_get(scope, name, inherit) -> value
+   *
+   * Return the value of constant +name+ from scope +scope+.
+   * If the constant is not found, +const_missing+ is invoked on the +scope+.
+   * TODO: respect +inherit+
+   */
+  const_get: function(scope, name, inherit) {
+    name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.const_find_scope(name);
+
+    if(scope.constants[name] == undefined)
+      return this.funcall(scope, 'const_missing', this.id2sym(name));
+
+    return scope.constants[name];
+  },
+
+  /*
+   * call-seq: const_set(scope, name, value) -> value
+   *
+   * Add a constant +name+ in scope +scope+ with the value +value+.
+   * TODO: emit a warning if the constant is already defined
+   */
+  const_set: function(scope, name, value) {
+    if(scope == this.builtin.Qnil) scope = this;
+    name = this.any2id(name);
+
+    if(scope.constants[name] != undefined) {
+      var strname = this.id2text(name);
+      //this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
+    }
+
+    scope.constants[name] = value;
+
+    return value;
+  },
+
   /* === CLASS VARIABLES === */
   constants: {},
   internal_constants: {},
@@ -173,92 +259,6 @@ var $ = {
     var value = scope.class_variables[name];
 
     delete scope.class_variables[name];
-
-    return value;
-  },
-
-  /* === CONSTANTS === */
-  constants: {},
-  internal_constants: {}, // analogue of rb_c*
-  c: null,
-  e: null,
-
-  /*
-   * call-seq: const_find_scope(name) -> module instance
-   *
-   * Find a scope in which constant +name+ is defined, starting from the
-   * innermost stack frame.
-   * TODO: check the search rules (comparing to MRI)
-   */
-  const_find_scope: function(name) {
-    var cref = this.context.sf.cref;
-
-    // Skip outermost context; it has precedence lower than superklasses
-    for(var i = 0; i < cref.length - 1; i++) {
-      if(name in cref[i].constants)
-        return cref[i];
-    }
-
-    var klass = cref[0];
-    while(klass) {
-      if(name in klass.constants)
-        return klass;
-      klass = klass.superklass;
-    }
-
-    // Return the inner scope. It does not really matter what to
-    // return, as the constant won't be found anyway.
-    return cref[0];
-  },
-
-  /*
-   * call-seq: const_defined(scope, name, inherit) -> true or false
-   *
-   * Check if the constant +name+ is defined in scope +scope+.
-   * TODO: respect +inherit+
-   */
-  const_defined: function(scope, name, inherit) {
-    name = this.any2id(name);
-    if(scope == this.builtin.Qnil)
-      scope = this.const_find_scope(name);
-
-    return (name in scope.constants);
-  },
-
-  /*
-   * call-seq: const_get(scope, name, inherit) -> value
-   *
-   * Return the value of constant +name+ from scope +scope+.
-   * If the constant is not found, +const_missing+ is invoked on the +scope+.
-   * TODO: respect +inherit+
-   */
-  const_get: function(scope, name, inherit) {
-    name = this.any2id(name);
-    if(scope == this.builtin.Qnil)
-      scope = this.const_find_scope(name);
-
-    if(scope.constants[name] == undefined)
-      return this.funcall(scope, 'const_missing', this.id2sym(name));
-
-    return scope.constants[name];
-  },
-
-  /*
-   * call-seq: const_set(scope, name, value) -> value
-   *
-   * Add a constant +name+ in scope +scope+ with the value +value+.
-   * TODO: emit a warning if the constant is already defined
-   */
-  const_set: function(scope, name, value) {
-    if(scope == this.builtin.Qnil) scope = this;
-    name = this.any2id(name);
-
-    if(scope.constants[name] != undefined) {
-      var strname = this.id2text(name);
-      //this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
-    }
-
-    scope.constants[name] = value;
 
     return value;
   },
