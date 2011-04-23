@@ -49,7 +49,7 @@ $.define_method($c.Module, 'include?', 1, function(self, module) {
 });
 
 $.define_method($c.Module, '===', 1, function(self, obj) {
-
+  return this.obj_is_kind_of(obj, self) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Module, 'define_method', -1, function(self, args) {

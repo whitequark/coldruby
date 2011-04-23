@@ -779,6 +779,22 @@ var $ = {
   },
 
   /*
+   * call-seq: obj_is_kind_of(object, class) -> true or false
+   *
+   * Checks if +class+ is +object+'s class or one of its ancestors.
+   */
+  obj_is_kind_of: function(object, c) {
+    var klass = object.klass;
+
+    do {
+      if(klass == c)
+        return true;
+    } while(klass = klass.superklass);
+
+    return false;
+  },
+
+  /*
    * call-seq: get_local(sf, name, value) -> value or null
    *
    * Return a local variable +name+ from stack frame +sf+.
