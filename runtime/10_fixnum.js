@@ -18,6 +18,9 @@ $.define_method($c.Fixnum, '*', 1, function(self, other) {
   return self * other;
 });
 $.define_method($c.Fixnum, '/', 1, function(self, other) {
+  if(other == 0)
+    this.raise(this.e.ZeroDivisionError, "divided by 0");
+
   return Math.floor(self / other);
 });
 
