@@ -2,7 +2,9 @@ $.define_class('Exception');
 
 $.define_method($e.Exception, 'initialize', -1, function(self, args) {
   this.check_args(args, 0, 1);
-  this.check_type(args[0], $.c.String)
+  if(args[0])
+    this.check_type(args[0], $.c.String)
+
   self.ivs['@message'] = args[0] || Qnil;
   self.ivs['@backtrace'] = Qnil;
 });
