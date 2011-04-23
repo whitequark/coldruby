@@ -27,6 +27,13 @@ module ColdRuby
 
     C_VM_ARRAY_REMAINS = 1
 
+    THROW_OPCODES = {
+      0 => '<unknown:0>',
+      1 => 'return',
+      2 => 'break',
+      4 => '<unknown:4>',
+    }
+
     attr_reader :type, :info, :pool
 
     def initialize(pool, opcode, level=0)
@@ -381,11 +388,11 @@ module ColdRuby
         code
 
       when :throw
-        if ![1, 2].include? @info[0]
+        if !THROW_OPCODES.include? @info[0]
           raise UnknownFeatureException, "throw type #{@info[0]}"
         end
 
-        %Q{throw { op: #{@info[0]}, object: #{POP} }}
+        %Q{throw { op: #{THROW_OPCODES[@info[0]].inspect}, object: #{POP} };}
 
       when :jump
         %Q{return #{self.class.label_to_id(@info[0])};}

@@ -725,7 +725,7 @@ var $ = {
           var found = false;
 
           switch(type) {
-            case 1: // return
+            case 'return':
             if(iseq.lambda || iseq.info.type == 'method') {
               chunk = null;
               found = true;
@@ -735,7 +735,7 @@ var $ = {
             }
             break;
 
-            case 2: // break
+            case 'break':
             if(iseq.info.type == 'method') {
               chunk = null;
               found = true;
@@ -782,8 +782,8 @@ var $ = {
         var found = false;
 
         switch(type) {
-          case 1:
-          case 2:
+          case 'break':
+          case 'return':
           new_sf.sp = null;
           found = true;
           break;
