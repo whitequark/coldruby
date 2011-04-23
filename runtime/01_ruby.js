@@ -1002,8 +1002,19 @@ var $ = {
                 outer: this.context.sf,
               };
 
-              new_sf.stack[new_sf.sp++] =
-                      this.execute(sf_opts, caught.iseq, [], e.object);
+              try {
+                new_sf.stack[new_sf.sp++] =
+                        this.execute(sf_opts, caught.iseq, [], e.object);
+              } catch(e) {
+                if(e.op == 'retry') {
+                  /* Not sure if retry catch table entry always refers
+                     to the same instruction as start of rescue entry. */
+                  new_sf.sp--;
+                  chunk = caught.st;
+                } else {
+                  throw e;
+                }
+              }
             } else {
               new_sf.stack[new_sf.sp++] = e.object;
             }
