@@ -1,4 +1,5 @@
 $.define_class('String', $c.Object);
+$.module_include($c.String, $c.Comparable);
 
 $.define_method($c.String, 'to_s', 0, function(self) {
   return self;
