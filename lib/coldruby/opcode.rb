@@ -23,7 +23,8 @@ module ColdRuby
     VM_SINGLETON_CLASS = 1
     VM_DEFINE_MODULE   = 2
 
-    DEFINED_IVAR = 3
+    DEFINED_IVAR  = 3
+    DEFINED_CONST = 11
 
     C_VM_ARRAY_REMAINS = 1
 
@@ -371,6 +372,11 @@ module ColdRuby
         case @info[0]
         when DEFINED_IVAR
           cond, str = %Q{obj.ivs['#{object}']}, 'instance-variable'
+        when DEFINED_CONST
+          cond, str = %Q{this.const_defined(this.builtin.Qnil, '#{object}', true)},
+                      'constant'
+        else
+          raise UnknownFeatureException, "defined type #{@info[0]}"
         end
 
         code = [
