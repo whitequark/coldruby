@@ -8,7 +8,7 @@ $c.Object.constants = $.constants;
 $c.BasicObject.klass = $c.Object.klass = $c.Module.klass = $c.Class.klass = $c.Class;
 
 $c.Symbol.klass = $c.Class;
-$c.Symbol.parentklass = $c.Symbol.superklass = $c.Object;
+$c.Symbol.superklass = $c.Object;
 
 $c.Kernel = $.define_module('Kernel');
 
@@ -22,11 +22,7 @@ $.define_method($c.Class, 'allocate', 0, function(self) {
 });
 
 $.define_method($c.Class, 'new', -1, function(self, args) {
-  var object = {
-    klass: self,
-    ivs:   {},
-  };
-
+  var object = this.funcall(self, 'allocate');
   this.funcall2(object, 'initialize', args);
 
   return object;

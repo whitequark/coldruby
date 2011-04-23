@@ -281,8 +281,7 @@ var $ = {
 
   define_class: function(name, superklass) {
     var module = this.define_module(name, this.internal_constants.Class);
-    module.superklass = superklass || this.internal_constants.Object,
-    module.parentklass = module.superklass;
+    module.superklass = superklass || this.internal_constants.Object;
     return module;
   },
 
@@ -294,11 +293,10 @@ var $ = {
       klass_name:        '<eigenclass>',
       klass:             this.internal_constants.Class,
       superklass:        null,
-      parentklass:       null,
       constants:         {},
       instance_methods:  {},
       ivs:               {},
-      singleton:         true,
+      type:              'singleton',
     };
 
     klass.singleton_klass = singleton;
@@ -308,22 +306,22 @@ var $ = {
   module_include: function(target, module) {
     var klass = target;
     while(klass) {
-      if(klass == module || klass.origin == module) {
+      if(klass == module || klass.origin == module)
         return;
-      }
-      klass = klass.parentklass;
+
+      klass = klass.superklass;
     }
 
     var proxy = {
-      real_module:      module,
       klass_name:       module.klass_name,
-      klass:            module.klass,
-      parentklass:      target.parentklass,
+      klass:            module,
       constants:        module.constants,
       instance_methods: module.instance_methods,
+      superklass:       target.superklass,
+      type:             'module_proxy',
     };
 
-    target.parentklass = proxy;
+    target.superklass = proxy;
   },
 
   visibility: function(klass, visibility) {
@@ -449,13 +447,14 @@ var $ = {
         func = this.find_method(object.singleton_klass, method, false, true);
 
         if(func == null && object.klass == this.internal_constants.Class &&
-                  !object.singleton) {
+                  object.type != 'singleton') {
           klass = object.superklass;
 
-          do {
+          while(func == null && klass != null) {
             func = this.find_method(klass.singleton_klass, method, false, true);
+
             klass = klass.superklass;
-          } while(!func && klass);
+          }
         }
       }
 
@@ -465,7 +464,7 @@ var $ = {
         if(func == null && klass.instance_methods)
           func = klass.instance_methods[method];
 
-        klass = klass.parentklass;
+        klass = klass.superklass;
       }
     }
 
@@ -561,10 +560,21 @@ var $ = {
     }
   },
 
+  /*
+   * call-seq: execute_class(cbase, name, superklass, is_class, iseq) -> value
+   *
+   * Execute +iseq+ in class context.
+   *
+   * If +name+ is not null, the code is executed in context of module +name+
+   * from scope +cbase+. The module is created (if it does not exist).
+   * If +is_class+ is true, the module created is a Class, otherwise it is a
+   * Module. Its parent is +superklass+. It is assigned to constant +name+
+   * upon creation.
+   */
   execute_class: function(cbase, name, superklass, is_class, iseq) {
     if(name != null) {
       if(!this.const_defined(cbase, name)) {
-        if(superklass.singleton) {
+        if(superklass.type == 'singleton') {
           this.raise(this.e.TypeError, "can't make subclass of singleton class");
         }
 
@@ -578,7 +588,6 @@ var $ = {
           instance_methods:  {},
           ivs:               {},
         };
-        klass.parentklass = is_class ? klass.superklass : null;
         this.const_set(cbase, name, klass);
       } else {
         var klass = this.const_get(cbase, name);

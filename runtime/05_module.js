@@ -5,32 +5,51 @@ $.alias_method($c.Module, 'to_s', 'name');
 
 $.define_method($c.Module, 'ancestors', 0, function(self) {
   var ancestors = [], klass = self;
+
   while(klass) {
-    ancestors.push(klass.real_module || klass);
-    klass = klass.parentklass;
+    if(klass.type == 'module_proxy') {
+      ancestors.push(klass.klass);
+    } else {
+      ancestors.push(klass);
+    }
+
+    klass = klass.superklass;
   }
+
   return ancestors;
 });
 
 $.define_method($c.Module, 'included_modules', 0, function(self) {
-  var ancestors = [], klass = self;
+  var modules = [], klass = self;
+
   while(klass) {
-    if(klass.real_module)
-      ancestors.push(klass.real_module);
-    klass = klass.parentklass;
+    if(klass.type == 'module_proxy') {
+      modules.push(klass.klass);
+    } else {
+      modules.push(klass);
+    }
+
+    klass = klass.superklass;
   }
-  return ancestors;
+  return modules;
 });
 
 $.define_method($c.Module, 'include?', 1, function(self, module) {
-  klass = self.parentklass;
+  klass = self.superklass;
   while(klass) {
-    if(klass == module || klass.real_module == module)
+    if((klass.type == 'module_proxy' && klass.klass == module) ||
+        klass == module) {
       return Qtrue;
-    klass = klass.parentklass;
+    }
+
+    klass = klass.superklass;
   }
 
   return Qfalse;
+});
+
+$.define_method($c.Module, '===', 1, function(self, obj) {
+
 });
 
 $.define_method($c.Module, 'define_method', -1, function(self, args) {
@@ -62,7 +81,8 @@ var with_each_method = function(what, type, include_super, f) {
     }
 
     if(!include_super) break;
-    object = object.parentklass;
+
+    object = object.superklass;
   }
 }
 
