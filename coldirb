@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./coldruby ./lib/commands/repl.rb $*
