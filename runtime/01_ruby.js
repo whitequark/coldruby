@@ -769,6 +769,43 @@ var $ = {
     return this.execute(sf_opts, iseq, args);
   },
 
+  /*
+   * call-seq: get_local(sf, name, value) -> value or null
+   *
+   * Return a local variable +name+ from stack frame +sf+.
+   */
+  get_local: function(sf, name) {
+    var names = sf.iseq.info.locals;
+
+    for(var i = 0; i < names.length; i++) {
+      if(names[i] == name)
+        return sf.locals[i + 2]; // Why the +2? God knows. I don't.
+    }
+
+    return null;
+  },
+
+  /*
+   * call-seq: set_local(sf, name, value) -> true or false
+   *
+   * Set a local variable +name+ in stack frame +sf+ to +value+.
+   * true is returned when variable is found in +sf+, false otherwise.
+   * No up-traversing is performed.
+   */
+  set_local: function(sf, name, value) {
+    var names = sf.iseq.info.locals;
+
+    for(var i = 0; i < names.length; i++) {
+      if(names[i] == name) {
+        sf.locals[i + 2] = value;
+
+        return true;
+      }
+    }
+
+    return false;
+  },
+
   execute: function(opts, iseq, args) {
     var new_sf = {
       parent:  this.context.sf,
