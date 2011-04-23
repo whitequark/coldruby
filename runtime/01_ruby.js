@@ -520,7 +520,7 @@ var $ = {
   },
 
   raise: function(template, message, backtrace, skip) {
-    var args = (message != undefined) ? [message] : [];
+    var args = (message != null) ? [message] : [];
     if(typeof template == 'string') {
       var exception = this.funcall2(this.internal_constants.RuntimeError, 'new', [template]);
     } else {

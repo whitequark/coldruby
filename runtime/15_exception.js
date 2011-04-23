@@ -3,7 +3,7 @@ $.define_class('Exception');
 $.define_method($e.Exception, 'initialize', -1, function(self, args) {
   this.check_args(args, 0, 1);
 
-  if(args[0]) {
+  if(args[0] != null) {
     this.check_type(args[0], $.c.String)
     self.ivs['@message'] = args[0];
   } else {
