@@ -1031,6 +1031,12 @@ var $ = {
     return retval;
   },
 
+  /*
+   * call-seq: create_toplevel()
+   *
+   * Create a Ruby toplevel object, a singleton object of class Object.
+   * Methods defined on it will be instead defined on Object class.
+   */
   create_toplevel: function() {
     var toplevel = {
       klass:             this.internal_constants.Object,
@@ -1044,6 +1050,12 @@ var $ = {
     return toplevel;
   },
 
+  /*
+   * call-seq: create_ruby()
+   *
+   * Creates a Ruby interpreter context (i.e. thread, but your underlying
+   * javascript engine probably will not support them).
+   */
   create_ruby: function() {
     return {
       __proto__: this,
