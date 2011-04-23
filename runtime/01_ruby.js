@@ -316,6 +316,7 @@ var $ = {
       klass_name:       module.klass_name,
       klass:            module,
       constants:        module.constants,
+      class_variables:  module.class_variables, /* Probably. */
       instance_methods: module.instance_methods,
       superklass:       target.superklass,
       type:             'module_proxy',
