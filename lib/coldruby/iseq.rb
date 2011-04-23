@@ -74,16 +74,16 @@ module ColdRuby
 
       @catch_table.each do |type, iseq, st, ed, cont, sp|
         st, ed, cont = *[st, ed, cont].map { |l| Opcode.label_to_id l }
-        if [:break].include? type
+        if [:break, :rescue].include? type
           ent = ""
           ent << %Q<{ type: '#{type}', st: #{st}, ed: #{ed}, cont: #{cont}, sp: #{sp}>
           if iseq.nil?
             ent << %Q< }>
           else
-            ent << %Q<\n      iseq: #{ISeq.new(@pool, iseq, @level + 1).compile} }>
+            ent << %Q<, iseq: #{ISeq.new(@pool, iseq, @level + 2).compile} }>
           end
           catch_table << ent
-        elsif [:redo, :next].include? type
+        elsif [:redo, :next, :ensure, :retry].include? type
           # Ignore?
         else
           raise UnknownFeatureException, "catch type: #{type}"

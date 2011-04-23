@@ -2,10 +2,14 @@ $.define_class('Exception');
 
 $.define_method($e.Exception, 'initialize', -1, function(self, args) {
   this.check_args(args, 0, 1);
-  if(args[0])
-    this.check_type(args[0], $.c.String)
 
-  self.ivs['@message'] = args[0] || Qnil;
+  if(args[0]) {
+    this.check_type(args[0], $.c.String)
+    self.ivs['@message'] = args[0];
+  } else {
+    self.ivs['@message'] = this.funcall(self.klass, 'to_s');
+  }
+
   self.ivs['@backtrace'] = Qnil;
 });
 
@@ -18,11 +22,7 @@ $.define_method($e.Exception, '==', 1, function(self, other) {
 });
 
 $.define_method($e.Exception, 'to_s', 0, function(self) {
-  if(self.ivs.message != Qnil) {
-    return self.ivs['@message'];
-  } else {
-    return self.klass.klass_name;
-  }
+  return self.ivs['@message'];
 });
 
 $.define_method($e.Exception, 'message', 0, function(self) {

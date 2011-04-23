@@ -28,10 +28,10 @@ module ColdRuby
     C_VM_ARRAY_REMAINS = 1
 
     THROW_OPCODES = {
-      0 => '<unknown:0>',
+      0 => 'rescue',
       1 => 'return',
       2 => 'break',
-      4 => '<unknown:4>',
+      4 => 'retry',
     }
 
     attr_reader :type, :info, :pool

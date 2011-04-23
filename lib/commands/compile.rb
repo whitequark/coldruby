@@ -121,14 +121,15 @@ HANDLER
     if($i.fail_in_eval && #{!is_toplevel})
       throw e;
 
-    if(e.hasOwnProperty('klass') && typeof e != 'string') {
-      if(e.klass == ruby.e.SystemExit) {
+    if(e.op) {
+      if(e.object.klass == ruby.e.SystemExit) {
         #{is_toplevel ? 'return' : 'throw e'};
       }
 
-      var message   = e.ivs['@message'];
-      var backtrace = e.ivs['@backtrace'];
-      $i.print(e.klass.klass_name + ": " + message + "\\n");
+      var o = e.object;
+      var message   = o.ivs['@message'];
+      var backtrace = o.ivs['@backtrace'];
+      $i.print(o.klass.klass_name + ": " + message + "\\n");
       for(var i = 0; i < backtrace.length; i++) {
         $i.print("\tfrom " + backtrace[i] + "\\n");
       }

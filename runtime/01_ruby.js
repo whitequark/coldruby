@@ -545,7 +545,7 @@ var $ = {
     }
     this.funcall(exception, 'set_backtrace', backtrace);
 
-    throw exception;
+    throw { op: 'rescue', object: exception };
   },
 
   raise2: function(klass, args, backtrace, skip) {
@@ -806,7 +806,7 @@ var $ = {
     return false;
   },
 
-  execute: function(opts, iseq, args) {
+  execute: function(opts, iseq, args, exception) {
     var new_sf = {
       parent:  this.context.sf,
 
@@ -881,6 +881,12 @@ var $ = {
       new_sf.osf = new_sf;
     }
 
+    if(exception) {
+      if(!this.set_local(new_sf, '#$!', exception)) {
+        throw new Error("No #$! local in exception context");
+      }
+    }
+
     this.context.sf = new_sf;
 
     if(typeof iseq == 'object') {
@@ -918,11 +924,11 @@ var $ = {
             break;
           }
 
-          var catches = iseq.info.catch_table;
+          var catches = iseq.info.catch_table, caught;
           for(var i = 0; i < catches.length; i++) {
             if(catches[i].type == type &&
                 catches[i].st <= chunk && catches[i].ed > chunk) {
-              chunk = catches[i].cont;
+              caught = catches[i];
               found = true;
               break;
             }
@@ -931,6 +937,18 @@ var $ = {
           if(!found) {
             this.context.sf = new_sf.parent;
             throw e;
+          } else if(catches[i].iseq) {
+            var sf_opts = {
+              self: this.context.sf.self,
+              ddef: this.context.sf.ddef,
+              cref: this.context.sf.cref,
+
+              outer: this.context.sf,
+            };
+
+            return this.execute(sf_opts, caught.iseq, [], e.object);
+          } else {
+            chunk = caught.cont;
           }
 
           new_sf.stack[new_sf.sp++] = e.object;
