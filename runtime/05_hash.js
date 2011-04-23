@@ -30,9 +30,9 @@ $.define_singleton_method($c.Hash, '[]', -1, function(self, args) {
 $.define_singleton_method($c.Hash, 'new', -1, function(self, args) {
   this.check_args(args, 0, 1);
 
-  var hash = $.builtin.make_hash([]);
-  if(this.block_given()) {
-    hash.ivs['@default_proc'] = this.funcall($c.Proc, 'new');
+  var hash = this.builtin.make_hash([]);
+  if(this.block_given_p()) {
+    hash.ivs['@default_proc'] = this.block_proc();
   }
 
   return hash;
@@ -139,7 +139,7 @@ $.define_method($c.Hash, 'delete', 1, function(self, key) {
   delete self.values[hash];
 
   if(value == undefined) {
-    if(this.block_given(this)) {
+    if(this.block_given_p()) {
       return this.yield(key);
     } else {
       return self.iv['@default'];

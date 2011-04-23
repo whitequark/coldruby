@@ -1,17 +1,13 @@
 $.define_method($c.Kernel, 'block_given?', 0, function(self) {
-  return this.block_given() ? Qtrue : Qfalse;
+  return this.block_given_p() ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Kernel, 'proc', 0, function(self) {
-  return this.funcall(this.c.Proc, 'new');
+  return this.block_proc();
 });
 
 $.define_method($c.Kernel, 'lambda', 0, function(self) {
-  if(this.context.sf.block.lambda == undefined) {
-    this.context.sf.block.lambda = true;
-  }
-
-  return this.funcall(this.c.Proc, 'new');
+  return this.block_lambda();
 });
 
 $.define_method($c.Kernel, 'raise', -1, function(self, args) {

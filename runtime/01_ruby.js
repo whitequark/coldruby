@@ -703,8 +703,35 @@ var $ = {
     return this.funcall2(null, null, this.context.sf.args, this.context.sf.block);
   },
 
-  block_given: function() {
+  /*
+   * call-seq: block_given_p() -> true or false
+   *
+   * Check existence of a block in current context.
+   */
+  block_given_p: function() {
     return !!this.context.sf.block;
+  },
+
+  /*
+   * call-seq: block_proc() -> Proc
+   *
+   * Convert a block in current context to a proc.
+   */
+  block_proc: function() {
+    return this.funcall(this.internal_constants.Proc, 'new');
+  },
+
+  /*
+   * call-seq: block_lambda() -> Proc
+   *
+   * Convert a block in current context to a lambda.
+   */
+  block_lambda: function() {
+    var proc = this.funcall(this.internal_constants.Proc, 'new');
+
+    proc.iseq.lambda = true;
+
+    return proc;
   },
 
   /*

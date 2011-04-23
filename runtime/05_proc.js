@@ -8,7 +8,7 @@ $.builtin.make_proc = function(iseq) {
 }
 
 $.define_method($c.Proc, 'initialize', 0, function(self) {
-  if(this.block_given()) {
+  if(this.block_given_p()) {
     self.iseq = this.context.sf.block;
   } else if(this.context.sf.parent.parent.block) { // Proc#initialize->Proc.new->caller
     self.iseq = this.context.sf.parent.parent.block;
