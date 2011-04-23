@@ -11,8 +11,12 @@ $.define_method($c.Kernel, 'lambda', 0, function(self) {
 });
 
 $.define_method($c.Kernel, 'raise', -1, function(self, args) {
-  this.check_args(args, 1, 2);
-  this.raise(args[0], args[1], args[2], 1);
+  if(args.length == 0) {
+    this.raise("");
+  } else {
+    this.check_args(args, 1, 2);
+    this.raise(args[0], args[1], args[2], 1);
+  }
 });
 
 $.define_method($c.Kernel, 'loop', 0, function(self) {
