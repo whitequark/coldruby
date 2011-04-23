@@ -1052,11 +1052,6 @@ var $ = {
       }
     };
   },
-
-  ps: function(ctx, where) {
-    $i.print("> Stack Frame ("+where+") <");
-    pp(ctx.sf)
-  }
 };
 
 var $c = $.internal_constants, $e = $c;
