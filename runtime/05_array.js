@@ -50,12 +50,13 @@ $.define_method($c.Array, 'uniq!', 0, function(self) {
   return self;
 });
 
-$.define_method($c.Array, 'inspect', 0, function(self) {
+$.define_method($c.Array, 'to_s', 0, function(self) {
   var desc = [];
   for(var i = 0; i < self.length; i++) {
     desc.push(this.funcall(self[i], 'inspect'));
   }
   return "[" + desc.join(', ') + "]";
 });
+$.alias_method($c.Array, 'inspect', 'to_s');
 
 Array.prototype.klass = $c.Array;
