@@ -844,6 +844,21 @@ var $ = {
     return false;
   },
 
+  /*
+   * call-seq: execute(options, iseq, args, exception=null) -> value
+   *
+   * Execute an instruction sequence +iseq+ with arguments +args+, within a
+   * new stack frame in current context. +exception+ should be set to exception
+   * object when executing rescue handler.
+   *
+   * +options+ is a hash which will be used to tweak stack frame.
+   * The interesting options are:
+   *  - self, ddef and cref: implicit contexts, see http://yugui.jp/articles/846
+   *  - outer: a link to outer stack frame, which will be used to setup
+   *    dynamic environment for closures. Should be null for functions.
+   *  - block: a block passed to the code
+   *  - super: a class which will be used for `super' calls.
+   */
   execute: function(opts, iseq, args, exception) {
     var new_sf = {
       parent:  this.context.sf,
@@ -854,7 +869,6 @@ var $ = {
       dynamic: [],
       osf:     null,
 
-      // http://yugui.jp/articles/846
       self: null,
       ddef: null,
       cref: null,
