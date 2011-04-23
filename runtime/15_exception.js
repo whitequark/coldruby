@@ -8,8 +8,11 @@ $.define_method($e.Exception, 'initialize', -1, function(self, args) {
 });
 
 $.define_method($e.Exception, '==', 1, function(self, other) {
-  return (self.klass == other.klass && self.ivs.message == other.ivs.message &&
-    $.test(this.funcall(this.self.ivs['@backtrace'], '==', other.ivs['@backtrace']))) ? Qtrue : Qfalse;
+  return (self.klass == other.klass &&
+            self.ivs['@message'] == other.ivs['@message'] &&
+            $.test(this.funcall(this.self.ivs['@backtrace'], '==',
+               other.ivs['@backtrace'])))
+          ? Qtrue : Qfalse;
 });
 
 $.define_method($e.Exception, 'to_s', 0, function(self) {
