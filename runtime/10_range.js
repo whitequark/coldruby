@@ -27,8 +27,10 @@ $.define_method($c.Range, 'exclude_end?', 0, function(self) {
 });
 
 $.define_method($c.Range, '==', 1, function(self, other) {
-  return (other.klass == $c.Range && self.iv.begin == other.iv.begin &&
-    self.iv.env == other.iv.env && self.iv.excl == other.iv.excl);
+  return (other.klass == $c.Range &&
+          $.test(this.funcall(self.ivs['@begin'], '==', other.ivs['@begin'])) &&
+          $.test(this.funcall(self.ivs['@end'],   '==', other.ivs['@end'])) &&
+          self.iv.excl == other.iv.excl);
 });
 
 $.define_method($c.Range, 'eql?', 1, function(self, other) {
