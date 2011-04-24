@@ -31,9 +31,12 @@ $.define_method($c.Class, 'new', -1, function(self, args) {
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
 });
-$.alias_method($c.BasicObject, 'eql?', 'equal?');
 $.alias_method($c.BasicObject, '==', 'equal?');
 
+$.define_method($c.BasicObject, '!=', 1, function(self, other) {
+  return this.test(this.funcall(self, '==', other)) ? Qfalse : Qtrue;
+});
+
 $.define_method($c.BasicObject, '!', 0, function(self) {
-  return $.test(self) ? Qfalse : Qtrue;
+  return this.test(self) ? Qfalse : Qtrue;
 });

@@ -5,6 +5,8 @@ $.define_method($c.Kernel, 'nil?', 0, function(self) {
   return Qfalse;
 });
 
+$.alias_method($c.Kernel, 'eql?', 'equal?');
+
 $.define_method($c.Kernel, '=~', 1, function(self, other) {
   return Qnil;
 });
