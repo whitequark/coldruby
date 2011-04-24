@@ -115,8 +115,8 @@ module ColdRuby
           %Q{#{PUSH} = this.builtin.Qtrue;}
         when false
           %Q{#{PUSH} = this.builtin.Qfalse;}
-        when Object
-          %Q{#{PUSH} = this.internal_constants.Object;}
+        when Class
+          %Q{#{PUSH} = this.internal_constants.#{object.to_s};}
         else
           raise UnknownFeatureException, "putobject type #{object}"
         end
