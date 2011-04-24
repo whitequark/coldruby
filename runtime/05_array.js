@@ -1,4 +1,5 @@
 $.define_class('Array', $c.Object);
+$.module_include($c.Array, $c.Enumerable);
 
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
