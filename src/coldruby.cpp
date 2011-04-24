@@ -21,7 +21,7 @@ $it = { \
   compile: function(file, path, toplevel) { $i.print('] Compiling ' + file + '\\n'); \
                                   $i.exec(file, path, toplevel ? 'true' : 'false'); }, \
 }; \
-$i.print('] Loading runtime'); \
+$i.print('] Loading runtime\\n'); \
 $i.exec(); \
 $it.eval(\"require 'coldruby'\", '[\"<internal:prelude>\",null,1]'); \
 ";
