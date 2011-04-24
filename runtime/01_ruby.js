@@ -959,6 +959,8 @@ var $ = {
             type = e.op;
           } else throw e; // dooooown to the basement
 
+          handler_chunk = null;
+
           var found = false;
 
           switch(type) {
@@ -996,9 +998,11 @@ var $ = {
 
                 handler_chunk = catches[i].handler;
                 new_sf.stack[new_sf.sp++] = e.object;
+              } else if(type == 'retry') {
+                new_sf.sp--;
               }
 
-              cont = catches[i].cont;
+              chunk = catches[i].cont;
 
               found = true;
               break;
