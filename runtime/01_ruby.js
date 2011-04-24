@@ -557,7 +557,11 @@ var $ = {
     try {
       return code.call(this);
     } catch(e) {
-      return rescue.call(this, e);
+      if(e.op == 'raise') {
+        return rescue.call(this, e.object);
+      } else {
+        throw e;
+      }
     }
   },
 
