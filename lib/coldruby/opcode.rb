@@ -1,5 +1,3 @@
-require 'json'
-
 module ColdRuby
   class UnknownFeatureException < Exception
     def initialize(message, *args)
@@ -104,7 +102,7 @@ module ColdRuby
         when Fixnum
           %Q{#{PUSH} = #{object};}
         when String
-          %Q{#{PUSH} = #{@info[0].to_json};}
+          %Q{#{PUSH} = #{@info[0].inspect};}
         when Float
           %Q{#{PUSH} = this.builtin.make_float(#{@info[0].inspect});}
         when Range
@@ -176,7 +174,7 @@ module ColdRuby
         # Looks like this instruction will only work with arrays of same elements.
         case @info[0][0]
         when String, Fixnum
-          %Q{#{PUSH} = #{@info[0].to_json};}
+          %Q{#{PUSH} = #{@info[0].inspect};}
         when Symbol
           %Q<#{PUSH} = [#{ @info[0].map { |s| SYMBOL[self, s]}.join ', ' }];>
         else
@@ -272,14 +270,14 @@ module ColdRuby
         %Q{#{PUSH} = sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
-        %Q{this.gvar_set(#{@info[0].to_json}, #{POP});}
+        %Q{this.gvar_set(#{@info[0].inspect}, #{POP});}
       when :getglobal
-        %Q{#{PUSH} = this.gvar_get(#{@info[0].to_json});}
+        %Q{#{PUSH} = this.gvar_get(#{@info[0].inspect});}
 
       when :setinstancevariable
-        %Q{sf.self.ivs[#{@info[0].to_json}] = #{POP};}
+        %Q{sf.self.ivs[#{@info[0].inspect}] = #{POP};}
       when :getinstancevariable
-        %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_json}];}
+        %Q{#{PUSH} = sf.self.ivs[#{@info[0].inspect}];}
 
       when :send, :invokeblock, :invokesuper
         code = []
@@ -365,7 +363,7 @@ module ColdRuby
         when VM_DEFINE_MODULE, VM_DEFINE_CLASS
           define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
           code << %Q{#{PUSH} = this.execute_class(cbase, } +
-                  %Q{#{@info[0].to_json}, superklass, #{define_class}, iseq);}
+                  %Q{#{@info[0].inspect}, superklass, #{define_class}, iseq);}
         when VM_SINGLETON_CLASS
           code << %Q{#{PUSH} = this.execute_class(cbase, null, null, null, iseq);}
         else

@@ -157,6 +157,8 @@ HANDLER
 end
 
 if __FILE__ == $0
+  require 'json'
+
   runtime = get_runtime
   runtime.each_with_index do |(file, code), i|
     puts file;        $>.flush

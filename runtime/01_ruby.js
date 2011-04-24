@@ -762,6 +762,23 @@ var $ = {
   },
 
   /*
+   * call-seq: lambda(closure) -> block
+   *
+   * Convert a JavaScript closure to a block which may be passed to
+   * funcall2().
+   */
+  lambda: function(closure) {
+    closure.context = {
+      ddef: this.context.sf.ddef,
+      cref: this.context.sf.cref,
+    };
+    closure.stack_frame = this.context.sf;
+    closure.lambda = true;
+
+    return closure;
+  },
+
+  /*
    * call-seq: yield(...) -> value
    *
    * Yield to a block. Equivalent to Ruby `yield' with vararg list as
@@ -794,6 +811,15 @@ var $ = {
     };
 
     return this.execute(sf_opts, iseq, args);
+  },
+
+  /*
+   * call-seq: iter_break()
+   *
+   * Break a loop. Equivalent to Ruby `break'.
+   */
+  iter_break: function() {
+    throw { op: 'break', object: Qnil };
   },
 
   /*
@@ -1040,6 +1066,10 @@ var $ = {
 
         switch(type) {
           case 'break':
+          if(iseq.lambda)
+            throw e;
+
+          /* Fallthrough */
           case 'return':
           new_sf.sp = null;
           found = true;
