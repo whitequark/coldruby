@@ -63,7 +63,14 @@ module ColdRuby
     end
 
     def inspect
-      "<%#{@type}: #{@info.inspect}>"
+      case @type
+        when :defineclass
+          "<%#{@type}: [#{@info[0].inspect}, (code)]>"
+        when :putiseq
+          "<%#{@type}: [(code)]>"
+        else
+          "<%#{@type}: #{@info.inspect}>"
+      end
     end
 
     PUSH   = 'sf.stack[sf.sp++]'
