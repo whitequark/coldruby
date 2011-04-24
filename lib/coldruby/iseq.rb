@@ -1,4 +1,34 @@
 module ColdRuby
+  class CatchTableChunk
+    attr_reader :id
+
+    def initialize(id, type, iseq)
+      @id = id
+      @type, @iseq = type, iseq
+    end
+
+    def to_js
+      <<-END.rstrip
+function() {
+    /* Catch Table Chunk: #{@type} */
+    var sf = this.context.sf;
+    var iseq = #{@iseq.compile};
+
+    var exec_opts = {
+      self: sf.self,
+      ddef: sf.ddef,
+      cref: sf.cref,
+
+      outer: sf,
+    };
+
+    var exception = sf.stack[--sf.sp];
+    sf.stack[sf.sp++] = this.execute(exec_opts, iseq, [], exception);
+  }
+      END
+    end
+  end
+
   class ISeq
     attr_reader :function, :file, :path, :line
 
@@ -71,19 +101,22 @@ module ColdRuby
       chunks << chunk
 
       catch_table = []
-
       @catch_table.each do |type, iseq, st, ed, cont, sp|
         st, ed, cont = *[st, ed, cont].map { |l| Opcode.label_to_id l }
-        if [:break, :rescue].include? type
-          ent = ""
-          ent << %Q<{ type: '#{type}', st: #{st}, ed: #{ed}, cont: #{cont}, sp: #{sp}>
-          if iseq.nil?
-            ent << %Q< }>
-          else
-            ent << %Q<, iseq: #{ISeq.new(@pool, iseq, @level + 2).compile} }>
+        if [:break, :retry, :rescue, :ensure].include? type
+          if !iseq.nil?
+            chunk_id += 1
+            chunks << CatchTableChunk.new(chunk_id, type,
+                                ISeq.new(@pool, iseq, @level + 1))
+            handler = chunk_id
           end
-          catch_table << ent
-        elsif [:redo, :next, :ensure, :retry].include? type
+
+          fields = ["type: '#{type}'", "st: #{st}", "ed: #{ed}",
+                 "cont: #{cont}", "sp: #{sp}"]
+          fields << "handler: #{handler}" if handler
+
+          catch_table << %Q<{ #{fields.join(", ")} }>
+        elsif [:redo, :next].include? type
           # Ignore?
         else
           raise UnknownFeatureException, "catch type: #{type}"
@@ -114,7 +147,7 @@ module ColdRuby
     path:   '#{@path}',
 
     type:   '#{@type}',
-    locals: [#{@locals.map { |l| "'#{l}'" }.join ', '}],
+    locals: [#{@locals.map { |l| "'#{l}'" }.join ', '}]
   }
       INFO
       elems += chunks.map { |chunk| "  #{chunk.id}: #{chunk.to_js}" }

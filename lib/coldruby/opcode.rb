@@ -29,7 +29,7 @@ module ColdRuby
     C_VM_ARRAY_REMAINS = 1
 
     THROW_OPCODES = {
-      0 => 'rescue',
+      0 => 'raise',
       1 => 'return',
       2 => 'break',
       4 => 'retry',

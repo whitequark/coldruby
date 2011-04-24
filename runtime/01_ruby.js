@@ -545,7 +545,7 @@ var $ = {
     }
     this.funcall(exception, 'set_backtrace', backtrace);
 
-    throw { op: 'rescue', object: exception };
+    throw { op: 'raise', object: exception };
   },
 
   raise2: function(klass, args, backtrace, skip) {
@@ -943,10 +943,16 @@ var $ = {
     this.context.sf = new_sf;
 
     if(typeof iseq == 'object') {
-      var chunk = 0;
+      var chunk = 0, handler_chunk = null;
       while(chunk != null) {
         try {
-          chunk = iseq[chunk].call(this);
+          if(handler_chunk != null) {
+            var handler = iseq[handler_chunk];
+            handler.call(this);
+            handler_chunk = null;
+          } else {
+            chunk = iseq[chunk].call(this);
+          }
         } catch(e) {
           var type = null;
           if(e.hasOwnProperty('op')) {
@@ -977,11 +983,23 @@ var $ = {
             break;
           }
 
-          var catches = iseq.info.catch_table, caught;
+          var catches = iseq.info.catch_table;
           for(var i = 0; i < catches.length; i++) {
-            if(catches[i].type == type &&
-                catches[i].st <= chunk && catches[i].ed > chunk) {
-              caught = catches[i];
+            if(catches[i].st <= chunk && catches[i].ed >= chunk) {
+              if((catches[i].type == 'rescue' || catches[i].type == 'ensure') &&
+                    type == 'raise') {
+                if(handler_chunk == catches[i].handler) {
+                  /* An exception arised in handler, and it is about to be
+                     handled by the same one */
+                  break;
+                }
+
+                handler_chunk = catches[i].handler;
+                new_sf.stack[new_sf.sp++] = e.object;
+              }
+
+              cont = catches[i].cont;
+
               found = true;
               break;
             }
@@ -990,34 +1008,6 @@ var $ = {
           if(!found) {
             this.context.sf = new_sf.parent;
             throw e;
-          } else {
-            chunk = caught.cont;
-
-            if(catches[i].iseq) {
-              var sf_opts = {
-                self: this.context.sf.self,
-                ddef: this.context.sf.ddef,
-                cref: this.context.sf.cref,
-
-                outer: this.context.sf,
-              };
-
-              try {
-                new_sf.stack[new_sf.sp++] =
-                        this.execute(sf_opts, caught.iseq, [], e.object);
-              } catch(e) {
-                if(e.op == 'retry') {
-                  /* Not sure if retry catch table entry always refers
-                     to the same instruction as start of rescue entry. */
-                  new_sf.sp--;
-                  chunk = caught.st;
-                } else {
-                  throw e;
-                }
-              }
-            } else {
-              new_sf.stack[new_sf.sp++] = e.object;
-            }
           }
         }
       }
