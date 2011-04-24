@@ -51,11 +51,7 @@ $.define_method($c.Kernel, 'autoload?', 1, function(self, constant) {
 
 $.define_method($c.Kernel, 'load', 1, function(self, file) {
   file = this.check_type(file, $c.String);
-
-  $i.fail_in_eval = true;
-  $it.load_context = this;
   $it.compile(file, this.funcall($.gvar_get('$:'), 'inspect'));
-  $i.fail_in_eval = false;
 });
 
 $.define_method($c.Kernel, 'require', 1, function(self, file) {
@@ -75,7 +71,6 @@ $.define_method($c.Kernel, 'require', 1, function(self, file) {
 
 $.define_method($c.Kernel, 'eval', 1, function(self, code) {
   code = this.check_type(code, $c.String);
-  $it.load_context = this;
   return $it.eval(code, '[\"(eval)\",null,1]');
 });
 

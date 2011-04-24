@@ -116,28 +116,31 @@ HANDLER
       ddef: toplevel,
       cref: [$c.Object],
       };
-    return ruby.execute(sf_opts, iseq, []);
-  }, function(e) {
-    if($i.fail_in_eval && #{!is_toplevel})
-      throw e;
 
-    if(e.op) {
-      if(e.object.klass == ruby.e.SystemExit) {
-        #{is_toplevel ? 'return' : 'throw e'};
+    try {
+      return ruby.execute(sf_opts, iseq, []);
+    } catch(e) {
+      if(e.op) {
+        throw e;
+      } else if(e.stack) {
+        $i.print("Native exception: " + e.stack + "\\n");
+      } else {
+        $i.print("Native exception: " + e + "\\n");
       }
-
-      var o = e.object;
-      var message   = o.ivs['@message'];
-      var backtrace = o.ivs['@backtrace'];
-      $i.print(o.klass.klass_name + ": " + message + "\\n");
-      for(var i = 0; i < backtrace.length; i++) {
-        $i.print("\tfrom " + backtrace[i] + "\\n");
-      }
-    } else if(e.stack) {
-      $i.print("Native exception: " + e.stack + "\\n");
-    } else {
-      $i.print("Native exception: " + e + "\\n");
+      $i.exit(1);
     }
+  }, function(e) {
+    if(e.klass == ruby.e.SystemExit) {
+      #{is_toplevel ? 'return' : 'throw e'};
+    }
+
+    var message   = e.ivs['@message'];
+    var backtrace = e.ivs['@backtrace'];
+    $i.print(e.klass.klass_name + ": " + message + "\\n");
+    for(var i = 0; i < backtrace.length; i++) {
+      $i.print("\tfrom " + backtrace[i] + "\\n");
+    }
+    $i.exit(1);
   });
 })();
   EPILOGUE

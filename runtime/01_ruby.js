@@ -557,7 +557,11 @@ var $ = {
     try {
       return code.call(this);
     } catch(e) {
-      return rescue.call(this, e);
+      if(e.op == 'raise') {
+        return rescue.call(this, e.object);
+      } else {
+        throw e;
+      }
     }
   },
 
@@ -959,8 +963,6 @@ var $ = {
             type = e.op;
           } else throw e; // dooooown to the basement
 
-          handler_chunk = null;
-
           var found = false;
 
           switch(type) {
@@ -990,7 +992,8 @@ var $ = {
             if(catches[i].st <= chunk && catches[i].ed >= chunk) {
               if((catches[i].type == 'rescue' || catches[i].type == 'ensure') &&
                     type == 'raise') {
-                if(handler_chunk == catches[i].handler) {
+                if(handler_chunk == catches[i].handler ||
+                    (catches[i].type == 'ensure' && catches[i].ed == chunk)) {
                   /* An exception arised in handler, and it is about to be
                      handled by the same one */
                   break;
@@ -999,7 +1002,10 @@ var $ = {
                 handler_chunk = catches[i].handler;
                 new_sf.stack[new_sf.sp++] = e.object;
               } else if(type == 'retry') {
+                handler_chunk = null;
                 new_sf.sp--;
+              } else {
+                continue;
               }
 
               chunk = catches[i].cont;
