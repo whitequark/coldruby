@@ -1000,7 +1000,7 @@ var $ = {
                 new_sf.stack[new_sf.sp++] = e.object;
               } else if(type == 'retry') {
                 new_sf.sp--;
-              }
+              } else continue;
 
               chunk = catches[i].cont;
 
