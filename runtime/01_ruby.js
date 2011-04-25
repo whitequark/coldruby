@@ -423,18 +423,21 @@ var $ = {
 
     for(var i = 0; i < methods.length; i++) {
       var method = this.any2id(methods[i]), v = '@' + this.id2text(method);
-      if(type == 'reader' || type == 'accessor') {
-        this.define_method(klass, method, 0, function(self) {
-          var iv = self.ivs[v];
-          return iv == null ? ruby.builtin.Qnil : iv;
-        });
-      }
-      if(type == 'writer' || type == 'accessor') {
-        this.define_method(klass, this.id2text(method) + '=', 1, function(self, value) {
-          self.ivs[v] = value;
-          return value;
-        });
-      }
+      var ruby = this;
+      (function(method, v) {
+        if(type == 'reader' || type == 'accessor') {
+          ruby.define_method(klass, method, 0, function(self) {
+            var iv = self.ivs[v];
+            return iv == null ? ruby.builtin.Qnil : iv;
+          });
+        }
+        if(type == 'writer' || type == 'accessor') {
+          ruby.define_method(klass, ruby.id2text(method) + '=', 1, function(self, value) {
+            self.ivs[v] = value;
+            return value;
+          });
+        }
+      })(method, v);
     }
   },
 
