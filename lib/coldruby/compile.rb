@@ -2,6 +2,8 @@
 
 require 'coldruby'
 
+$> = STDERR
+
 CompilerOptions = {
   :peephole_optimization    => false,
   :tailcall_optimization    => false,
@@ -12,38 +14,14 @@ CompilerOptions = {
   :stack_caching            => false,
 }
 
-def compile(what, where, is_file, is_toplevel=false)
-  iseq = RubyVM::InstructionSequence
-  if is_file
-    ruby_iseq = nil
-    tryload = lambda { |file, suffix|
-      load = File.realpath(file + suffix)
-      ruby_iseq = iseq.compile File.read(load), what+suffix, load, 1,
-                  CompilerOptions
-    }
-    where.each do |dir|
-      file = File.join(dir, what)
-      if File.file? file
-        tryload[file, '']
-      elsif File.file?(file+'.rb')
-        tryload[file, '.rb']
-      else
-        next
-      end
-      break
-    end
-    raise LoadError, "no such file to load: #{what}" if ruby_iseq.nil?
-  else
-    ruby_iseq = iseq.compile what, *where, CompilerOptions
-  end
+def compile(code, file, line)
+  ruby_iseq = RubyVM::InstructionSequence.compile code, file, nil, line, CompilerOptions
 
   pool = ColdRuby::Pool.new
   iseq = ColdRuby::ISeq.new(pool, ruby_iseq.to_a)
 
   if ColdRuby.debug
     require 'pp'
-
-    $> = STDERR
 
     puts ">>>>>>>>>>>>> DISASSEMBLE"
     puts ruby_iseq.disasm
@@ -75,8 +53,6 @@ def compile(what, where, is_file, is_toplevel=false)
     puts ">>>>>>>>>>>>> COMPILE"
     puts compiled
     puts
-
-    $> = STDOUT
   end
 
   compiled
