@@ -1,11 +1,6 @@
 #!/usr/bin/env ruby
 
-begin
-  require 'coldruby'
-rescue LoadError
-  $: << File.join(File.dirname(__FILE__), '..')
-  retry
-end
+require 'coldruby'
 
 def get_runtime(plaintext=false)
   runtime = []
@@ -46,38 +41,29 @@ CompilerOptions = {
 }
 
 def compile(what, where, is_file, is_toplevel=false)
-  begin
-    iseq = RubyVM::InstructionSequence
-    if is_file
-      ruby_iseq = nil
-      tryload = lambda { |file, suffix|
-        load = File.realpath(file + suffix)
-        ruby_iseq = iseq.compile File.read(load), what+suffix, load, 1,
-                    CompilerOptions
-      }
-      where.each do |dir|
-        file = File.join(dir, what)
-        if File.file? file
-          tryload[file, '']
-        elsif File.file?(file+'.rb')
-          tryload[file, '.rb']
-        else
-          next
-        end
-        break
+	begin
+  iseq = RubyVM::InstructionSequence
+  if is_file
+    ruby_iseq = nil
+    tryload = lambda { |file, suffix|
+      load = File.realpath(file + suffix)
+      ruby_iseq = iseq.compile File.read(load), what+suffix, load, 1,
+                  CompilerOptions
+    }
+    where.each do |dir|
+      file = File.join(dir, what)
+      if File.file? file
+        tryload[file, '']
+      elsif File.file?(file+'.rb')
+        tryload[file, '.rb']
+      else
+        next
       end
-      raise LoadError, "no such file to load: #{what}" if ruby_iseq.nil?
-    else
-      ruby_iseq = iseq.compile what, *where, CompilerOptions
+      break
     end
-  rescue Exception => e
-    return <<-HANDLER
-if($it.load_context) {
-  $it.load_context.raise($e.#{e.class.to_s}, '#{e.to_s.gsub "'", "\\\\\'"}');
-} else {
-  throw '#{e.class.to_s}: #{e.to_s.gsub "'", "\\\\\'"}'
-}
-HANDLER
+    raise LoadError, "no such file to load: #{what}" if ruby_iseq.nil?
+  else
+    ruby_iseq = iseq.compile what, *where, CompilerOptions
   end
 
   pool = ColdRuby::Pool.new
@@ -153,35 +139,38 @@ HANDLER
     $> = STDOUT
   end
 
+  rescue Exception => e
+	  puts e.to_s, e.backtrace
+	  raise e
+  end
+  
   compiled
 end
 
-if __FILE__ == $0
-  require 'json'
-
-  runtime = get_runtime
-  runtime.each_with_index do |(file, code), i|
-    puts file;        $>.flush
-    if i < runtime.length - 1
-      code << %{$i.exec();}
-    end
-    puts code.length; $>.flush
-    print code;       $>.flush
-  end
-
-  loop do
-    trap("TERM") { exit }
-
-    file, scope = gets.strip, JSON.parse(gets.strip)
-    if file == '-'
-      length = gets.to_i
-      code = compile($<.read(length), scope, false)
-    else
-      toplevel = gets.strip
-      code = compile(file, scope, true, toplevel == 'true')
-    end
-    puts file;        $>.flush
-    puts code.length; $>.flush
-    print code;       $>.flush
-  end
-end
+# if __FILE__ == $0
+#   runtime = get_runtime
+#   runtime.each_with_index do |(file, code), i|
+#     puts file;        $>.flush
+#     if i < runtime.length - 1
+#       code << %{$i.exec();}
+#     end
+#     puts code.length; $>.flush
+#     print code;       $>.flush
+#   end
+# 
+#   loop do
+#     trap("TERM") { exit }
+# 
+#     file, scope = gets.strip, JSON.parse(gets.strip)
+#     if file == '-'
+#       length = gets.to_i
+#       code = compile($<.read(length), scope, false)
+#     else
+#       toplevel = gets.strip
+#       code = compile(file, scope, true, toplevel == 'true')
+#     end
+#     puts file;        $>.flush
+#     puts code.length; $>.flush
+#     print code;       $>.flush
+#   end
+# end
