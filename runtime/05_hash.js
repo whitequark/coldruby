@@ -1,6 +1,6 @@
 $.define_class('Hash', $c.Object, true);
 
-$.builtin.make_hash = function(elements) {
+$.hash_new = function(elements) {
   if(elements.length % 2 != 0) {
     this.raise(this.e.ArgumentError, "odd number of arguments for Hash");
   }
@@ -24,13 +24,13 @@ $.builtin.make_hash = function(elements) {
 }
 
 $.define_singleton_method($c.Hash, '[]', -1, function(self, args) {
-  return $.builtin.make_hash(args);
+  return this.hash_new(args);
 });
 
 $.define_singleton_method($c.Hash, 'new', -1, function(self, args) {
   this.check_args(args, 0, 1);
 
-  var hash = this.builtin.make_hash([]);
+  var hash = this.hash_new([]);
   if(this.block_given_p()) {
     hash.ivs['@default_proc'] = this.block_proc();
   }
