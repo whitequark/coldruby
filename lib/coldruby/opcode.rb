@@ -363,7 +363,7 @@ module ColdRuby
         when VM_DEFINE_MODULE, VM_DEFINE_CLASS
           define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
           code << %Q{#{PUSH} = this.execute_class(cbase, } +
-                  %Q{#{@info[0].inspect}, superklass, #{define_class}, iseq);}
+                  %Q{#{@info[0].to_s.inspect}, superklass, #{define_class}, iseq);}
         when VM_SINGLETON_CLASS
           code << %Q{#{PUSH} = this.execute_class(cbase, null, null, null, iseq);}
         else
