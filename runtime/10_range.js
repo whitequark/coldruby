@@ -23,7 +23,7 @@ $.range_new = function(begin, end, excl) {
 $.attr('reader', $c.Range, ['begin', 'end']);
 
 $.define_method($c.Range, 'exclude_end?', 0, function(self) {
-  return self.iv.excl;
+  return self.ivs['@excl'];
 });
 
 $.define_method($c.Range, '==', 1, function(self, other) {
