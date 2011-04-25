@@ -53,7 +53,7 @@ def compile(what, where, is_file, is_toplevel=false)
   code = iseq.compile
 
   compiled = <<-EPILOGUE
-return (function(ruby) {
+function(ruby) {
   var iseq = #{code};
 
   var new_symbols = #{pool.symbols};
@@ -68,7 +68,7 @@ return (function(ruby) {
   };
 
   ruby.execute(sf_opts, iseq, []);
-});
+}
   EPILOGUE
 
   if ColdRuby.debug

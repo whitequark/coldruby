@@ -1103,7 +1103,7 @@ var $ = {
         sf:        null,
       },
       toplevel: {
-        klass:             ruby.internal_constants.Object,
+        klass:             this.internal_constants.Object,
         class_variables:   {},
         ivs:               {},
         toplevel:          true
