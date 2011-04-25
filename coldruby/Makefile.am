@@ -17,5 +17,7 @@
 
 bin_PROGRAMS = coldruby
 coldruby_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp main.cpp
-coldruby_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(COMPILER_ROOT)\""
+coldruby_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
+	-DRUNTIME_ROOT="\"$(runtimedir)\""
+
  

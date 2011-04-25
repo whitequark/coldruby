@@ -2,9 +2,9 @@
 
 require 'coldruby'
 
-def get_runtime(plaintext=false)
+def get_runtime(directory, plaintext=false)
   runtime = []
-  Dir[File.join(File.dirname(__FILE__), '..', '..', 'runtime', '*')].sort.each do |runtime_file|
+  Dir[File.join(directory, '*')].sort.each do |runtime_file|
     # Preprocess
     lines = File.readlines(runtime_file)
     last_definition = nil
@@ -41,7 +41,6 @@ CompilerOptions = {
 }
 
 def compile(what, where, is_file, is_toplevel=false)
-	begin
   iseq = RubyVM::InstructionSequence
   if is_file
     ruby_iseq = nil
@@ -137,11 +136,6 @@ def compile(what, where, is_file, is_toplevel=false)
     puts
 
     $> = STDOUT
-  end
-
-  rescue Exception => e
-	  puts e.to_s, e.backtrace
-	  raise e
   end
   
   compiled

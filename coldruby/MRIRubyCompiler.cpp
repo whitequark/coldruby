@@ -67,7 +67,7 @@ void MRIRubyCompiler::boot_protected(compile_data_t *boot) {
 	
 	rb_funcall(Qnil, rb_intern("eval"), 4, code, Qnil, file, INT2FIX(1));
 			
-	VALUE runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 1, Qtrue);
+	VALUE runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 2, rb_str_new_cstr(RUNTIME_ROOT), Qtrue);
 	m_runtime = RSTRING_STD(rb_funcall(runtime, rb_intern("join"), 1, rb_str_new_cstr("\n")));
 	
 }

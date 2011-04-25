@@ -77,18 +77,20 @@ AC_SEARCH_LIBS([ruby_init], [], [], [
 ])
 
 AC_ARG_ENABLE([developer-mode], [AS_HELP_STRING([--enable-developer-mode], [use local coldruby compiler instead of system])],
-	[COMPILER_ROOT="$PWD/lib"], [COMPILER_ROOT="$datadir/coldruby"])
+	[compilerdir="$PWD/lib" runtimedir="$PWD/runtime"], [compilerdir="$datadir/coldruby" runtimedir="$datadir/coldruby/runtime"])
 
 AC_ARG_WITH([compiler],
 	[AS_HELP_STRING([--with-compiler@<:@=PATH@:>@], [specify compiler root])]
-, [COMPILER_ROOT=$with_compiler]) 
+, [compilerdir=$with_compiler]) 
 
-AC_SUBST([COMPILER_ROOT])
-AC_SUBST([compilerdir], [$COMPILER_ROOT])
-dnl AC_DEFINE_UNQUOTED([COMPILER_ROOT], ["$COMPILER_ROOT"], [Path to coldruby compiler.])
+AC_SUBST([compilerdir])
+AC_SUBST([runtimedir])
 
 AC_MSG_CHECKING([for compiler root])
-AC_MSG_RESULT([$COMPILER_ROOT])
+AC_MSG_RESULT([$compilerdir])
+
+AC_MSG_CHECKING([for runtime root])
+AC_MSG_RESULT([$runtimedir])
 
 AH_TOP(
 [/*
@@ -116,5 +118,6 @@ AC_CONFIG_FILES([
 	Makefile
 	coldruby/Makefile
 	lib/Makefile
+	runtime/Makefile
 ])
 AC_OUTPUT

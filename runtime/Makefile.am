@@ -15,5 +15,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-EXTRA_DIST = coldruby.rb coldruby commands 
-nobase_compiler_DATA = coldruby.rb coldruby/* commands/*
+EXTRA_DIST = *.js
+runtime_DATA = *.js
+
