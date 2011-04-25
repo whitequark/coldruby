@@ -50,8 +50,8 @@ $.define_method($c.Range, 'to_s', 0, function(self) {
 });
 
 $.define_method($c.Range, 'inspect', 0, function(self) {
-  var begin = this.funcall(self.ivs['@begin'], 'inspect', []);
-  var end   = this.funcall(self.ivs['@end'],   'inspect', []);
+  var begin = this.funcall(self.ivs['@begin'], 'inspect');
+  var end   = this.funcall(self.ivs['@end'],   'inspect');
   return begin + ($.test(self.ivs['@excl']) ? '...' : '..') + end;
 });
 
