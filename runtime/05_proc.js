@@ -8,20 +8,19 @@ $.builtin.make_proc = function(iseq) {
 }
 
 $.define_method($c.Proc, 'initialize', 0, function(self) {
-  var iseq, new_iseq = {};
+  var new_iseq = {}, sf;
 
-  if(this.block_given_p()) {
-    iseq = this.context.sf.block;
-  } else if(this.context.sf.parent.parent.block) { // Proc#initialize->Proc.new->caller
-    iseq = this.context.sf.parent.parent.block;
-  } else {
+  // Proc#initialize->Proc.new->caller
+  var outer_sf = this.context.sf.parent.parent;
+
+  if(!outer_sf.block)
     this.raise(this.e.ArgumentError, "tried to create Proc object without a block");
-  }
 
-  for(var name in iseq)
-    new_iseq[name] = iseq[name];
+  for(var name in outer_sf.block)
+    new_iseq[name] = outer_sf.block[name];
 
   self.iseq = new_iseq;
+  self.iseq.stack_frame = outer_sf;
 
   if(self.iseq.lambda == undefined) {
     self.iseq.lambda = false;

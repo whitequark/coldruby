@@ -794,7 +794,13 @@ var $ = {
    * Yield to a block. Equivalent to Ruby `yield *args'.
    */
   yield2: function(args) {
-    var iseq = this.context.sf.block;
+    var sf = this.context.sf, iseq;
+
+    if(sf.outer) {
+      iseq = sf.outer.block;
+    } else {
+      iseq = sf.block;
+    }
 
     if(!iseq) {
       this.raise(this.e.LocalJumpError, "no block given (yield)");
