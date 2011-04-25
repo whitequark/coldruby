@@ -18,7 +18,7 @@
 include aminclude.am
 
 EXTRA_DIST = GPL generate-gitfiles.sh $(DX_CONFIG) doc/html
-SUBDIRS = coldruby lib runtime
+SUBDIRS = libcoldruby coldruby lib runtime
 MOSTLYCLEANFILES = $(DX_CLEANFILES)
 
 if DX_COND_html

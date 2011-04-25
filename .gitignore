@@ -15,5 +15,6 @@ config.status
 stamp-h1
 # compiled files
 *.o
+*.a
 .deps
 coldruby/coldruby

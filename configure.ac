@@ -22,6 +22,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
 AC_LANG([C++])
 AC_PROG_CXX
+AC_PROG_RANLIB
 
 AC_MSG_CHECKING([for ruby >= 1.9])
 
@@ -126,6 +127,7 @@ AH_TOP(
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
+	libcoldruby/Makefile
 	coldruby/Makefile
 	lib/Makefile
 	runtime/Makefile
