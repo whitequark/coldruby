@@ -60,7 +60,7 @@ end
 
 def get_runtime(directory, plaintext=false)
   runtime = []
-  Dir[File.join(directory, '*')].sort.each do |runtime_file|
+  Dir[File.join(directory, '*.js')].sort.each do |runtime_file|
     # Preprocess
     lines = File.readlines(runtime_file)
     last_definition = nil

@@ -26,6 +26,8 @@
 #define __RUBY_COMPILER__H__
 
 #include <string>
+#include <vector>
+#include "ColdRubyRuntime.h"
 
 /** \brief Интерфейс для компиляторов кода Ruby в JavaScript.
  *
@@ -108,11 +110,9 @@ public:
 	 * \param code Код на Ruby, который следует откомпилировать.
 	 * \param file Файл, откуда был загружен код (передается в переменную __FILE__).
 	 * \param js Ссылка на строку, куда будет помещен скомпилированный код.
-	 * \param is_toplevel Флаг, включающий режим кода верхнего уровня в
-	 *                    компиляторе (см. compile.rb).
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
-	virtual bool compile(const std::string &code, const std::string &file, std::string &js, bool is_toplevel = false) = 0;
+	virtual bool compile(const std::string &code, const std::string &file, std::string &js) = 0;
 	
 	/** \brief Метод для компиляции кода на Ruby из файла.
 	 *
@@ -120,11 +120,9 @@ public:
 	 *
 	 * \param file Файл, в котором находится код.
 	 * \param js Ссылка на строку, куда будет помещен скомпилированный код.
-	 * \param is_toplevel Флаг, включающий режим кода верхнего уровня в
-	 *                    компиляторе (см. compile.rb).
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */	
-	virtual bool compile(const std::string &file, std::string &js, bool is_toplevel = false) = 0;
+	virtual bool compile(const std::string &file, std::string &js) = 0;
 
 	/** \brief Метод для получения описания ошибки.
 	 *
@@ -136,7 +134,7 @@ public:
 	 *
 	 * \return Код рантайма на JavaScript.
 	 */
-	virtual const std::string &runtime() const = 0;
+	virtual const std::vector<ColdRubyRuntime> &runtime() const = 0;
 };
 
 #endif

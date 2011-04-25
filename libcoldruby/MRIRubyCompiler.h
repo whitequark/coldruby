@@ -26,6 +26,7 @@
 #define __MRI_RUBY_COMPILER__H__
 
 #include "StandardRubyCompiler.h"
+#include "ColdRubyRuntime.h"
 
 #include <ruby.h>
 
@@ -50,7 +51,6 @@ class MRIRubyCompiler: public StandardRubyCompiler {
 		const std::string &code;
 		const std::string &file;
 		std::string &js;
-		bool is_toplevel;
 	} compile_data_t;	
 	
 public:
@@ -85,9 +85,9 @@ public:
 	
 	virtual bool boot(const std::string &code, const std::string &file);
 
-	virtual bool compile(const std::string &code, const std::string &file, std::string &js, bool is_toplevel = false);
+	virtual bool compile(const std::string &code, const std::string &file, std::string &js);
 	
-	virtual const std::string &runtime() const;
+	virtual const std::vector<ColdRubyRuntime> &runtime() const;
 private:
 	static VALUE boot_protected_wrapper(VALUE arg);
 	static VALUE compile_protected_wrapper(VALUE arg);
@@ -97,7 +97,7 @@ private:
 	
 	void mri_exception();
 	
-	std::string m_runtime;
+	std::vector<ColdRubyRuntime> m_runtime;
 };
 
 #endif

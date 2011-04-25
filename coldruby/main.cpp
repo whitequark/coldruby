@@ -22,7 +22,9 @@
 #include <getopt.h>
 #include <string.h>
 #include <errno.h>
-#include "MRIRubyCompiler.h"
+#include <MRIRubyCompiler.h>
+#include "ColdRubyVM.h"
+#include "ColdRuby.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -73,25 +75,40 @@ static void version() {
 static int post_compiler(RubyCompiler *compiler, void *arg) {
 	init_data_t *init = (init_data_t *) arg;
 	
-	if(compiler->boot(COMPILER_ROOT "/commands/compile.rb") == false) {
+	if(compiler->boot(COMPILER_ROOT "/coldruby/compile.rb") == false) {
 		fprintf(stderr, "coldruby: compiler boot failed: %s\n", compiler->errorString().c_str());
 		
 		return 1;
 	}
 	
-	std::string js;
-	
-	if(!compiler->compile(init->content, init->filename, js, !(init->flags & FlagBare))) {
-		fprintf(stderr, "coldruby: compile: %s\n", compiler->errorString().c_str());
-		
-		return 1;
-	}
-	
-	if(!(init->flags & FlagBare))
-		js = compiler->runtime() + js;
-	
 	if(!init->static_out.empty()) {
+		std::string js;
+	
+		if(!compiler->compile(init->content, init->filename, js)) {
+			fprintf(stderr, "coldruby: compile: %s\n", compiler->errorString().c_str());
+		
+			return 1;
+		}
+	
 		FILE *dest;
+		
+		if(!(init->flags & FlagBare)) {
+			const std::vector<ColdRubyRuntime> &runtime =
+				compiler->runtime();
+			
+			std::string runtime_str;
+				
+			for(std::vector<ColdRubyRuntime>::const_iterator it =
+				runtime.begin(); it != runtime.end(); it++) {
+			
+				runtime_str += "/* Runtime: " +
+					(*it).file() + " */\n";
+				
+				runtime_str += (*it).code();
+			}
+			
+			js = runtime_str + js;
+		}
 		
 		if(init->static_out == "-")
 			dest = stdout;
@@ -116,16 +133,36 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 			fprintf(stderr, "coldruby: %s: %s\n", init->static_out.c_str(), strerror(errno_copy));
 				
 			return 1;
-		}
+		} else
+			return 0;
 	} else {
-		fprintf(stderr, "coldruby: non-static mode is not supported yet\n");
+		ColdRubyVM vm;
+			
+		if(vm.initialize(compiler) == false) {
+			fprintf(stderr, "coldruby: vm.initialize: %s\n", vm.errorString().c_str());
+			
+			return 1;
+		}
 		
-		return 1;
-	}
 	
-	//std::cout << js;
+		ColdRuby *ruby = vm.createRuby();
 		
-	return 0;
+		if(ruby == NULL) {
+			fprintf(stderr, "coldruby: ruby creation failed: %s\n", vm.errorString().c_str());
+			
+			return 1;
+		}
+	
+		if(vm.runRuby(ruby, init->content, init->filename) == false) {
+			fprintf(stderr, "coldruby: %s\n", vm.errorString().c_str());
+			
+			return 1;
+		}
+		
+		delete ruby;
+		
+		return 0;
+	}
 }
 
 static bool load_file(const char *filename, std::string &content, std::string &error) {

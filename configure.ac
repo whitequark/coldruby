@@ -103,6 +103,14 @@ DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN(coldruby, doxygen.cfg, doc)
 
+AC_CHECK_HEADER([v8.h], [], [
+	AC_MSG_ERROR([V8 not found])
+])
+
+AC_CHECK_LIB([v8], [_ZN2v86Script3RunEv], [], [
+	AC_MSG_ERROR([V8 not found])
+])
+
 AH_TOP(
 [/*
  * ColdRuby -- V8-based Ruby implementation.

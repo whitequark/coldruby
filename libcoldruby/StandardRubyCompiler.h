@@ -45,7 +45,7 @@ public:
 	 */
 	virtual bool boot(const std::string &file);
 	
-	virtual bool compile(const std::string &code, const std::string &file, std::string &js, bool is_toplevel = false) = 0;
+	virtual bool compile(const std::string &code, const std::string &file, std::string &js) = 0;
 	
 	/** \brief Метод для компиляции кода на Ruby из файла.
 	 *
@@ -53,11 +53,9 @@ public:
 	 *
 	 * \param file Файл, в котором находится код.
 	 * \param js Ссылка на строку, куда будет помещен скомпилированный код.
-	 * \param is_toplevel Флаг, включающий режим кода верхнего уровня в
-	 *                    компиляторе (см. compile.rb).
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
-	virtual bool compile(const std::string &file, std::string &js, bool is_toplevel = false);
+	virtual bool compile(const std::string &file, std::string &js);
 
 	/** \brief Метод для получения описания ошибки.
 	 *

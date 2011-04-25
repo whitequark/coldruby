@@ -17,6 +17,7 @@
 
 noinst_LIBRARIES = libcoldruby.a
 libcoldruby_a_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp
-noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h
+noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h \
+	ColdRubyRuntime.h
 libcoldruby_a_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\""

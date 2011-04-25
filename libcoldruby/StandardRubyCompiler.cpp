@@ -37,21 +37,23 @@ bool StandardRubyCompiler::boot(const std::string &file) {
 	
 	rewind(source);
 	
-	char *content = new char[size + 1];
-	content[size] = 0;
+	char *content = new char[size];
 	
 	fread(content, 1, size, source);
 	
+	size_t bytes_read = 0;
+	
 	fclose(source);
 	
-	std::string line(content, size);
+	std::string line;
+	line.assign(content, size);
 	
 	delete[] content;
-	
-	return boot(content, file);
+		
+	return boot(line, file);
 }
 
-bool StandardRubyCompiler::compile(const std::string &file, std::string &js, bool is_toplevel) {
+bool StandardRubyCompiler::compile(const std::string &file, std::string &js) {
 	FILE *source = fopen(file.c_str(), "rb");
 	
 	if(source == NULL) {
@@ -77,7 +79,7 @@ bool StandardRubyCompiler::compile(const std::string &file, std::string &js, boo
 	
 	delete[] content;
 	
-	return compile(content, file, js, is_toplevel);
+	return compile(content, file, js);
 }
 
 const std::string &StandardRubyCompiler::errorString() const {

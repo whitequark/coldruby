@@ -64,11 +64,21 @@ void MRIRubyCompiler::boot_protected(compile_data_t *boot) {
 
 	VALUE code = rb_str_new(boot->code.data(), boot->code.length());
 	VALUE file = rb_str_new(boot->file.data(), boot->file.length());
-	
+		
 	rb_funcall(Qnil, rb_intern("eval"), 4, code, Qnil, file, INT2FIX(1));
 			
-	VALUE runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 2, rb_str_new_cstr(RUNTIME_ROOT), Qtrue);
-	m_runtime = RSTRING_STD(rb_funcall(runtime, rb_intern("join"), 1, rb_str_new_cstr("\n")));
+	VALUE runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 2, rb_str_new_cstr(RUNTIME_ROOT), Qfalse);
+	
+	m_runtime.resize(RARRAY_LEN(runtime));
+	
+	for(long i = 0; i < RARRAY_LEN(runtime); i++) {
+		VALUE item = rb_ary_entry(runtime, i);
+				
+		std::string filename = RSTRING_STD(rb_ary_entry(item, 0));
+		std::string code = RSTRING_STD(rb_ary_entry(item, 1));
+				
+		m_runtime[i] = ColdRubyRuntime(code, filename);
+	}
 	
 }
 
@@ -105,8 +115,8 @@ void MRIRubyCompiler::mri_exception() {
 	setErrorString(stream.str());
 }
 
-bool MRIRubyCompiler::compile(const std::string &code, const std::string &file, std::string &js, bool is_toplevel) {
-	compile_data_t compile = { this, code, file, js, is_toplevel };
+bool MRIRubyCompiler::compile(const std::string &code, const std::string &file, std::string &js) {
+	compile_data_t compile = { this, code, file, js };
 	
 	int state;
 	
@@ -133,17 +143,12 @@ void MRIRubyCompiler::compile_protected(compile_data_t *data) {
 	VALUE code = rb_str_new(data->code.data(), data->code.length());
 	VALUE file = rb_str_new(data->file.data(), data->file.length());
 	
-	VALUE where = rb_ary_new();
-	rb_ary_push(where, file);
-	rb_ary_push(where, Qnil);
-	rb_ary_push(where, INT2FIX(1));
-	
-	VALUE js = rb_funcall(Qnil, rb_intern("compile"), 4, code, where, Qfalse, data->is_toplevel ? Qtrue : Qfalse);
+	VALUE js = rb_funcall(Qnil, rb_intern("compile"), 3, code, file, INT2FIX(1));
 	
 	data->js = RSTRING_STD(js);
 }
 
-const std::string &MRIRubyCompiler::runtime() const {
+const std::vector<ColdRubyRuntime> &MRIRubyCompiler::runtime() const {
 	return m_runtime;
 }
 
