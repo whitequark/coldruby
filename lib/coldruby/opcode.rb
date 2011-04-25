@@ -270,14 +270,14 @@ module ColdRuby
         %Q{#{PUSH} = sf.dynamic[#{@info[1]}].locals[#{@info[0]}];}
 
       when :setglobal
-        %Q{this.gvar_set(#{@info[0].inspect}, #{POP});}
+        %Q{this.gvar_set(#{@info[0].to_s.inspect}, #{POP});}
       when :getglobal
-        %Q{#{PUSH} = this.gvar_get(#{@info[0].inspect});}
+        %Q{#{PUSH} = this.gvar_get(#{@info[0].to_s.inspect});}
 
       when :setinstancevariable
-        %Q{sf.self.ivs[#{@info[0].inspect}] = #{POP};}
+        %Q{sf.self.ivs[#{@info[0].to_s.inspect}] = #{POP};}
       when :getinstancevariable
-        %Q{#{PUSH} = sf.self.ivs[#{@info[0].inspect}];}
+        %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_s.inspect}];}
 
       when :send, :invokeblock, :invokesuper
         code = []
