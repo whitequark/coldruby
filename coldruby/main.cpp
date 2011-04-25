@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
 	
 	init_data_t init = { 0 };
 	
-	while((ret = getopt_long(argc, argv, "vhe:s::B", longopts, &longidx)) != -1) {
+	while((ret = getopt_long(argc, argv, "+vhe:s::B", longopts, &longidx)) != -1) {
 		switch(ret) {
 		case '?':
 		case ':':
