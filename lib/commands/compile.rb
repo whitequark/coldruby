@@ -12,8 +12,6 @@ CompilerOptions = {
   :stack_caching            => false,
 }
 
-pool = ColdRuby::Pool.new
-
 def compile(what, where, is_file, is_toplevel=false)
   iseq = RubyVM::InstructionSequence
   if is_file
@@ -39,6 +37,7 @@ def compile(what, where, is_file, is_toplevel=false)
     ruby_iseq = iseq.compile what, *where, CompilerOptions
   end
 
+  pool = ColdRuby::Pool.new
   iseq = ColdRuby::ISeq.new(pool, ruby_iseq.to_a)
 
   if ColdRuby.debug
