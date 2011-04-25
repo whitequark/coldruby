@@ -178,5 +178,5 @@ $.define_method($c.Hash, 'inspect', 0, function(self) {
     desc += ' => ';
     desc += this.funcall(self.values[hash], 'inspect');
   }
-  return '{ ' + desc + ' }';
+  return '{' + desc + '}';
 });
