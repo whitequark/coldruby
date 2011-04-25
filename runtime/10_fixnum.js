@@ -5,7 +5,7 @@ $.define_method($c.Fixnum, 'to_s', 0, function(self) {
 });
 
 $.define_method($c.Fixnum, 'to_f', 0, function(self) {
-  return $.builtin.make_float(self);
+  return $.float_new(self);
 });
 
 $.define_method($c.Fixnum, '+', 1, function(self, other) {

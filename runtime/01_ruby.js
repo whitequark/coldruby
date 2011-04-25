@@ -935,7 +935,7 @@ var $ = {
 
       if(argsinfo.block > -1) {
         if(new_sf.block) {
-          new_args[argsinfo.block] = this.builtin.make_proc(new_sf.block);
+          new_args[argsinfo.block] = this.proc_new(new_sf.block);
         } else {
           new_args[argsinfo.block] = this.builtin.Qnil;
         }

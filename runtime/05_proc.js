@@ -1,6 +1,6 @@
 $.define_class('Proc');
 
-$.builtin.make_proc = function(iseq) {
+$.proc_new = function(iseq) {
   return {
     klass: $c.Proc,
     iseq:  iseq,

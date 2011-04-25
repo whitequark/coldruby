@@ -1,6 +1,6 @@
 $.define_class('Float', $c.Object, true);
 
-$.builtin.make_float = function(value) {
+$.float_new = function(value) {
   return {
     klass: $c.Float,
     value: value,
@@ -26,7 +26,7 @@ $.alias_method($c.Float, 'floor', 'to_i');
 $.alias_method($c.Float, 'truncate', 'to_i');
 
 $.define_method($c.Float, '-@', 1, function(self) {
-  return $.builtin.make_float(-self.value);
+  return $.float_new(-self.value);
 });
 $.define_method($c.Float, '+@', 1, function(self) {
   return self;
@@ -34,21 +34,21 @@ $.define_method($c.Float, '+@', 1, function(self) {
 
 $.define_method($c.Float, '+', 1, function(self, other) {
   other = this.funcall(other, 'to_f');
-  return $.builtin.make_float(self.value + other.value);
+  return $.float_new(self.value + other.value);
 });
 $.define_method($c.Float, '-', 1, function(self, other) {
   other = this.funcall(other, 'to_f');
-  return $.builtin.make_float(self.value - other.value);
+  return $.float_new(self.value - other.value);
 });
 $.define_method($c.Float, '*', 1, function(self, other) {
   other = this.funcall(other, 'to_f');
-  return $.builtin.make_float(self.value * other.value);
+  return $.float_new(self.value * other.value);
 });
 $.define_method($c.Float, '/', 1, function(self, other) {
   other = this.funcall(other, 'to_f');
-  return $.builtin.make_float(self.value / other.value);
+  return $.float_new(self.value / other.value);
 });
 $.define_method($c.Float, '%', 1, function(self, other) {
   other = this.funcall(other, 'to_f');
-  return $.builtin.make_float(self.value % other.value);
+  return $.float_new(self.value % other.value);
 });

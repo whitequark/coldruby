@@ -104,9 +104,9 @@ module ColdRuby
         when String
           %Q{#{PUSH} = #{@info[0].inspect};}
         when Float
-          %Q{#{PUSH} = this.builtin.make_float(#{@info[0].inspect});}
+          %Q{#{PUSH} = this.float_new(#{@info[0].inspect});}
         when Range
-          %Q{#{PUSH} = this.builtin.make_range(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
+          %Q{#{PUSH} = this.range_new(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
         when Symbol
           %Q{#{PUSH} = #{SYMBOL[self, object]};}
         when true
@@ -219,13 +219,13 @@ module ColdRuby
         [
           %Q{var hash = sf.stack.slice(sf.sp - #{@info[0]}, sf.sp)},
           %Q{sf.sp -= #{@info[0]}},
-          %Q{#{PUSH} = this.builtin.make_hash(hash);}
+          %Q{#{PUSH} = this.hash_new(hash);}
         ]
 
       when :newrange
         code = [ %Q{var end = #{POP}, begin = #{POP};} ]
         if (@info[0] & ~1) == 0
-          code << %Q{#{PUSH} = this.builtin.make_range(begin, end, #{@info[0] == 0 ? false : true});}
+          code << %Q{#{PUSH} = this.range_new(begin, end, #{@info[0] == 0 ? false : true});}
         else
           raise UnknownFeatureException, "newrange flags #{@info[0]}"
         end

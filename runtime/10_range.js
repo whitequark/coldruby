@@ -9,7 +9,7 @@ $.define_method($c.Range, 'initialize', -1, function(self, args) {
   self.ivs['@excl']  = $.test(excl);
 });
 
-$.builtin.make_range = function(begin, end, excl) {
+$.range_new = function(begin, end, excl) {
   return {
     klass: $c.Range,
     ivs: {
