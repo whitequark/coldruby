@@ -1091,37 +1091,30 @@ var $ = {
   },
 
   /*
-   * call-seq: create_toplevel()
-   *
-   * Create a Ruby toplevel object, a singleton object of class Object.
-   * Methods defined on it will be instead defined on Object class.
-   */
-  create_toplevel: function() {
-    var toplevel = {
-      klass:             this.internal_constants.Object,
-      class_variables:   {},
-      ivs:               {},
-      toplevel:          true
-    };
-    this.define_singleton_method(toplevel, 'to_s', 0, function(self) {
-      return "main";
-    });
-    return toplevel;
-  },
-
-  /*
    * call-seq: create_ruby()
    *
    * Creates a Ruby interpreter context (i.e. thread, but your underlying
    * javascript engine probably will not support them).
    */
   create_ruby: function() {
-    return {
+    var ruby = {
       __proto__: this,
       context: {
         sf:        null,
+      },
+      toplevel: {
+        klass:             ruby.internal_constants.Object,
+        class_variables:   {},
+        ivs:               {},
+        toplevel:          true
       }
     };
+
+    ruby.define_singleton_method(ruby.toplevel, 'to_s', 0, function(self) {
+      return "main";
+    });
+
+    return ruby;
   },
 };
 
