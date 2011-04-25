@@ -84,6 +84,7 @@ AC_ARG_WITH([compiler],
 , [COMPILER_ROOT=$with_compiler]) 
 
 AC_SUBST([COMPILER_ROOT])
+AC_SUBST([compilerdir], [$COMPILER_ROOT])
 dnl AC_DEFINE_UNQUOTED([COMPILER_ROOT], ["$COMPILER_ROOT"], [Path to coldruby compiler.])
 
 AC_MSG_CHECKING([for compiler root])
@@ -114,5 +115,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
 	coldruby/Makefile
+	lib/Makefile
 ])
 AC_OUTPUT

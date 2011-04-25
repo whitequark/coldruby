@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 EXTRA_DIST = GPL generate-gitfiles.sh
-SUBDIRS = coldruby
+SUBDIRS = coldruby lib
 
 dist-hook:
 	sh $(top_srcdir)/generate-gitfiles.sh $(top_srcdir) $(distdir)
