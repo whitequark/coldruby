@@ -17,6 +17,7 @@
 
 bin_PROGRAMS = coldruby
 coldruby_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp main.cpp
+noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h
 coldruby_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\""
 
