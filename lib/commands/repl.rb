@@ -10,9 +10,9 @@ loop do
 
   begin
     puts "=> #{eval(input).inspect}"
-#  rescue Exception => e
-#    puts "#{e.class.name}: #{e.message}"
-#    e.backtrace.each { |line| puts "\t#{line}" }
+  rescue Exception => e
+    puts "#{e.class.name}: #{e.message}"
+    e.backtrace.each { |line| puts "\t#{line}" }
   end
 end
 
