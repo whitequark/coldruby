@@ -523,7 +523,12 @@ var $ = {
 
   check_convert_type: function(arg, type, converter) {
     if(arg.klass != type) {
-      return this.funcall(arg, converter);
+      if(this.respond_to(arg, converter)) {
+        return this.funcall(arg, converter);
+      } else {
+        this.raise(this.e.TypeError, "Cannot convert " +
+              this.obj_classname(arg) + " into " + type.klass_name);
+      }
     } else {
       return arg;
     }
@@ -1165,7 +1170,7 @@ var $ = {
    * Converts +value+ to Ruby Fixnum (and to JavaScript number).
    */
   to_int: function(value) {
-    return check_convert_type(value, this.c.Fixnum, 'to_int');
+    return this.check_convert_type(value, this.c.Fixnum, 'to_int');
   },
 
   /*
@@ -1174,7 +1179,7 @@ var $ = {
    * Converts +value+ to Ruby String (and to JavaScript string).
    */
   to_str: function(value) {
-    return check_convert_type(value, this.c.String, 'to_str');
+    return this.check_convert_type(value, this.c.String, 'to_str');
   },
 
   /*
@@ -1183,7 +1188,7 @@ var $ = {
    * Converts +value+ to Ruby Array (and to JavaScript array).
    */
   to_ary: function(value) {
-    return check_convert_type(value, this.c.Array, 'to_ary');
+    return this.check_convert_type(value, this.c.Array, 'to_ary');
   },
 
   /*
@@ -1192,7 +1197,16 @@ var $ = {
    * Converts +value+ to Ruby Symbol.
    */
   to_sym: function(value) {
-    return check_convert_type(value, this.c.Symbol, 'to_sym');
+    return this.check_convert_type(value, this.c.Symbol, 'to_sym');
+  },
+
+  /*
+   * call-seq: to_float(value) -> number
+   *
+   * Converts +value+ to Ruby Float.
+   */
+  to_float: function(value) {
+    return this.check_convert_type(value, this.c.Float, 'to_f');
   },
 
   /*

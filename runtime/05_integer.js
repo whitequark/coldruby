@@ -1,13 +1,13 @@
 $.define_class('Integer', $c.Numeric);
 
-$.define_method($c.Integer, 'to_i', 0, function(self) {
+$.define_method($c.Integer, 'to_int', 0, function(self) {
   return self;
 });
-$.alias_method($c.Integer, 'to_int', 'to_i');
-$.alias_method($c.Integer, 'floor', 'to_i');
-$.alias_method($c.Integer, 'ceil', 'to_i');
-$.alias_method($c.Integer, 'round', 'to_i');
-$.alias_method($c.Integer, 'truncate', 'to_i');
+$.alias_method($c.Integer, 'to_i', 'to_int');
+$.alias_method($c.Integer, 'floor', 'to_int');
+$.alias_method($c.Integer, 'ceil', 'to_int');
+$.alias_method($c.Integer, 'round', 'to_int');
+$.alias_method($c.Integer, 'truncate', 'to_int');
 
 $.define_method($c.Integer, 'times', 0, function(self) {
   if(typeof self == 'number') {
