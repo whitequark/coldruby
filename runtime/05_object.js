@@ -11,15 +11,15 @@ $.define_method($c.Object, 'method_missing', -1, function(self, args) {
 
   switch(this.context.last_call_type) {
     case 'method':
-    this.raise2($e.NoMethodError, ["undefined method" + for_obj, sym, args]);
+    this.raise2($e.NoMethodError, ["undefined method" + for_obj, sym, args], null, 1);
     break;
 
     case 'vcall':
-    this.raise2($e.NameError, ["undefined local variable or method" + for_obj, sym]);
+    this.raise2($e.NameError, ["undefined local variable or method" + for_obj, sym], null, 1);
     break;
 
     case 'super':
-    this.raise2($e.NoMethodError, ["super: no superclass method" + for_obj, sym, args]);
+    this.raise2($e.NoMethodError, ["super: no superclass method" + for_obj, sym, args], null, 1);
     break;
 
     default:
