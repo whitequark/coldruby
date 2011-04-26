@@ -124,7 +124,7 @@ function() {
       end
 
       elems = []
-      elems << "  klass: $c.InstructionSequence"
+      elems << "  klass: ruby.c.InstructionSequence"
       elems << <<-INFO.rstrip
   info: {
     arg_size:   #{@arg_size},

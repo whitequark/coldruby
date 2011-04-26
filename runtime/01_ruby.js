@@ -4,8 +4,10 @@ var $ = {
       $.gvar_set('$"', []);
       $.gvar_alias('$LOADED_FEATURES', '$"');
 
-      $.gvar_set('$:', ['./stdlib']);
+      $.gvar_set('$:', []);
       $.gvar_alias('$LOAD_PATH', '$:');
+
+      $.gvar_set('$,', "");
 
       $.e = $.c = $.internal_constants;
     },
@@ -573,6 +575,15 @@ var $ = {
   },
 
   /*
+   * call-seq: raise3(exception)
+   *
+   * Re-throw an existing exception.
+   */
+  raise3: function(exception) {
+    throw { op: 'raise', object: exception };
+  },
+
+  /*
    * call-seq: protect(code, rescue) -> value
    *
    * Execute a block +code+ in protected mode, catching Ruby exceptions.
@@ -706,22 +717,18 @@ var $ = {
     func = this.find_method(c_receiver, c_method, super);
 
     if(func == undefined) {
-      var for_obj = " `" + this.id2text(c_method) + "' for " +
-            this.funcall(c_receiver, 'inspect') + ':' + c_receiver.klass.klass_name;
-      var sym = this.id2sym(c_method);
-
       if(method) {
         if(!vcall) {
-          this.raise2(this.internal_constants.NoMethodError,
-            ["undefined method" + for_obj, sym, args]);
+          this.context.last_call_type = 'method';
         } else {
-          this.raise2(this.internal_constants.NameError,
-            ["undefined local variable or method" + for_obj, sym]);
+          this.context.last_call_type = 'vcall';
         }
       } else {
-        this.raise2(this.internal_constants.NoMethodError,
-          ["super: no superclass method" + for_obj, sym, args]);
+        this.context.last_call_type = 'super';
       }
+
+      return this.funcall2(c_receiver, 'method_missing',
+                  [ this.id2sym(this.any2id(method)) ].concat(args), block);
     }
 
     var sf_opts = {
