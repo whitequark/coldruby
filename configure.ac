@@ -20,9 +20,9 @@ AC_INIT([coldruby], [0.1], [coldruby-dev@lists.whitequark.org])
 AC_CONFIG_SRCDIR([coldruby/main.cpp])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
+LT_INIT([dlopen])
 AC_LANG([C++])
 AC_PROG_CXX
-AC_PROG_RANLIB
 
 AC_MSG_CHECKING([for ruby >= 1.9])
 

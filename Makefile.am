@@ -20,6 +20,7 @@ include aminclude.am
 EXTRA_DIST = GPL generate-gitfiles.sh $(DX_CONFIG) doc/html
 SUBDIRS = libcoldruby coldruby lib runtime
 MOSTLYCLEANFILES = $(DX_CLEANFILES)
+ACLOCAL_AMFLAGS = -I m4
 
 if DX_COND_html
 $(DX_DOCDIR)/html: doxygen-run

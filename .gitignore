@@ -2,6 +2,10 @@
 aclocal.m4
 autom4te.cache/
 configure
+config.sub
+config.guess
+ltmain.sh
+m4
 install-sh
 missing
 config.h.in
@@ -13,6 +17,7 @@ Makefile
 config.h
 config.status
 stamp-h1
+libtool
 # compiled files
 *.o
 *.a
