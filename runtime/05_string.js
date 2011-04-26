@@ -15,9 +15,17 @@ $.define_method($c.String, 'inspect', 0, function(self) {
 });
 
 $.define_method($c.String, '+', 1, function(self, other) {
-  other = this.check_convert_type(other, $c.String, 'to_s');
+  return self + this.to_str(other);
+});
 
-  return self + other;
+$.define_method($c.String, '*', 1, function(self, count) {
+  count = this.to_int(count);
+
+  var result = "";
+  for(var i = 0; i < count; i++)
+    result += self;
+
+  return result;
 });
 
 String.prototype.klass = $c.String;
