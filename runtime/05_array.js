@@ -1,6 +1,11 @@
 $.define_class('Array', $c.Object);
 $.module_include($c.Array, $c.Enumerable);
 
+$.define_method($c.Array, 'to_ary', 0, function(self) {
+  return self;
+});
+$.alias_method($c.Array, 'to_a', 'to_ary');
+
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
     this.yield(self[i]);
@@ -23,6 +28,44 @@ $.define_method($c.Array, 'length', 0, function(self) {
   return self.length;
 });
 $.alias_method($c.Array, 'size', 'length');
+
+$.define_method($c.Array, '+', 1, function(self, other) {
+  other = this.check_convert_type(self, $c.Array, 'to_ary');
+
+  return self.concat(other);
+});
+
+$.define_method($c.Array, '*', 1, function(self, count) {
+  count = this.check_convert_type(count, $c.Fixnum, 'to_i');
+
+  var result = [];
+  for(var i = 0; i < count; i++)
+    result = result.concat(self);
+
+  return result;
+});
+
+$.define_method($c.Array, '-', 1, function(self, other) {
+  other = this.check_convert_type(other, $c.Array, 'to_ary');
+
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+    var insert = true;
+
+    for(var j = 0; j < other.length; j++) {
+      if(this.test(this.funcall(self[i], '==', other[j]))) {
+        insert = false;
+        break;
+      }
+    }
+
+    if(insert)
+      result.push(self[i]);
+  }
+
+  return result;
+});
 
 $.define_method($c.Array, 'any?', 0, function(self) {
   return self.length > 0 ? Qtrue : Qfalse;
