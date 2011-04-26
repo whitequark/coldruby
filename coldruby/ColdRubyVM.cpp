@@ -21,6 +21,9 @@
 #include <sstream>
 #include <iostream>
 #include <RubyCompiler.h>
+#include <errno.h>
+#include <string.h>
+
 #include "ColdRubyVM.h"
 #include "ColdRuby.h"
 
@@ -28,6 +31,8 @@
 
 ColdRubyVM::ColdRubyVM(): m_initialized(false) {
 	m_context = v8::Context::New();
+	
+	//v8::V8::SetCaptureStackTraceForUncaughtExceptions(true);
 }
 
 ColdRubyVM::~ColdRubyVM() {	
@@ -159,12 +164,43 @@ bool ColdRubyVM::runRubyJS(ColdRuby *ruby, const std::string &code, const std::s
 	func->Call(m_context->Global(), 1, args);
 		
 	if(try_catch.HasCaught()) {
-		formatException(&try_catch);
+		formatException(&try_catch, ruby);
 		
 		return false;
 	}
 	
 	return true;
+}
+	
+bool ColdRubyVM::evaluate(const std::string &file, v8::Handle<v8::Value> &ret) {
+	FILE *source = fopen(file.c_str(), "rb");
+	
+	if(source == NULL) {
+		m_errorString = strerror(errno);
+		
+		return false;
+	}
+	
+	fseek(source, 0, SEEK_END);
+	
+	long size = ftell(source);
+	
+	rewind(source);
+	
+	char *content = new char[size];
+	
+	fread(content, 1, size, source);
+	
+	size_t bytes_read = 0;
+	
+	fclose(source);
+	
+	std::string line;
+	line.assign(content, size);
+	
+	delete[] content;
+	
+	return evaluate(line, file, ret);
 }
 	
 bool ColdRubyVM::evaluate(const std::string &code, const std::string &file, v8::Handle<v8::Value> &ret) {
@@ -196,34 +232,283 @@ const std::string &ColdRubyVM::errorString() {
 	return m_errorString;
 }
 
-void ColdRubyVM::formatException(v8::TryCatch *try_catch) {
+std::string ColdRubyVM::exceptionArrow(v8::Handle<v8::Message> message) {
+	int start = message->GetStartColumn(), end = message->GetEndColumn();
+		
+	return STD_STRING(message->GetSourceLine()) + '\n' +
+		std::string(start, '~') + std::string(end - start, '^');
+}
+
+bool ColdRubyVM::formatRubyException(v8::Handle<v8::Object> exception, ColdRuby *ruby, std::string &description) {
+	std::ostringstream stream;
+	
+	v8::HandleScope handle_scope;
+	v8::TryCatch try_catch;
+	
+	v8::Handle<v8::Object> rbobj = ruby->ruby();	
+	v8::Handle<v8::Function> funcall = v8::Handle<v8::Function>::Cast(
+		rbobj->Get(v8::String::New("funcall"))
+	);
+	
+	if(funcall.IsEmpty()) {
+		m_errorString = "ruby.funcall is invalid";
+		
+		return false;
+	}
+	
+	v8::Handle<v8::Object> constants = v8::Handle<v8::Object>::Cast(rbobj->Get(v8::String::New("c")));
+		
+	if(constants.IsEmpty()) {
+		m_errorString = "ruby.c is invalid";
+		
+		return false;
+	}
+	
+	{
+		std::string exceptionClass;
+	
+		v8::Handle<v8::Value> klass = exception->Get(v8::String::New("klass"));
+		
+		v8::Handle<v8::Value> argv[] = { klass, v8::String::New("to_s") };
+		
+		exceptionClass = STD_STRING(
+			funcall->Call(rbobj, 2, argv)
+		);
+
+		if(try_catch.HasCaught()) {
+			formatException(&try_catch);
+		
+			return false;
+		}
+	
+		stream << exceptionClass;
+	}
+	
+	{
+		std::string exceptionMsg;
+			
+		v8::Handle<v8::Value> argv[] = { exception, v8::String::New("to_s") };
+		
+		exceptionMsg = STD_STRING(
+			funcall->Call(rbobj, 2, argv)
+		);
+
+		if(try_catch.HasCaught()) {
+			formatException(&try_catch);
+		
+			return false;
+		}
+	
+		stream << ": " << exceptionMsg;
+	}
+	
+	v8::Handle<v8::Value> backtrace_ret;
+	
+	{
+		v8::Handle<v8::Value> argv[] = { exception, v8::String::New("backtrace") };
+		
+		backtrace_ret = funcall->Call(rbobj, 2, argv);
+		
+		if(try_catch.HasCaught()) {
+			formatException(&try_catch);
+		
+			return false;
+		}
+	}
+	
+	v8::Handle<v8::Array> backtrace;
+	
+	{
+		v8::Handle<v8::Value> argv[] = {
+			backtrace_ret,
+			constants->Get(v8::String::New("Array")),
+			v8::String::New("to_a")
+		};
+		
+		v8::Handle<v8::Function> convert = v8::Handle<v8::Function>::Cast(
+			rbobj->Get(v8::String::New("check_convert_type"))
+		);
+		
+		if(convert.IsEmpty()) {
+			m_errorString = "ruby.check_convert_type is invalid";
+		
+			return false;
+		}
+		
+		backtrace = v8::Handle<v8::Array>::Cast(
+			convert->Call(rbobj, 3, argv)
+		);
+		
+		if(try_catch.HasCaught()) {
+			formatException(&try_catch);
+		
+			return false;
+		}
+	}
+	
+	int count = backtrace->Length();
+	
+	for(int i = 0; i < count; i++)
+		stream << "\n   at " << STD_STRING(backtrace->Get(i));
+	
+	description = stream.str();
+	
+	return true;
+}
+
+void ColdRubyVM::formatException(v8::TryCatch *try_catch, ColdRuby *ruby) {
 	v8::HandleScope handle_scope;
 
-	std::string exception_string = STD_STRING(try_catch->Exception());
+	v8::Handle<v8::Object> exception = v8::Handle<v8::Object>::Cast(try_catch->Exception());
+	
+	std::string exception_string = STD_STRING(exception);
 	
 	v8::Handle<v8::Message> message = try_catch->Message();
 		
+	std::ostringstream stream;
+		
 	if(message.IsEmpty()) {
-		m_errorString = exception_string;
+		stream << exception_string;
 	} else {
-		std::ostringstream stream;
+		if(ruby && !exception.IsEmpty() && exception->Has(v8::String::New("op"))) {		
+			std::string op = STD_STRING(exception->Get(v8::String::New("op")));
+			
+			if(op == "raise") {				
+				v8::Handle<v8::Object> obj =
+					v8::Handle<v8::Object>::Cast(
+						exception->Get(v8::String::New("object"))
+					);
+					
+				std::string description;
+					
+				if(formatRubyException(obj, ruby, description) == false) {
+					stream << "Attempt to format a Ruby exception failed.\n" << m_errorString;
+				} else {
+					stream << description;
+				}
+			} else {
+				stream << "BUG: uncaught exception with op = '" << op << "'";
+			}			
+		} else {			
+			stream << STD_STRING(message->GetScriptResourceName()) << ':';
+			stream << message->GetLineNumber() << ": " << exception_string;
+			stream << '\n';
+
+			stream << exceptionArrow(message);
+
+			std::string trace = STD_STRING(try_catch->StackTrace());
 		
-		stream << STD_STRING(message->GetScriptResourceName()) << ':';
-		stream << message->GetLineNumber() << ": " << exception_string;
-		stream << '\n';
-		
-		stream << STD_STRING(message->GetSourceLine()) << '\n';
-	
-		int start = message->GetStartColumn(), end = message->GetEndColumn();
-		
-		stream << std::string(start, '~') << std::string(end - start, '^');		
-		
-		std::string trace = STD_STRING(try_catch->StackTrace());
-		
-		if(trace.length() > 0)
-			stream << '\n' << "Stack trace:\n" << trace;
-		
-		m_errorString = stream.str();
+			if(trace.length() > 0) {
+				stream << '\n' << "Stack trace:\n";
+			
+				trace = trace.substr(trace.find('\n') + 1) + "\n";
+			
+				if(ruby)
+					unwindRubyStack(ruby, trace);
+			
+				stream << trace;
+			}
+		}
 	}
 	
+	m_errorString = stream.str();
 }
+
+bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
+	v8::Handle<v8::Object> context = v8::Handle<v8::Object>::Cast(
+			ruby->ruby()->Get(v8::String::New("context"))
+	);
+					
+	if(context.IsEmpty())
+		return false;
+	
+	v8::Handle<v8::Object> sf = v8::Handle<v8::Object>::Cast(
+		context->Get(v8::String::New("sf"))
+	);
+	
+	if(sf.IsEmpty())
+		return false;
+	
+	std::string js_trace = trace;
+	
+	std::istringstream trace_stream(js_trace);
+	std::ostringstream out_stream;
+	
+	int wrap_counter = 0;
+			
+	std::string token, where;
+		
+	while(!trace_stream.eof()) {
+		std::getline(trace_stream, token, ' ');
+		
+		if(token.length() > 0 && token[token.length() - 1] == '\n') {
+			bool brackets = token[0] == '(';
+			
+			if(brackets)
+				token = token.substr(1, token.length() - 3);
+			else
+				token = token.substr(0, token.length() - 1);
+										
+			int file_sep = token.find(':');
+			std::string file = token.substr(0, file_sep);
+					
+			if(file == "<compiled>") {
+				v8::Handle<v8::Object> iseq, info;						
+							
+				while(!sf.IsEmpty()) {
+					iseq = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("iseq")));
+							
+					if(iseq.IsEmpty())
+						break;
+								
+					info = v8::Handle<v8::Object>::Cast(iseq->Get(v8::String::New("info")));
+								
+					if(!info.IsEmpty())
+						break;
+						
+					sf = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("parent")));
+				}
+							
+				if(!sf.IsEmpty() && !iseq.IsEmpty() && !info.IsEmpty()) {
+					std::string file =     STD_STRING(info->Get(v8::String::New("file")));
+					std::string function = STD_STRING(info->Get(v8::String::New("func")));
+					std::string lineno;
+								
+					v8::Handle<v8::Value> val = sf->Get(v8::String::New("line"));
+
+					if(val->IsString()) {
+						lineno = STD_STRING(val);
+					} else {
+						lineno = STD_STRING(info->Get(v8::String::New("line")));
+					}
+
+					out_stream << "   at " << function << " (" << file << ':' << lineno << ")\n";
+					
+					sf = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("parent")));
+				}
+			}
+	
+			if(brackets)
+				out_stream << where << '(' << token << ")\n";
+			else
+				out_stream << where << token << '\n';
+			
+			where = "";
+			wrap_counter = 0;
+		} else if(token.length() == 0) {
+			if(wrap_counter < 3) {
+				where += " ";
+						
+				wrap_counter++;
+			}
+		} else {
+			where += token + " ";
+		}
+	}
+	
+	trace = out_stream.str();
+	
+	return true;
+
+}
+
