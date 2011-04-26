@@ -47,36 +47,6 @@ $.define_method($c.Kernel, 'autoload?', 1, function(self, constant) {
   return $c.Kernel.autoload[constant.value] || Qnil;
 });
 
-// Requires interpreter support at $it
-
-$.define_method($c.Kernel, 'load', 1, function(self, file) {
-  file = this.check_type(file, $c.String);
-  $it.compile(file, this.funcall($.gvar_get('$:'), 'inspect'));
-});
-
-$.define_method($c.Kernel, 'require', 1, function(self, file) {
-  file = this.check_type(file, $c.String);
-
-  var features = $.gvar_get('$"');
-  for(var i = 0; i < features.length; i++) {
-    if(features[i] == file) return Qfalse;
-  }
-
-  this.funcall(self, 'load', file);
-
-  features.push(file);
-
-  return Qtrue;
-});
-
-$.define_method($c.Kernel, 'eval', 1, function(self, code) {
-  code = this.check_type(code, $c.String);
-  return $it.eval(code, '[\"(eval)\",null,1]');
-});
-
-// A (hacky) console user interface
-// Requires interpreter support at $i
-
 $.define_method($c.Kernel, 'p', -1, function(self, args) {
   for(var i = 0; i < args.length; i++)
     this.funcall(self, 'puts', this.funcall(args[i], 'inspect'));
@@ -88,24 +58,3 @@ $.define_method($c.Kernel, 'p', -1, function(self, args) {
   }
 });
 
-$.define_method($c.Kernel, 'puts', -1, function(self, args) {
-  for(var i = 0; i < args.length; i++) {
-    $i.print(this.funcall(args[i], 'to_s') + "\n");
-  }
-  if(args.length == 0) {
-    $i.print("\n");
-  }
-  return Qnil;
-});
-
-$.define_method($c.Kernel, 'print', -1, function(self, args) {
-  for(var i = 0; i < args.length; i++) {
-    $i.print(this.funcall(args[i], 'to_s'));
-  }
-  return Qnil;
-});
-
-$.define_method($c.Kernel, 'gets', 0, function(self) {
-  var str = $i.gets();
-  return str == null ? Qnil : str;
-});
