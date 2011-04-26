@@ -1,6 +1,33 @@
 $.define_method($c.Object, 'initialize', 0, function(self) {
 });
 
+$.define_method($c.Object, 'method_missing', -1, function(self, args) {
+  if(args.length < 1)
+    this.raise($e.ArgumentError, "no id given");
+
+  var sym = this.id2sym(args[0]);
+  var for_obj = " `" + this.id2text(args[0]) + "' for " +
+        this.funcall(self, 'inspect') + ':' + self.klass.klass_name;
+
+  switch(this.context.last_call_type) {
+    case 'method':
+    this.raise2($e.NoMethodError, ["undefined method" + for_obj, sym, args]);
+    break;
+
+    case 'vcall':
+    this.raise2($e.NameError, ["undefined local variable or method" + for_obj, sym]);
+    break;
+
+    case 'super':
+    this.raise2($e.NoMethodError, ["super: no superclass method" + for_obj, sym, args]);
+    break;
+
+    default:
+    this.raise($e.RuntimeError, "method_missing: unknown call type " +
+            this.context.last_call_type);
+  }
+});
+
 $.define_method($c.Kernel, 'nil?', 0, function(self) {
   return Qfalse;
 });
