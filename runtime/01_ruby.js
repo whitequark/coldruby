@@ -573,6 +573,15 @@ var $ = {
   },
 
   /*
+   * call-seq: raise3(exception)
+   *
+   * Re-throw an existing exception.
+   */
+  raise3: function(exception) {
+    throw { op: 'raise', object: exception };
+  },
+
+  /*
    * call-seq: protect(code, rescue) -> value
    *
    * Execute a block +code+ in protected mode, catching Ruby exceptions.

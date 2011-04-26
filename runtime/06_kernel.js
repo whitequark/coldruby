@@ -20,10 +20,18 @@ $.define_method($c.Kernel, 'raise', -1, function(self, args) {
 });
 
 $.define_method($c.Kernel, 'loop', 0, function(self) {
-  while(true) {
-    this.yield();
-  }
-  return Qnil;
+  return this.protect(function() {
+    while(true)
+      this.yield();
+
+    return Qnil;
+  }, function(e) {
+    if(this.test(this.funcall($e.StopIteration, '===', e))) {
+      return this.funcall(e, 'result');
+    } else {
+      this.raise3(e);
+    }
+  });
 });
 
 $.define_method($c.Kernel, 'exit', -1, function(self, args) {
