@@ -485,8 +485,13 @@ var $ = {
     return !(object == this.builtin.Qnil || object == this.builtin.Qfalse);
   },
 
+  /*
+   * call-seq: respond_to(object, method) -> true or false
+   *
+   * Check if the +object+ responds to message +method+.
+   */
   respond_to: function(object, method) {
-    return find_method(object, method) != null;
+    return this.find_method(object, this.any2id(method)) != null;
   },
 
   check_args: function(args, req, opt) {

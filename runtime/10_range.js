@@ -49,6 +49,24 @@ $.define_method($c.Range, 'to_s', 0, function(self) {
   return begin;
 });
 
+$.define_method($c.Range, 'each', 0, function(self) {
+  if(!this.respond_to(self.ivs['@begin'], 'succ'))
+    this.raise($e.TypeError, 'can\'t iterate from ' +
+          this.obj_classname(self.ivs['@begin']));
+
+  var i = self.ivs['@begin'];
+  while(!this.test(this.funcall(i, '==', self.ivs['@end']))) {
+    this.yield(i);
+
+    i = this.funcall(i, 'succ');
+  }
+
+  if(!this.test(self.ivs['@excl']))
+    this.yield(i);
+
+  return self;
+});
+
 $.define_method($c.Range, 'inspect', 0, function(self) {
   var begin = this.funcall(self.ivs['@begin'], 'inspect');
   var end   = this.funcall(self.ivs['@end'],   'inspect');
