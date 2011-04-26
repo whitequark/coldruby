@@ -349,7 +349,7 @@ bool ColdRubyVM::formatRubyException(v8::Handle<v8::Object> exception, ColdRuby 
 	int count = backtrace->Length();
 	
 	for(int i = 0; i < count; i++)
-		stream << "\n   at " << STD_STRING(backtrace->Get(i));
+		stream << "\n\tfrom " << STD_STRING(backtrace->Get(i));
 	
 	description = stream.str();
 	
