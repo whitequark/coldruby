@@ -102,7 +102,7 @@ module ColdRuby
         when Fixnum
           %Q{#{PUSH} = #{object};}
         when String
-          %Q{#{PUSH} = #{@info[0].inspect};}
+          %Q{#{PUSH} = this.string_new(#{@info[0].inspect});}
         when Float
           %Q{#{PUSH} = this.float_new(#{@info[0].inspect});}
         when Range

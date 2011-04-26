@@ -76,25 +76,16 @@ $.define_method($c.Integer, 'odd?', 0, function(self) {
 });
 
 $.define_method($c.Integer, 'succ', 0, function(self) {
-  if(typeof self == 'number') { // Fixnum
+  if(typeof self == 'number') // Fixnum
     return self + 1;
-  }
 
   return this.funcall(self, '+', 1);
 });
 $.alias_method($c.Integer, 'next', 'succ');
 
 $.define_method($c.Integer, 'pred', 0, function(self) {
-  if(typeof self == 'number') { // Fixnum
+  if(typeof self == 'number') // Fixnum
     return self - 1;
-  }
 
   return this.funcall(self, '-', 1);
-});
-
-$.define_method($c.Integer, 'numerator', 0, function(self) {
-  return self;
-});
-$.define_method($c.Integer, 'denominator', 0, function(self) {
-  return 1;
 });

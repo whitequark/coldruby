@@ -7,7 +7,7 @@ $.define_method($e.Exception, 'initialize', -1, function(self, args) {
     this.check_type(args[0], $.c.String)
     self.ivs['@message'] = args[0];
   } else {
-    self.ivs['@message'] = this.obj_classname(self);
+    self.ivs['@message'] = this.string_new(this.obj_classname(self));
   }
 
   self.ivs['@backtrace'] = Qnil;
@@ -22,14 +22,11 @@ $.define_method($e.Exception, '==', 1, function(self, other) {
 });
 
 $.define_method($e.Exception, 'to_s', 0, function(self) {
-  return self.ivs['@message'];
+  return this.funcall(self, 'message');
 });
 
-$.define_method($e.Exception, 'message', 0, function(self) {
-  return this.funcall(self, 'to_s');
-});
+$.attr('reader', $e.Exception, ['backtrace', 'message']);
 
-$.attr('reader', $e.Exception, 'backtrace');
 $.define_method($e.Exception, 'set_backtrace', 1, function(self, trace) {
   self.ivs['@backtrace'] = trace;
 });

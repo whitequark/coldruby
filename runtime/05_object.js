@@ -7,24 +7,28 @@ $.define_method($c.Object, 'method_missing', -1, function(self, args) {
 
   var sym = args[0];
   var for_obj = " `" + this.id2text(sym.value) + "' for " +
-        this.funcall(self, 'inspect') + ':' + self.klass.klass_name;
+        this.funcall(self, 'inspect').value + ':' + self.klass.klass_name;
 
   switch(this.context.last_call_type) {
     case 'method':
-    this.raise2($e.NoMethodError, ["undefined method" + for_obj, sym, args], null, 1);
+    this.raise2($e.NoMethodError,
+        [ this.string_new("undefined method" + for_obj), sym, args], null, 1);
     break;
 
     case 'vcall':
-    this.raise2($e.NameError, ["undefined local variable or method" + for_obj, sym], null, 1);
+    this.raise2($e.NameError,
+        [ this.string_new("undefined local variable or method" + for_obj), sym], null, 1);
     break;
 
     case 'super':
-    this.raise2($e.NoMethodError, ["super: no superclass method" + for_obj, sym, args], null, 1);
+    this.raise2($e.NoMethodError,
+        [ this.string_new("super: no superclass method" + for_obj), sym, args], null, 1);
     break;
 
     default:
-    this.raise($e.RuntimeError, "method_missing: unknown call type " +
-            this.context.last_call_type);
+    this.raise($e.RuntimeError,
+        [ this.string_new("method_missing: unknown call type " +
+            this.context.last_call_type) ]);
   }
 });
 
@@ -60,7 +64,7 @@ $.define_method($c.Kernel, 'hash', 0, function(self) {
 });
 
 $.define_method($c.Kernel, 'to_s', 0, function(self) {
-  return "#<" + self.klass.klass_name + ">";
+  return this.string_new("#<" + self.klass.klass_name + ">");
 });
 
 $.define_method($c.Kernel, 'inspect', 0, function(self) {

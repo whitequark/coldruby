@@ -1,7 +1,7 @@
 $.define_class('Fixnum', $c.Integer, true);
 
 $.define_method($c.Fixnum, 'to_s', 0, function(self) {
-  return self.toString();
+  return this.string_new(self.toString());
 });
 
 $.define_method($c.Fixnum, 'to_f', 0, function(self) {

@@ -9,9 +9,9 @@ $.float_new = function(value) {
 
 $.define_method($c.Float, 'to_s', 0, function(self) {
   if(self.value == Math.floor(self.value)) {
-    return self.value.toString() + '.0';
+    return this.string_new(self.value.toString() + '.0');
   } else {
-    return self.value.toString();
+    return this.string_new(self.value.toString());
   }
 });
 

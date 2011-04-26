@@ -1,5 +1,5 @@
 $.define_method($c.Module, 'name', 0, function(self) {
-  return self.klass_name;
+  return this.string_new(self.klass_name);
 });
 $.alias_method($c.Module, 'to_s', 'name');
 
@@ -54,6 +54,7 @@ $.define_method($c.Module, 'define_method', -1, function(self, args) {
 
   var name = args[0], method = args[1];
   this.check_type(name, [$c.String, $c.Symbol]);
+
   if(!method) {
     method = this.funcall(this.c.Proc, 'new');
   } else {
@@ -203,8 +204,9 @@ $.define_method($c.Module, 'const_missing', 1, function(self, name) {
     return this.const_get(self, name);
   }
 
-  this.raise2(this.e.NameError, ["uninitialized constant " +
-      self.klass_name + '::' + this.id2text(name.value), name], undefined, 1);
+  this.raise2(this.e.NameError,
+      [this.string_new("uninitialized constant " +
+       self.klass_name + '::' + this.id2text(name.value)), name], undefined, 1);
 });
 
 $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
