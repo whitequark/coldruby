@@ -41,8 +41,8 @@ $.define_method($c.Range, 'eql?', 1, function(self, other) {
 });
 
 $.define_method($c.Range, 'to_s', 0, function(self) {
-  var begin = this.funcall(self.ivs['@begin'], 'to_s');
-  var end   = this.funcall(self.ivs['@end'],   'to_s');
+  var begin = this.to_str(self.ivs['@begin']);
+  var end   = this.to_str(self.ivs['@end']);
   begin += $.test(self.ivs['@excl']) ? '...' : '..';
   begin += end;
   $.obj_infect(begin, end);
@@ -83,7 +83,7 @@ $.define_method($c.Range, 'first', -1, function(self, args) {
   if(count == null) {
     return self.ivs['@begin'];
   } else {
-    count = this.check_convert_type(count, $c.Fixnum, 'to_int');
+    count = this.to_int(count);
 
     var array = [];
     var iterator = function(self, args) {

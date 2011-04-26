@@ -182,14 +182,14 @@ $.define_method($c.Module, 'attr_accessor', -1, function(self, args) {
 
 $.define_method($c.Module, 'const_get', -1, function(self, args) {
   this.check_args(args, 1, 1);
-  var name    = this.check_convert_type(args[0], $c.Symbol, 'to_sym');
+  var name    = this.to_sym(args[0]);
   var inherit = $.test(args[1] || Qtrue);
   return this.const_get(self, name, inherit);
 });
 
 $.define_method($c.Module, 'const_defined?', -1, function(self, args) {
   this.check_args(args, 1, 1);
-  var name    = this.check_convert_type(args[0], $c.Symbol, 'to_sym');
+  var name    = this.to_sym(args[0]);
   var inherit = $.test(args[1] || Qtrue);
   return this.const_defined(self, name, inherit) ? Qtrue : Qfalse;
 });
@@ -208,7 +208,7 @@ $.define_method($c.Module, 'const_missing', 1, function(self, name) {
 });
 
 $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
-  var name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  var name = this.to_sym(name);
   return this.const_set(self, name, value);
 });
 
@@ -223,22 +223,22 @@ $.define_method($c.Module, 'constants', -1, function(self, args) {
 });
 
 $.define_method($c.Module, 'class_variable_get', 1, function(self, name) {
-  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  name = this.to_sym(name);
   return this.cvar_get(self, name);
 });
 
 $.define_method($c.Module, 'class_variable_defined?', 1, function(self, name) {
-  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  name = this.to_sym(name);
   return this.cvar_defined(self, name) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Module, 'class_variable_set', 2, function(self, name, value) {
-  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  name = this.to_sym(name);
   return this.cvar_set(self, name, value);
 });
 
 $.define_method($c.Module, 'remove_class_variable', 2, function(self, name) {
-  name = this.check_convert_type(name, $c.Symbol, 'to_sym');
+  name = this.to_sym(name);
   return this.cvar_set(self, name, value);
 });
 

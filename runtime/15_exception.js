@@ -7,7 +7,7 @@ $.define_method($e.Exception, 'initialize', -1, function(self, args) {
     this.check_type(args[0], $.c.String)
     self.ivs['@message'] = args[0];
   } else {
-    self.ivs['@message'] = this.funcall(self.klass, 'to_s');
+    self.ivs['@message'] = this.obj_classname(self);
   }
 
   self.ivs['@backtrace'] = Qnil;

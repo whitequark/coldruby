@@ -14,13 +14,16 @@ $.define_method($c.Array, 'each', 0, function(self) {
 });
 
 $.define_method($c.Array, '[]', 1, function(self, index) {
-  this.check_convert_type(index, $c.Fixnum, 'to_i');
+  index = this.to_int(index);
+
   return self[index] == null ? Qnil : self[index];
 });
 
 $.define_method($c.Array, '[]=', 2, function(self, index, value) {
-  this.check_convert_type(index, $c.Fixnum, 'to_i');
+  index = this.to_int(index);
+
   self[index] = value;
+
   return value;
 });
 
@@ -30,13 +33,13 @@ $.define_method($c.Array, 'length', 0, function(self) {
 $.alias_method($c.Array, 'size', 'length');
 
 $.define_method($c.Array, '+', 1, function(self, other) {
-  other = this.check_convert_type(self, $c.Array, 'to_ary');
+  other = this.to_ary(other);
 
   return self.concat(other);
 });
 
 $.define_method($c.Array, '*', 1, function(self, count) {
-  count = this.check_convert_type(count, $c.Fixnum, 'to_i');
+  count = this.to_int(count);
 
   var result = [];
   for(var i = 0; i < count; i++)
@@ -46,7 +49,7 @@ $.define_method($c.Array, '*', 1, function(self, count) {
 });
 
 $.define_method($c.Array, '-', 1, function(self, other) {
-  other = this.check_convert_type(other, $c.Array, 'to_ary');
+  other = this.to_ary(other);
 
   var result = [];
 
@@ -77,6 +80,7 @@ $.define_method($c.Array, 'empty?', 0, function(self) {
 
 $.define_method($c.Array, 'push', 1, function(self, obj) {
   self.push(obj);
+
   return self;
 });
 $.alias_method($c.Array, '<<', 'push');
@@ -111,12 +115,11 @@ $.alias_method($c.Array, 'inspect', 'to_s');
 $.define_method($c.Array, 'join', -1, function(self, args) {
   $.check_args(args, 0, 1);
 
-  var separator = this.check_convert_type(args[0] || this.gvar_get('$,'),
-                          $c.String, 'to_s');
+  var separator = this.to_str(args[0] || this.gvar_get('$,'));
 
   var output = "";
   for(var i = 0; i < self.length; i++) {
-    output += this.check_convert_type(self[i], $c.String, 'to_s');
+    output += this.to_str(self[i]);
     if(i < self.length - 1)
       output += separator;
   }

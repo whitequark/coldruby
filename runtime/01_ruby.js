@@ -1160,6 +1160,42 @@ var $ = {
   },
 
   /*
+   * call-seq: to_int(value) -> number
+   *
+   * Converts +value+ to Ruby Fixnum (and to JavaScript number).
+   */
+  to_int: function(value) {
+    return check_convert_type(value, this.c.Fixnum, 'to_int');
+  },
+
+  /*
+   * call-seq: to_str(value) -> number
+   *
+   * Converts +value+ to Ruby String (and to JavaScript string).
+   */
+  to_str: function(value) {
+    return check_convert_type(value, this.c.String, 'to_str');
+  },
+
+  /*
+   * call-seq: to_ary(value) -> number
+   *
+   * Converts +value+ to Ruby Array (and to JavaScript array).
+   */
+  to_ary: function(value) {
+    return check_convert_type(value, this.c.Array, 'to_ary');
+  },
+
+  /*
+   * call-seq: to_sym(value) -> number
+   *
+   * Converts +value+ to Ruby Symbol.
+   */
+  to_sym: function(value) {
+    return check_convert_type(value, this.c.Symbol, 'to_sym');
+  },
+
+  /*
    * call-seq: create_ruby()
    *
    * Creates a Ruby interpreter context (i.e. thread, but your underlying
