@@ -8,7 +8,7 @@ $.define_method($c.Enumerable, 'to_a', -1, function(self, args) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator));
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
 
   return array;
 });
@@ -32,7 +32,7 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator));
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
 
   if(memo) {
     return memo;
@@ -55,7 +55,7 @@ $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
     }
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator));
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
 
   return retval;
 });

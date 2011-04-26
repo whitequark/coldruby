@@ -93,7 +93,7 @@ $.define_method($c.Range, 'first', -1, function(self, args) {
       array.push(args[0]);
     };
 
-    this.funcall2(self, 'each', [], this.lambda(iterator));
+    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
 
     return array;
   }

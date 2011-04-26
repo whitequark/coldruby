@@ -809,20 +809,36 @@ var $ = {
   },
 
   /*
-   * call-seq: lambda(closure) -> block
+   * call-seq: lambda(closure, arg_count) -> block
    *
    * Convert a JavaScript closure to a block which may be passed to
-   * funcall2().
+   * funcall2(). +arg_count+ may be a positive number or -1; in latter case
+   * count is not checked at all.
    */
-  lambda: function(closure) {
-    closure.context = {
-      ddef: this.context.sf.ddef,
-      cref: this.context.sf.cref,
-    };
-    closure.stack_frame = this.context.sf;
-    closure.lambda = true;
+  lambda: function(closure, arg_count) {
+    var sf = this.context.sf;
 
-    return closure;
+    var iseq;
+    if(arg_count >= 0) {
+      iseq = function(self, args) {
+        this.check_args(args, arg_count);
+        args.unshift(self);
+        return method.apply(this, args);
+      };
+    } else if(arg_count == -1) {
+      iseq = method;
+    }
+
+    iseq.context = {
+      self: sf.self,
+      ddef: sf.ddef,
+      cref: sf.cref,
+    };
+
+    iseq.stack_frame = sf;
+    iseq.lambda = true;
+
+    return iseq;
   },
 
   /*
