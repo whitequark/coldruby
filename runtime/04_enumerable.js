@@ -44,3 +44,18 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
     }
   }
 });
+
+$.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
+  var retval = Qfalse;
+
+  var iterator = function(self, args) {
+    if(args[0] == needle) {
+      retval = Qtrue;
+      this.iter_break();
+    }
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator));
+
+  return retval;
+});
