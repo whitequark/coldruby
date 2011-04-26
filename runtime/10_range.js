@@ -54,7 +54,8 @@ $.define_method($c.Range, 'each', 0, function(self) {
 
   if((typeof self.ivs['@begin'] == "number") &&
       (typeof self.ivs['@end'] == "number")) {
-    for(i = self.ivs['@begin']; i < self.ivs['@end']; i++)
+    var last = this.test(self.ivs['@excl']) ? self.ivs['@end'] - 1 : self.ivs['@end'];
+    for(i = self.ivs['@begin']; i < last; i++)
       this.yield(i);
   } else {
     if(!this.respond_to(self.ivs['@begin'], 'succ'))
@@ -67,10 +68,10 @@ $.define_method($c.Range, 'each', 0, function(self) {
 
       i = this.funcall(i, 'succ');
     }
-  }
 
-  if(!this.test(self.ivs['@excl']))
-    this.yield(i);
+    if(!this.test(self.ivs['@excl']))
+      this.yield(i);
+  }
 
   return self;
 });
