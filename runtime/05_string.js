@@ -14,6 +14,8 @@ $.define_method($c.String, 'inspect', 0, function(self) {
 });
 
 $.define_method($c.String, '+', 1, function(self, other) {
+  other = this.check_convert_type(other, $c.String, 'to_s');
+
   return self + other;
 });
 
