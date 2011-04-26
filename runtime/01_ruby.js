@@ -522,6 +522,15 @@ var $ = {
     }
   },
 
+  /*
+   * call-seq: raise(template, message, backtrace=null, skip=null)
+   *
+   * If +template+ is a string, RuntimeError is raised with message +template+.
+   * Otherwise, an exception is instantiated by calling method +exception+
+   * on +template+, passing +message+ as an argument.
+   * Backtrace is set to +backtrace+, and first +skip+ entries are removed
+   * from it.
+   */
   raise: function(template, message, backtrace, skip) {
     var args = (message != null) ? [message] : [];
     if(typeof template == 'string') {
@@ -551,11 +560,25 @@ var $ = {
     throw { op: 'raise', object: exception };
   },
 
+  /*
+   * call-seq: raise2(klass, args, backtrace=null, skip=null)
+   *
+   * Raise an exception of class +class+, instantiating it with class method
+   * +exception+ with arguments +args+ passed. Backtrace is set to +backtrace+,
+   * and first +skip+ entries are removed from it.
+   */
   raise2: function(klass, args, backtrace, skip) {
     var exception = this.funcall2(klass, 'exception', args);
     this.raise(exception, undefined, backtrace, skip);
   },
 
+  /*
+   * call-seq: protect(code, rescue) -> value
+   *
+   * Execute a block +code+ in protected mode, catching Ruby exceptions.
+   * +rescue+ is a closure which is called with one argument, the exception.
+   * The value returned is either +code+ retrun value or +rescue+ return value.
+   */
   protect: function(code, rescue) {
     try {
       return code.call(this);
@@ -566,6 +589,15 @@ var $ = {
         throw e;
       }
     }
+  },
+
+  /*
+   * call-seq: obj_classname(object) -> string
+   *
+   * Return a class name for the object +object+.
+   */
+  obj_classname: function(object) {
+    return this.funcall(object.klass, 'to_s');
   },
 
   /*

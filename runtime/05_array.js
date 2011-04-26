@@ -19,6 +19,11 @@ $.define_method($c.Array, '[]=', 2, function(self, index, value) {
   return value;
 });
 
+$.define_method($c.Array, 'length', 0, function(self) {
+  return self.length;
+});
+$.alias_method($c.Array, 'size', 'length');
+
 $.define_method($c.Array, 'any?', 0, function(self) {
   return self.length > 0 ? Qtrue : Qfalse;
 });

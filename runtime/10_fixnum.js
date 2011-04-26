@@ -25,13 +25,13 @@ $.define_method($c.Fixnum, '/', 1, function(self, other) {
 });
 
 $.define_method($c.Fixnum, '<=>', 1, function(self, other) {
-  if(self > other) {
-    return 1;
-  } else if(self < other) {
+  if(self == other) return 0;
+  if(typeof other == "number") {
+    if(self > other) return 1;
     return -1;
-  } else {
-    return 0;
   }
+
+  return Qnil;
 });
 
 $.define_method($c.Fixnum, 'size', 0, function(self) {
