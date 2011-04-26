@@ -7,6 +7,8 @@ var $ = {
       $.gvar_set('$:', ['./stdlib']);
       $.gvar_alias('$LOAD_PATH', '$:');
 
+      $.gvar_set('$,', "");
+
       $.e = $.c = $.internal_constants;
     },
   },

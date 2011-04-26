@@ -65,4 +65,20 @@ $.define_method($c.Array, 'to_s', 0, function(self) {
 });
 $.alias_method($c.Array, 'inspect', 'to_s');
 
+$.define_method($c.Array, 'join', -1, function(self, args) {
+  $.check_args(args, 0, 1);
+
+  var separator = this.check_convert_type(args[0] || this.gvar_get('$,'),
+                          $c.String, 'to_s');
+
+  var output = "";
+  for(var i = 0; i < self.length; i++) {
+    output += this.check_convert_type(self[i], $c.String, 'to_s');
+    if(i < self.length - 1)
+      output += separator;
+  }
+
+  return output;
+});
+
 Array.prototype.klass = $c.Array;
