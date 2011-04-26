@@ -17,37 +17,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __COLDRUBY__H__
-#define __COLDRUBY__H__
+#include <stdio.h>
+#include "KernelExtension.h"
 
-#include <v8.h>
-#include <vector>
-#include <string>
+KernelExtension::KernelExtension(ColdRuby *ruby) {
+	printf("KernelExtension: construct, instance %p\n", ruby);
+}
 
-class ColdRubyVM;
+KernelExtension::~KernelExtension() {
+	printf("KernelExtension: destroy\n");
+}
 
-class ColdRuby {
-public:
-	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
-	virtual ~ColdRuby();
-	
-	v8::Handle<v8::Object> ruby() const;
-	
-	std::vector<std::string> searchPath();
-	void setSearchPath(std::vector<std::string> path);
-	
-	void run(const std::string &code, const std::string &file);
-	void run(const std::string &file);
-	
-	const std::string &errorString() const;
-	
-private:
-	void setErrorString(const std::string &string);
-	
-	ColdRubyVM *m_vm;
-	v8::Persistent<v8::Object> m_ruby;
-	
-	std::string m_errorString;
-};
-
-#endif
+COLDRUBY_EXPORT_EXTENSION(KernelExtension)

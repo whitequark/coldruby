@@ -20,9 +20,9 @@ AC_INIT([coldruby], [0.1], [coldruby-dev@lists.whitequark.org])
 AC_CONFIG_SRCDIR([coldruby/main.cpp])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
+LT_INIT([dlopen win32-dll])
 AC_LANG([C++])
 AC_PROG_CXX
-AC_PROG_RANLIB
 
 AC_MSG_CHECKING([for ruby >= 1.9])
 
@@ -51,23 +51,29 @@ rm -f rconftest.sh
 
 AC_DEFINE_UNQUOTED([RUBY_VERSION], ["$RVAR_ruby_version"], [Ruby version.])
 
-LIBS="$LIBS $RVAR_LIBRUBYARG $RVAR_SOLIBS"
-AC_SUBST([LIBS])
+MRI_LIBS="$RVAR_LIBRUBYARG $RVAR_SOLIBS"
+
+MRI_CPPFLAGS="-I$RVAR_rubyhdrdir/$RVAR_sitearch"
 
 for var in RVAR_vendorhdrdir RVAR_sitehdrdir RVAR_rubyhdrdir RVAR_includedir; do
 	var=`eval echo \\\$\$var`
 	if test "x$var" != "x"; then
-		CPPFLAGS="$CPPFLAGS -I$var"
-		AC_SUBST([CPPFLAGS])
+		MRI_CPPFLAGS="$MRI_CPPFLAGS -I$var"
 	fi
 done
 
-CPPFLAGS="$CPPFLAGS -I$RVAR_rubyhdrdir/$RVAR_sitearch"
-AC_SUBST([CPPFLAGS])
-
 AC_MSG_RESULT([done])
 
+AC_SUBST([MRI_CPPFLAGS])
+AC_SUBST([MRI_LIBS])
+
 dnl sanity checks
+
+OLD_CPPFLAGS="$CPPFLAGS"
+OLD_LIBS="$LIBS"
+
+CPPFLAGS="$CPPFLAGS $MRI_CPPFLAGS"
+LIBS="$LIBS $MRI_LIBS"
 
 AC_CHECK_HEADER([ruby.h], [], [
 	AC_MSG_ERROR([unable to find ruby])
@@ -77,15 +83,27 @@ AC_SEARCH_LIBS([ruby_init], [], [], [
 	AC_MSG_ERROR([unable to find ruby])
 ])
 
+CPPFLAGS="$OLD_CPPFLAGS"
+LIBS="$OLD_LIBS"
+
 AC_ARG_ENABLE([developer-mode], [AS_HELP_STRING([--enable-developer-mode], [use local coldruby compiler instead of system])],
-	[compilerdir="$PWD/lib" runtimedir="$PWD/runtime"], [compilerdir="$datadir/coldruby" runtimedir="$datadir/coldruby/runtime"])
+	[compilerdir="$PWD/lib" runtimedir="$PWD/runtime" stdlibdir="$PWD/stdlib" DEVELOPER_MODE=1], [compilerdir="$datadir/coldruby" runtimedir="$datadir/coldruby/runtime" stdlibdir="$datadir/coldruby/stdlib" DEVELOPER_MODE=0])
+
+AC_SUBST([DEVELOPER_MODE])
+AM_CONDITIONAL([DEVELOPER_MODE], [test x$DEVELOPER_MODE = x1])
+
+extensiondir=${libdir}/coldruby/${VERSION}
+
+AC_SUBST([extensiondir])
+AC_SUBST([compilerdir])
+AC_SUBST([runtimedir])
+AC_SUBST([stdlibdir])
 
 AC_ARG_WITH([compiler],
 	[AS_HELP_STRING([--with-compiler@<:@=PATH@:>@], [specify compiler root])]
 , [compilerdir=$with_compiler]) 
 
-AC_SUBST([compilerdir])
-AC_SUBST([runtimedir])
+
 
 AC_MSG_CHECKING([for compiler root])
 AC_MSG_RESULT([$compilerdir])
@@ -107,9 +125,13 @@ AC_CHECK_HEADER([v8.h], [], [
 	AC_MSG_ERROR([V8 not found])
 ])
 
-AC_CHECK_LIB([v8], [_ZN2v86Script3RunEv], [], [
+V8_LIBS=
+
+AC_CHECK_LIB([v8], [_ZN2v86Script3RunEv], [V8_LIBS=-lv8], [
 	AC_MSG_ERROR([V8 not found])
 ])
+
+AC_SUBST([V8_LIBS])
 
 AH_TOP(
 [/*
@@ -139,5 +161,8 @@ AC_CONFIG_FILES([
 	coldruby/Makefile
 	lib/Makefile
 	runtime/Makefile
+	stdlib/Makefile
+	ext/Makefile
+	ext/kernel/Makefile
 ])
 AC_OUTPUT

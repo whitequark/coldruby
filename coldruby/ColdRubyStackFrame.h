@@ -17,37 +17,44 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __COLDRUBY__H__
-#define __COLDRUBY__H__
+#ifndef __COLDRUBY_STACK_FRAME__H__
+#define __COLDRUBY_STACK_FRAME__H__
 
-#include <v8.h>
-#include <vector>
 #include <string>
+#include <v8.h>
 
-class ColdRubyVM;
-
-class ColdRuby {
+class ColdRubyStackFrame {
 public:
-	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
-	virtual ~ColdRuby();
+	ColdRubyStackFrame();
+
+	void parse(const std::string &line);
+	std::string rebuild();
 	
-	v8::Handle<v8::Object> ruby() const;
+	const std::string &file() const;
+	void setFile(const std::string &file);
 	
-	std::vector<std::string> searchPath();
-	void setSearchPath(std::vector<std::string> path);
+	const std::string &function() const;
+	void setFunction(const std::string &function);
 	
-	void run(const std::string &code, const std::string &file);
-	void run(const std::string &file);
+	const std::string &info() const;
+	void setInfo(const std::string &info);
 	
-	const std::string &errorString() const;
+	int line() const;
+	void setLine(int line);
+	
+	int column() const;
+	void setColumn(int column);
+	
+	int frameNumber() const;
+	void setFrameNumber(int number);
+	
+	v8::Handle<v8::Object> frame() const;
+	void setFrame(v8::Handle<v8::Object> frame);
 	
 private:
-	void setErrorString(const std::string &string);
-	
-	ColdRubyVM *m_vm;
-	v8::Persistent<v8::Object> m_ruby;
-	
-	std::string m_errorString;
+	std::string m_file, m_function, m_info;
+	int m_line, m_column, m_frameNumber;
+	v8::Handle<v8::Object> m_frame;
 };
 
 #endif

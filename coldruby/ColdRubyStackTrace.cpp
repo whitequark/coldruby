@@ -17,37 +17,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __COLDRUBY__H__
-#define __COLDRUBY__H__
+#include <sstream>
+#include "ColdRubyStackTrace.h"
 
-#include <v8.h>
-#include <vector>
-#include <string>
+void ColdRubyStackTrace::parse(const std::string &trace) {
+	std::istringstream stream(trace);
+	
+	clear();
+	
+	while(!stream.eof()) {
+		std::string line;
+		
+		std::getline(stream, line);
+		
+		if(line.length() == 0)
+			break;
+		
+		ColdRubyStackFrame frame;
+		frame.parse(line);
+		
+		push_back(frame);
+	}
+}
 
-class ColdRubyVM;
-
-class ColdRuby {
-public:
-	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
-	virtual ~ColdRuby();
+std::string ColdRubyStackTrace::rebuild() {
+	std::ostringstream stream;
 	
-	v8::Handle<v8::Object> ruby() const;
+	for(ColdRubyStackTrace::iterator it = begin(); it != end(); it++) {		
+		stream << (*it).rebuild() << "\n";
+	}
 	
-	std::vector<std::string> searchPath();
-	void setSearchPath(std::vector<std::string> path);
-	
-	void run(const std::string &code, const std::string &file);
-	void run(const std::string &file);
-	
-	const std::string &errorString() const;
-	
-private:
-	void setErrorString(const std::string &string);
-	
-	ColdRubyVM *m_vm;
-	v8::Persistent<v8::Object> m_ruby;
-	
-	std::string m_errorString;
-};
-
-#endif
+	return stream.str();
+}

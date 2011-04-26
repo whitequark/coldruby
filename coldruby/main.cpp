@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <MRIRubyCompiler.h>
 #include "ColdRubyVM.h"
+#include "ColdRubyException.h"
 #include "ColdRuby.h"
 
 #ifdef HAVE_CONFIG_H
@@ -36,6 +37,7 @@ enum InitFlag {
 
 typedef struct {
 	int flags;
+	int debugFlags;
 	std::string content;
 	std::string filename;
 	std::vector<std::string> args;
@@ -62,6 +64,7 @@ static void help(const char *app) {
 	"  -s, --static=[FILE]  static mode: compile only, do not run. If FILE is not specified,\n"
 	"                       output to stdout.\n"
 	"  -B, --bare           do not include runtime or top-level wrapper into generated code.\n"
+	"  -d                   enable virtual machine debugging.\n"
 	"  -h, --help           print this text\n"
 	"  -v, --version        print the version\n"
 	"\n"
@@ -136,6 +139,8 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 		} else
 			return 0;
 	} else {
+		ColdRubyVM::setDebugFlags(init->debugFlags);
+		
 		ColdRubyVM vm;
 			
 		if(vm.initialize(compiler) == false) {
@@ -153,8 +158,25 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 			return 1;
 		}
 	
-		if(vm.runRuby(ruby, init->content, init->filename) == false) {
-			fprintf(stderr, "coldruby: %s\n", vm.errorString().c_str());
+		try {
+			std::vector<std::string> path;
+			
+			path.push_back(STDLIB_ROOT);
+			path.push_back(EXTENSION_ROOT);
+			
+			ruby->setSearchPath(path);		
+			
+			ruby->run(init->content, init->filename);
+		} catch(const ColdRubyException &e) {
+			fprintf(stderr, "coldruby: %s\n", e.what());
+			
+			std::string info = e.exceptionInfo();
+			
+			if(info.length() > 0) {
+				fputs(info.c_str(), stderr);
+				fputc('\n', stderr);
+			}
+		
 			
 			return 1;
 		}
@@ -204,9 +226,10 @@ int main(int argc, char *argv[]) {
 	MRIRubyCompiler::sysinit(&argc, &argv);
 	std::vector<std::string> execute;
 	
-	init_data_t init = { 0 };
+	init_data_t init = { 0, 0 };
+	int debugRepeats = 0;
 	
-	while((ret = getopt_long(argc, argv, "+vhe:s::B", longopts, &longidx)) != -1) {
+	while((ret = getopt_long(argc, argv, "+vhe:s::Bd", longopts, &longidx)) != -1) {
 		switch(ret) {
 		case '?':
 		case ':':
@@ -239,6 +262,11 @@ int main(int argc, char *argv[]) {
 			
 		case 'B':
 			init.flags |= FlagBare;
+			
+			break;
+			
+		case 'd':
+			init.debugFlags |= (1 << debugRepeats++);
 			
 			break;
 		}

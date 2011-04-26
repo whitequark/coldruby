@@ -17,37 +17,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __COLDRUBY__H__
-#define __COLDRUBY__H__
+#ifndef __KERNEL_EXTENSION__H__
+#define __KERNEL_EXTENSION__H__
 
-#include <v8.h>
-#include <vector>
-#include <string>
+#include <ColdRubyExtension.h>
 
-class ColdRubyVM;
-
-class ColdRuby {
+class KernelExtension: public ColdRubyExtension {
 public:
-	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
-	virtual ~ColdRuby();
-	
-	v8::Handle<v8::Object> ruby() const;
-	
-	std::vector<std::string> searchPath();
-	void setSearchPath(std::vector<std::string> path);
-	
-	void run(const std::string &code, const std::string &file);
-	void run(const std::string &file);
-	
-	const std::string &errorString() const;
-	
-private:
-	void setErrorString(const std::string &string);
-	
-	ColdRubyVM *m_vm;
-	v8::Persistent<v8::Object> m_ruby;
-	
-	std::string m_errorString;
+	KernelExtension(ColdRuby *ruby);
+	~KernelExtension();
 };
 
 #endif

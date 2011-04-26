@@ -14,17 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
+extension_LTLIBRARIES = libkernel.la
+libkernel_la_SOURCES = KernelExtension.h KernelExtension.cpp
+libkernel_la_LDFLAGS = -avoid-version
+libkernel_la_CPPFLAGS = -DCOLDRUBY_EXTENSION -I../../libcoldruby
 
-include aminclude.am
+if DEVELOPER_MODE
 
-EXTRA_DIST = GPL generate-gitfiles.sh $(DX_CONFIG) doc/html
-SUBDIRS = libcoldruby coldruby lib runtime stdlib ext
-MOSTLYCLEANFILES = $(DX_CLEANFILES)
-ACLOCAL_AMFLAGS = -I m4
+all-local:
+	@mkdir -p ../extensions
+	cp $(addprefix .libs/,$(addsuffix .so,$(basename $(extension_LTLIBRARIES) .la))) ../extensions
 
-if DX_COND_html
-$(DX_DOCDIR)/html: doxygen-run
 endif
 
-dist-hook:
-	sh $(top_srcdir)/generate-gitfiles.sh $(top_srcdir) $(distdir)
+mostlyclean-local:
+	rm -f $(addprefix ../extensions/,$(addsuffix .so,$(basename $(extension_LTLIBRARIES) .la)))
