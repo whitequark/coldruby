@@ -49,6 +49,56 @@ $.define_method($c.Range, 'to_s', 0, function(self) {
   return begin;
 });
 
+$.define_method($c.Range, 'each', 0, function(self) {
+  var i;
+
+  if((typeof self.ivs['@begin'] == "number") &&
+      (typeof self.ivs['@end'] == "number")) {
+    var last = this.test(self.ivs['@excl']) ? self.ivs['@end'] - 1 : self.ivs['@end'];
+    for(i = self.ivs['@begin']; i <= last; i++)
+      this.yield(i);
+  } else {
+    if(!this.respond_to(self.ivs['@begin'], 'succ'))
+      this.raise($e.TypeError, 'can\'t iterate from ' +
+            this.obj_classname(self.ivs['@begin']));
+
+    var i = self.ivs['@begin'];
+    while(!this.test(this.funcall(i, '==', self.ivs['@end']))) {
+      this.yield(i);
+
+      i = this.funcall(i, 'succ');
+    }
+
+    if(!this.test(self.ivs['@excl']))
+      this.yield(i);
+  }
+
+  return self;
+});
+
+$.define_method($c.Range, 'first', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var count = args[0];
+
+  if(count == null) {
+    return self.ivs['@begin'];
+  } else {
+    count = this.check_convert_type(count, $c.Fixnum, 'to_int');
+
+    var array = [];
+    var iterator = function(self, args) {
+      count -= 1;
+      if(count < 0) this.iter_break();
+
+      array.push(args[0]);
+    };
+
+    this.funcall2(self, 'each', [], this.lambda(iterator));
+
+    return array;
+  }
+});
+
 $.define_method($c.Range, 'inspect', 0, function(self) {
   var begin = this.funcall(self.ivs['@begin'], 'inspect');
   var end   = this.funcall(self.ivs['@end'],   'inspect');
