@@ -23,20 +23,38 @@
 #include <RubyCompiler.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #include "ColdRubyVM.h"
 #include "ColdRuby.h"
+#include "ColdRubyStackTrace.h"
 
 #define STD_STRING(s) ({v8::String::Utf8Value utf8_val(s); *utf8_val ? std::string(*utf8_val) : std::string(); })
 
 ColdRubyVM::ColdRubyVM(): m_initialized(false) {
 	m_context = v8::Context::New();
-	
-	//v8::V8::SetCaptureStackTraceForUncaughtExceptions(true);
 }
 
 ColdRubyVM::~ColdRubyVM() {	
 	m_context.Dispose();
+}
+
+int ColdRubyVM::debugFlags() {
+	return m_debugFlags;
+}
+
+void ColdRubyVM::setDebugFlags(int flags) {
+	m_debugFlags = flags;
+	
+	std::string opts;
+	
+	if(m_debugFlags & DumpRubyFrame)
+		opts = "--stack-trace-limit -1";
+	else
+		opts = "--stack-trace-limit 10";
+	
+	v8::V8::SetFlagsFromString(opts.data(), opts.length());	
 }
 
 bool ColdRubyVM::initialize(RubyCompiler *compiler) {
@@ -54,7 +72,7 @@ bool ColdRubyVM::initialize(RubyCompiler *compiler) {
 	
 	const std::vector<ColdRubyRuntime> &runtime =
 		compiler->runtime();
-				
+		
 	for(std::vector<ColdRubyRuntime>::const_iterator it =
 		runtime.begin(); it != runtime.end(); it++) {
 		
@@ -252,7 +270,7 @@ bool ColdRubyVM::formatRubyException(v8::Handle<v8::Object> exception, ColdRuby 
 		v8::Handle<v8::Value> argv[] = { klass, v8::String::New("to_s") };
 		
 		exceptionClass = STD_STRING(
-			funcall->Call(rbobj, 2, argv)
+			funcall->Call(rbobj, 2, argv)->ToObject()->Get(v8::String::New("value"))
 		);
 
 		if(try_catch.HasCaught()) {
@@ -270,7 +288,7 @@ bool ColdRubyVM::formatRubyException(v8::Handle<v8::Object> exception, ColdRuby 
 		v8::Handle<v8::Value> argv[] = { exception, v8::String::New("to_s") };
 		
 		exceptionMsg = STD_STRING(
-			funcall->Call(rbobj, 2, argv)
+			funcall->Call(rbobj, 2, argv)->ToObject()->Get(v8::String::New("value"))
 		);
 
 		if(try_catch.HasCaught()) {
@@ -394,6 +412,98 @@ void ColdRubyVM::formatException(v8::TryCatch *try_catch, ColdRuby *ruby) {
 	m_errorString = stream.str();
 }
 
+bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_stream, ColdRubyStackTrace &stackTrace, 
+			    int *frame_index, const std::string &variable_name) {
+	if(val->IsNull() || val->IsUndefined()) {
+		if(variable_name.length() == 0)
+			info_stream << "null";
+		else
+			return false;
+	} else {
+		if(variable_name.length() > 0)
+			info_stream << variable_name << ": ";
+		
+		if(val->IsArray()) {
+			v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(val);
+		
+			info_stream << "[ ";
+		
+			bool is_first = true;
+		
+			int count = array->Length();
+		
+			for(int i = 0; i < count; i++) {
+				if(is_first)
+					is_first = false;
+				else
+					info_stream << ", ";
+			
+				dumpObject(array->Get(i), info_stream, stackTrace, frame_index, std::string());
+			}
+		
+			info_stream << " ]";
+		
+		} else if(val->IsObject()) {
+			bool frameFound = false;
+		
+			for(ColdRubyStackTrace::const_iterator it = stackTrace.begin(); it != stackTrace.end(); it++) {
+				const ColdRubyStackFrame &frame = *it;
+			
+				if(frame.frameNumber() != INT_MIN) {
+					if(val == frame.frame()) {
+						frameFound = true;
+					
+						info_stream << "frame " << frame.frameNumber() << "";
+					
+						break;
+					}
+				}
+			}
+		
+			if(!frameFound) {
+				ColdRubyStackFrame frame;
+			
+				v8::Handle<v8::Object> iseq, info;
+			
+				iseq = v8::Handle<v8::Object>::Cast(val->ToObject()->Get(v8::String::New("iseq")));
+				info = v8::Handle<v8::Object>::Cast(iseq->Get(v8::String::New("info")));
+			
+				buildRubyFrame(frame, info, iseq, val->ToObject(), --*frame_index);
+			
+				stackTrace.insert(stackTrace.end(), frame);
+			
+				info_stream << "frame " << *frame_index;
+			}
+		} else
+			info_stream << "<unknown>";
+	}
+	
+	return true;
+}
+
+void ColdRubyVM::buildRubyFrame(ColdRubyStackFrame &frame, v8::Handle<v8::Object> info, v8::Handle<v8::Object> iseq,
+				v8::Handle<v8::Object> sf, int frame_index) {
+	
+	std::string file =     STD_STRING(info->Get(v8::String::New("file")));
+	std::string function = STD_STRING(info->Get(v8::String::New("func")));
+	int line;
+								
+	v8::Handle<v8::Value> val = sf->Get(v8::String::New("line"));
+
+	if(val->IsUint32()) {
+		line = val->Uint32Value();
+	} else {
+		line = info->Get(v8::String::New("line"))->Uint32Value();
+	}
+								
+	frame.setFile(file);
+	frame.setFunction(function);
+	frame.setLine(line);
+	frame.setColumn(0);
+	frame.setFrameNumber(frame_index);
+	frame.setFrame(sf);
+}
+
 bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
 	v8::Handle<v8::Object> context = v8::Handle<v8::Object>::Cast(
 			ruby->ruby()->Get(v8::String::New("context"))
@@ -407,88 +517,92 @@ bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
 	);
 	
 	if(sf.IsEmpty())
-		return false;
+		return false;	
 	
-	std::string js_trace = trace;
+	ColdRubyStackTrace stackTrace;
 	
-	std::istringstream trace_stream(js_trace);
-	std::ostringstream out_stream;
+	stackTrace.parse(trace);
 	
-	int wrap_counter = 0;
-			
-	std::string token, where;
+	int frame_index = 0;
+	
+	for(ColdRubyStackTrace::const_iterator it = stackTrace.begin(); it != stackTrace.end(); it++) {
+		if((*it).file() == "<compiled>")
+			frame_index++;
+	}
+	
+	for(ColdRubyStackTrace::iterator it = stackTrace.begin(); it != stackTrace.end(); it++) {
+		ColdRubyStackFrame &frame = *it;
 		
-	while(!trace_stream.eof()) {
-		std::getline(trace_stream, token, ' ');
-		
-		if(token.length() > 0 && token[token.length() - 1] == '\n') {
-			bool brackets = token[0] == '(';
-			
-			if(brackets)
-				token = token.substr(1, token.length() - 3);
-			else
-				token = token.substr(0, token.length() - 1);
-										
-			int file_sep = token.find(':');
-			std::string file = token.substr(0, file_sep);
-					
-			if(file == "<compiled>") {
-				v8::Handle<v8::Object> iseq, info;						
-							
-				while(!sf.IsEmpty()) {
-					iseq = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("iseq")));
-							
-					if(iseq.IsEmpty())
-						break;
-								
-					info = v8::Handle<v8::Object>::Cast(iseq->Get(v8::String::New("info")));
-								
-					if(!info.IsEmpty())
-						break;
-						
-					sf = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("parent")));
-				}
-							
-				if(!sf.IsEmpty() && !iseq.IsEmpty() && !info.IsEmpty()) {
-					std::string file =     STD_STRING(info->Get(v8::String::New("file")));
-					std::string function = STD_STRING(info->Get(v8::String::New("func")));
-					std::string lineno;
-								
-					v8::Handle<v8::Value> val = sf->Get(v8::String::New("line"));
-
-					if(val->IsString()) {
-						lineno = STD_STRING(val);
-					} else {
-						lineno = STD_STRING(info->Get(v8::String::New("line")));
-					}
-
-					out_stream << "   at " << function << " (" << file << ':' << lineno << ")\n";
-					
-					sf = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("parent")));
-				}
-			}
+		if(frame.file() == "<compiled>") {			
+			v8::Handle<v8::Object> iseq, info;						
 	
-			if(brackets)
-				out_stream << where << '(' << token << ")\n";
-			else
-				out_stream << where << token << '\n';
-			
-			where = "";
-			wrap_counter = 0;
-		} else if(token.length() == 0) {
-			if(wrap_counter < 3) {
-				where += " ";
+			while(!sf.IsEmpty()) {
+				iseq = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("iseq")));
+							
+				if(iseq.IsEmpty())
+					break;
+								
+				info = v8::Handle<v8::Object>::Cast(iseq->Get(v8::String::New("info")));
+								
+				if(!info.IsEmpty())
+					break;
 						
-				wrap_counter++;
+				sf = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("parent")));
 			}
-		} else {
-			where += token + " ";
+							
+			if(!sf.IsEmpty() && !iseq.IsEmpty() && !info.IsEmpty()) {
+				buildRubyFrame(frame, info, iseq, sf, --frame_index);
+
+				sf = v8::Handle<v8::Object>::Cast(sf->Get(v8::String::New("parent")));
+			}
 		}
 	}
 	
-	trace = out_stream.str();
+	if(m_debugFlags & DumpRubyFrame) {
+		std::vector<v8::Handle<v8::String> > want_keys;
+		want_keys.push_back(v8::Handle<v8::String>(v8::String::New("osf")));
+		want_keys.push_back(v8::Handle<v8::String>(v8::String::New("outer")));
+		want_keys.push_back(v8::Handle<v8::String>(v8::String::New("dynamic")));
+		
+		for(ColdRubyStackTrace::iterator it = stackTrace.begin(); it != stackTrace.end(); it++) {
+			ColdRubyStackFrame &frame = *it;
+			
+			if(frame.frameNumber() != INT_MIN) {
+				
+				std::ostringstream info_stream;
+				bool is_first = true;
+							
+				v8::Handle<v8::Object> sf = frame.frame();
+				
+				info_stream <<  "        ";
+				
+				for(std::vector<v8::Handle<v8::String> >::iterator key_it = want_keys.begin();
+					key_it != want_keys.end(); key_it++) {
+				
+					if(!is_first)
+						info_stream << ", ";
+		
+					v8::Handle<v8::Value> val = sf->Get(*key_it);					
+					
+					bool has_out = dumpObject(val, info_stream, stackTrace, &frame_index, STD_STRING(*key_it));
+				
+					if(is_first && has_out)
+						is_first = false;
+					else if(!has_out)
+						is_first = true;
+				}
+				
+				
+				frame.setInfo(info_stream.str().c_str());
+			}
+			
+		}
+	}
+	
+	trace = stackTrace.rebuild();
 	
 	return true;
 
 }
 
+int ColdRubyVM::m_debugFlags = 0;

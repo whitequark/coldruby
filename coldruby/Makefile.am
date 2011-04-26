@@ -16,7 +16,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 bin_PROGRAMS = coldruby
-coldruby_SOURCES = ColdRubyVM.h ColdRubyVM.cpp ColdRuby.h ColdRuby.cpp main.cpp
+coldruby_SOURCES = ColdRubyVM.h ColdRubyVM.cpp ColdRuby.h ColdRuby.cpp main.cpp \
+	ColdRubyStackFrame.h ColdRubyStackFrame.cpp ColdRubyStackTrace.h \
+	ColdRubyStackTrace.cpp
 coldruby_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\"" -I../libcoldruby ${MRI_CPPFLAGS} \
 	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""

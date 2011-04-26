@@ -37,6 +37,7 @@ enum InitFlag {
 
 typedef struct {
 	int flags;
+	int debugFlags;
 	std::string content;
 	std::string filename;
 	std::vector<std::string> args;
@@ -63,6 +64,7 @@ static void help(const char *app) {
 	"  -s, --static=[FILE]  static mode: compile only, do not run. If FILE is not specified,\n"
 	"                       output to stdout.\n"
 	"  -B, --bare           do not include runtime or top-level wrapper into generated code.\n"
+	"  -d                   enable virtual machine debugging.\n"
 	"  -h, --help           print this text\n"
 	"  -v, --version        print the version\n"
 	"\n"
@@ -137,6 +139,8 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 		} else
 			return 0;
 	} else {
+		ColdRubyVM::setDebugFlags(init->debugFlags);
+		
 		ColdRubyVM vm;
 			
 		if(vm.initialize(compiler) == false) {
@@ -222,9 +226,10 @@ int main(int argc, char *argv[]) {
 	MRIRubyCompiler::sysinit(&argc, &argv);
 	std::vector<std::string> execute;
 	
-	init_data_t init = { 0 };
+	init_data_t init = { 0, 0 };
+	int debugRepeats = 0;
 	
-	while((ret = getopt_long(argc, argv, "+vhe:s::B", longopts, &longidx)) != -1) {
+	while((ret = getopt_long(argc, argv, "+vhe:s::Bd", longopts, &longidx)) != -1) {
 		switch(ret) {
 		case '?':
 		case ':':
@@ -257,6 +262,11 @@ int main(int argc, char *argv[]) {
 			
 		case 'B':
 			init.flags |= FlagBare;
+			
+			break;
+			
+		case 'd':
+			init.debugFlags |= (1 << debugRepeats++);
 			
 			break;
 		}
