@@ -27,13 +27,32 @@
 
 #include <string>
 
+/** \brief Класс для хранения файла рантайма.
+ *
+ * Используется \ref RubyCompiler для передачи рантайма ColdRubyVM.
+ */
+
 class ColdRubyRuntime {
 public:
+	/** \brief Конструктор класса.
+	 *
+	 * \param code Код рантайма на JavaScript.
+	 * \param file Имя файла рантайма для отладочной информации.
+	 */
 	ColdRubyRuntime(std::string code = std::string(), std::string file = std::string()) : m_code(code), m_file(file) {
 		
 	}
 
+	/** \brief Метод для получения кода рантайма.
+	 *
+	 * \return Код рантайма.
+	 */
 	inline const std::string &code() const { return m_code; }
+	
+	/** \brief Метод для получения имени файла рантайма.
+	 *
+	 * \return Имя файла рантайма.
+	 */
 	inline const std::string &file() const { return m_file; }
 
 private:
