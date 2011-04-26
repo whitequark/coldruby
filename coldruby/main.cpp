@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <MRIRubyCompiler.h>
 #include "ColdRubyVM.h"
+#include "ColdRubyException.h"
 #include "ColdRuby.h"
 
 #ifdef HAVE_CONFIG_H
@@ -153,8 +154,25 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 			return 1;
 		}
 	
-		if(vm.runRuby(ruby, init->content, init->filename) == false) {
-			fprintf(stderr, "coldruby: %s\n", vm.errorString().c_str());
+		try {
+			std::vector<std::string> path;
+			
+			path.push_back(STDLIB_ROOT);
+			path.push_back(EXTENSION_ROOT);
+			
+			ruby->setSearchPath(path);		
+			
+			ruby->run(init->content, init->filename);
+		} catch(const ColdRubyException &e) {
+			fprintf(stderr, "coldruby: %s\n", e.what());
+			
+			std::string info = e.exceptionInfo();
+			
+			if(info.length() > 0) {
+				fputs(info.c_str(), stderr);
+				fputc('\n', stderr);
+			}
+		
 			
 			return 1;
 		}

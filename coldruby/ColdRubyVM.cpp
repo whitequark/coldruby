@@ -115,30 +115,6 @@ ColdRuby *ColdRubyVM::createRuby() {
 	return new ColdRuby(this, coldruby_obj);
 }
 
-bool ColdRubyVM::runRuby(ColdRuby *ruby, const std::string &code, const std::string &file) {
-	std::string js;
-	
-	if(m_compiler->compile(code, file, js) == false) {
-		m_errorString = m_compiler->errorString();
-		
-		return false;
-	}
-	
-	return runRubyJS(ruby, js, file);
-}
-
-bool ColdRubyVM::runRuby(ColdRuby *ruby, const std::string &file) {
-	std::string js;
-	
-	if(m_compiler->compile(file, js) == false) {
-		m_errorString = m_compiler->errorString();
-		
-		return false;
-	}
-	
-	return runRubyJS(ruby, js, file);
-}
-
 bool ColdRubyVM::runRubyJS(ColdRuby *ruby, const std::string &code, const std::string &file) {
 	v8::HandleScope handle_scope;
 	v8::Context::Scope context_scope(m_context);
@@ -230,6 +206,10 @@ bool ColdRubyVM::evaluate(const std::string &code, const std::string &file, v8::
 
 const std::string &ColdRubyVM::errorString() {
 	return m_errorString;
+}
+
+RubyCompiler *ColdRubyVM::compiler() const {
+	return m_compiler;
 }
 
 std::string ColdRubyVM::exceptionArrow(v8::Handle<v8::Message> message) {

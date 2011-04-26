@@ -18,7 +18,8 @@
 bin_PROGRAMS = coldruby
 coldruby_SOURCES = ColdRubyVM.h ColdRubyVM.cpp ColdRuby.h ColdRuby.cpp main.cpp
 coldruby_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
-	-DRUNTIME_ROOT="\"$(runtimedir)\"" -I../libcoldruby
-coldruby_LDADD = ../libcoldruby/libcoldruby.a
+	-DRUNTIME_ROOT="\"$(runtimedir)\"" -I../libcoldruby ${MRI_CPPFLAGS} \
+	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""
+coldruby_LDADD = ../libcoldruby/libcoldruby.a ${MRI_LIBS} ${V8_LIBS}
 
  

@@ -32,15 +32,15 @@ public:
 	virtual ~ColdRubyVM();
 	
 	bool initialize(RubyCompiler *compiler);
+	RubyCompiler *compiler() const;
 	
 	ColdRuby *createRuby();
-	
-	bool runRuby(ColdRuby *ruby, const std::string &code, const std::string &file);
-	bool runRuby(ColdRuby *ruby, const std::string &file);
 	
 	const std::string &errorString();
 	
 private:
+	friend class ColdRuby;
+	
 	bool runRubyJS(ColdRuby *ruby, const std::string &code, const std::string &file);
 	bool evaluate(const std::string &file, v8::Handle<v8::Value> &ret);
 	bool evaluate(const std::string &code, const std::string &file, 

@@ -17,37 +17,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __COLDRUBY__H__
-#define __COLDRUBY__H__
+#ifndef __COLDRUBY_EXCEPTION__H__
+#define __COLDRUBY_EXCEPTION__H__
 
-#include <v8.h>
-#include <vector>
+#include <exception>
 #include <string>
 
-class ColdRubyVM;
-
-class ColdRuby {
+class ColdRubyException: public std::exception {
 public:
-	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
-	virtual ~ColdRuby();
+	ColdRubyException(std::string info = std::string());
+	ColdRubyException(std::string what, std::string info);
+	virtual ~ColdRubyException() throw();
 	
-	v8::Handle<v8::Object> ruby() const;
-	
-	std::vector<std::string> searchPath();
-	void setSearchPath(std::vector<std::string> path);
-	
-	void run(const std::string &code, const std::string &file);
-	void run(const std::string &file);
-	
-	const std::string &errorString() const;
-	
+	const std::string &exceptionInfo() const throw();
+	virtual const char *what() const throw();
 private:
-	void setErrorString(const std::string &string);
-	
-	ColdRubyVM *m_vm;
-	v8::Persistent<v8::Object> m_ruby;
-	
-	std::string m_errorString;
+	std::string m_what, m_info;
 };
 
 #endif
