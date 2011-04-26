@@ -4,7 +4,7 @@ var $ = {
       $.gvar_set('$"', []);
       $.gvar_alias('$LOADED_FEATURES', '$"');
 
-      $.gvar_set('$:', ['./stdlib']);
+      $.gvar_set('$:', []);
       $.gvar_alias('$LOAD_PATH', '$:');
 
       $.gvar_set('$,', "");
