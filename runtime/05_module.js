@@ -23,11 +23,8 @@ $.define_method($c.Module, 'included_modules', 0, function(self) {
   var modules = [], klass = self;
 
   while(klass) {
-    if(klass.type == 'module_proxy') {
+    if(klass.type == 'module_proxy')
       modules.push(klass.klass);
-    } else {
-      modules.push(klass);
-    }
 
     klass = klass.superklass;
   }
