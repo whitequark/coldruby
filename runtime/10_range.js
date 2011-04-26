@@ -50,15 +50,23 @@ $.define_method($c.Range, 'to_s', 0, function(self) {
 });
 
 $.define_method($c.Range, 'each', 0, function(self) {
-  if(!this.respond_to(self.ivs['@begin'], 'succ'))
-    this.raise($e.TypeError, 'can\'t iterate from ' +
-          this.obj_classname(self.ivs['@begin']));
+  var i;
 
-  var i = self.ivs['@begin'];
-  while(!this.test(this.funcall(i, '==', self.ivs['@end']))) {
-    this.yield(i);
+  if((typeof self.ivs['@begin'] == "number") &&
+      (typeof self.ivs['@end'] == "number")) {
+    for(i = self.ivs['@begin']; i < self.ivs['@end']; i++)
+      this.yield(i);
+  } else {
+    if(!this.respond_to(self.ivs['@begin'], 'succ'))
+      this.raise($e.TypeError, 'can\'t iterate from ' +
+            this.obj_classname(self.ivs['@begin']));
 
-    i = this.funcall(i, 'succ');
+    var i = self.ivs['@begin'];
+    while(!this.test(this.funcall(i, '==', self.ivs['@end']))) {
+      this.yield(i);
+
+      i = this.funcall(i, 'succ');
+    }
   }
 
   if(!this.test(self.ivs['@excl']))
