@@ -569,6 +569,15 @@ var $ = {
   },
 
   /*
+   * call-seq: obj_classname(object) -> string
+   *
+   * Return a class name for the object +object+.
+   */
+  obj_classname: function(object) {
+    return this.funcall(object.klass, 'to_s');
+  },
+
+  /*
    * call-seq: execute_class(cbase, name, superklass, is_class, iseq) -> value
    *
    * Execute +iseq+ in class context.
