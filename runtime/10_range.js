@@ -75,6 +75,29 @@ $.define_method($c.Range, 'each', 0, function(self) {
   return self;
 });
 
+$.define_method($c.Range, 'first', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var count = args[0];
+
+  if(count == null) {
+    return self.ivs['@begin'];
+  } else {
+    count = this.check_convert_type(count, $c.Fixnum, 'to_int');
+
+    var array = [];
+    var iterator = function(self, args) {
+      count -= 1;
+      if(count < 0) this.iter_break();
+
+      array.push(args[0]);
+    };
+
+    this.funcall2(self, 'each', [], this.lambda(iterator));
+
+    return array;
+  }
+});
+
 $.define_method($c.Range, 'inspect', 0, function(self) {
   var begin = this.funcall(self.ivs['@begin'], 'inspect');
   var end   = this.funcall(self.ivs['@end'],   'inspect');
