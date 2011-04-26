@@ -5,8 +5,8 @@ $.define_method($c.Object, 'method_missing', -1, function(self, args) {
   if(args.length < 1)
     this.raise($e.ArgumentError, "no id given");
 
-  var sym = this.id2sym(args[0]);
-  var for_obj = " `" + this.id2text(args[0]) + "' for " +
+  var sym = args[0];
+  var for_obj = " `" + this.id2text(sym.value) + "' for " +
         this.funcall(self, 'inspect') + ':' + self.klass.klass_name;
 
   switch(this.context.last_call_type) {
