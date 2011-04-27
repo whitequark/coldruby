@@ -77,3 +77,23 @@ $.define_method($c.Enumerable, 'any?', 0, function(self) {
 
   return retval;
 });
+
+$.define_method($c.Enumerable, 'all?', 0, function(self) {
+  var retval = Qtrue, block;
+
+  if(this.block_given_p())
+    block = this.block_lambda();
+
+  var iterator = function(self, object) {
+    if(block) object = this.funcall(block, 'call', object);
+
+    if(!this.test(object)) {
+      retval = Qfalse;
+      this.iter_break();
+    }
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return retval;
+});
