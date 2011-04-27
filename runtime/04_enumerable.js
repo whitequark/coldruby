@@ -42,6 +42,7 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
     }
   }
 });
+$.alias_method($c.Enumerable, 'detect', 'find');
 
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
