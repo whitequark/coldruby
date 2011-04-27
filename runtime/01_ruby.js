@@ -843,7 +843,7 @@ var $ = {
       iseq = function(self, args) {
         this.check_args(args, arg_count);
         args.unshift(self);
-        return method.apply(this, args);
+        return closure.apply(this, args);
       };
     } else if(arg_count == -1) {
       iseq = method;
