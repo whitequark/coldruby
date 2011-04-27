@@ -126,6 +126,19 @@ $.define_method($c.Enumerable, 'drop_while', 0, function(self) {
   return result;
 });
 
+$.define_method($c.Enumerable, 'each_with_index', -1, function(self, args) {
+  var block = this.block_lambda(), index = 0;
+
+  var iterator = function(self, object) {
+    this.funcall(block, 'call', object, index);
+    index++;
+  };
+
+  this.funcall2(self, 'each', args, this.lambda(iterator, 1));
+
+  return self;
+});
+
 $.define_method($c.Enumerable, 'find', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var if_none = args[0];
