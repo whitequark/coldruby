@@ -106,11 +106,10 @@ $.define_method($c.Array, 'uniq!', 0, function(self) {
 $.define_method($c.Array, 'to_s', 0, function(self) {
   var desc = [];
   for(var i = 0; i < self.length; i++) {
-    desc.push(this.funcall(self[i], 'inspect'));
+    desc.push(this.funcall(self[i], 'inspect').value);
   }
-  return "[" + desc.join(', ') + "]";
+  return this.string_new("[" + desc.join(', ') + "]");
 });
-$.alias_method($c.Array, 'inspect', 'to_s');
 
 $.define_method($c.Array, 'join', -1, function(self, args) {
   $.check_args(args, 0, 1);
@@ -119,12 +118,12 @@ $.define_method($c.Array, 'join', -1, function(self, args) {
 
   var output = "";
   for(var i = 0; i < self.length; i++) {
-    output += this.to_str(self[i]);
+    output += this.to_str(self[i]).value;
     if(i < self.length - 1)
       output += separator;
   }
 
-  return output;
+  return this.string_new(output);
 });
 
 Array.prototype.klass = $c.Array;

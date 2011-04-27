@@ -21,5 +21,9 @@ libtool
 # compiled files
 *.o
 *.a
+*.lo
+*.la
 .deps
+.libs
 coldruby/coldruby
+ext/extensions

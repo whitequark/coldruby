@@ -31,7 +31,9 @@ $.any2id = function(obj) {
     } else {
       return obj;
     }
-  } else if(obj && obj.klass == this.internal_constants.Symbol) {
+  } else if(obj && obj.klass == this.c.String) {
+    return this.text2sym(obj.value).value;
+  } else if(obj && obj.klass == this.c.Symbol) {
     return obj.value;
   } else {
     throw new Error("unknown object for any2id: " + obj);
@@ -45,11 +47,11 @@ $.define_method($c.Symbol, '==', 1, function(self, other) {
 });
 
 $.define_method($c.Symbol, 'inspect', 0, function(self) {
-  return ":" + $.symbols[self.value];
+  return this.string_new(":" + $.symbols[self.value]);
 });
 
 $.define_method($c.Symbol, 'to_s', 0, function(self) {
-  return $.symbols[self.value];
+  return this.string_new($.symbols[self.value]);
 });
 $.alias_method($c.Symbol, 'id2name', 'to_s');
 
@@ -66,7 +68,7 @@ $.define_singleton_method($c.Symbol, 'all_symbols', 0, function(self) {
   var keys = $.symbols.keys;
   var symbols = [];
   for(var i = 0; i < keys.length; i++) {
-    symbols.push($.text2sym(keys[i]));
+    symbols.push(this.string_new($.text2sym(keys[i])));
   }
   return symbols;
 });

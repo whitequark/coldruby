@@ -62,5 +62,5 @@ $.define_method($c.Proc, 'to_s', 0, function(self) {
   if(self.iseq.lambda) {
     desc += ' (lambda)';
   }
-  return desc + '>';
+  return this.string_new(desc + '>');
 });

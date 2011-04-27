@@ -213,8 +213,9 @@ var $ = {
       scope = this.cvar_find_scope(name);
 
     if(!(name in scope.class_variables)) {
-      this.raise2(this.e.NameError, ["uninitialized class variable " +
-          this.id2text(name) + ' in ' + scope.klass_name, this.id2sym(name)]);
+      this.raise2(this.e.NameError,
+          [this.string_new("uninitialized class variable " +
+          this.id2text(name) + ' in ' + scope.klass_name), this.id2sym(name)]);
     }
 
     return scope.class_variables[name];
@@ -249,13 +250,15 @@ var $ = {
     var real_scope = this.cvar_find_scope(name);
 
     if(real_scope.class_variables[name] != undefined && real_scope != scope) {
-      this.raise2(this.e.NameError, ["cannot remove " +
-          this.id2text(name) + ' for ' + scope.klass_name, this.id2sym(name)]);
+      this.raise2(this.e.NameError,
+          [this.string_new("cannot remove " + this.id2text(name) + ' for ' +
+           scope.klass_name), this.id2sym(name)]);
     }
 
     if(scope.class_variables[name] == undefined) {
-      this.raise2(this.e.NameError, ["class variable " +
-          this.id2text(name) + ' not defined for ' + scope.klass_name, this.id2sym(name)]);
+      this.raise2(this.e.NameError,
+          [this.string_new("class variable " + this.id2text(name) +
+           ' not defined for ' + scope.klass_name), this.id2sym(name)]);
     }
 
     var value = scope.class_variables[name];
@@ -481,6 +484,12 @@ var $ = {
     // implement tainting here
   },
 
+  /*
+   * call-seq: test(object) -> true or false
+   *
+   * Returns true if the object is logically true for Ruby (not nil or false).
+   * Returns false otherwise.
+   */
   test: function(object) {
     return !(object == this.builtin.Qnil || object == this.builtin.Qfalse);
   },
@@ -523,7 +532,12 @@ var $ = {
 
   check_convert_type: function(arg, type, converter) {
     if(arg.klass != type) {
-      return this.funcall(arg, converter);
+      if(this.respond_to(arg, converter)) {
+        return this.funcall(arg, converter);
+      } else {
+        this.raise(this.e.TypeError, "Cannot convert " +
+              this.obj_classname(arg) + " into " + type.klass_name);
+      }
     } else {
       return arg;
     }
@@ -539,29 +553,34 @@ var $ = {
    * from it.
    */
   raise: function(template, message, backtrace, skip) {
-    var args = (message != null) ? [message] : [];
+    if(typeof message == 'string')
+      message = this.string_new(message);
+
     if(typeof template == 'string') {
       var exception = this.funcall2(this.internal_constants.RuntimeError, 'new', [template]);
     } else {
+      var args = (message != null) ? [message] : [];
       var exception = this.funcall2(template, 'exception', args);
     }
+
     if(!backtrace) {
       backtrace = [];
 
       var sf = this.context.sf;
       while(sf) {
         if(sf.iseq.info) { // YARV bytecode
-          backtrace.push(sf.iseq.info.file + ':' + (sf.line || sf.iseq.info.line) +
-              ': in `' + sf.iseq.info.func + '\'');
+          backtrace.push(this.string_new(sf.iseq.info.file + ':' +
+                (sf.line || sf.iseq.info.line) + ': in `' +
+                sf.iseq.info.func + '\''));
         } else {
-          backtrace.push('unknown:0: in `<native:unknown>\'');
+          backtrace.push(this.string_new('unknown:0: in `<native:unknown>\''));
         }
         sf = sf.parent;
       }
     }
-    if(skip) {
-      backtrace = backtrace.slice(skip);
-    }
+
+    if(skip) backtrace = backtrace.slice(skip);
+
     this.funcall(exception, 'set_backtrace', backtrace);
 
     throw { op: 'raise', object: exception };
@@ -613,7 +632,7 @@ var $ = {
    * Return a class name for the object +object+.
    */
   obj_classname: function(object) {
-    return this.funcall(object.klass, 'to_s');
+    return object.klass.klass_name;
   },
 
   /*
@@ -709,7 +728,8 @@ var $ = {
 
       if(!sf) {
         this.raise2(this.internal_constants.NoMethodError,
-          ["super called outside of method", this.builtin.Qnil, args]);
+          [this.string_new("super called outside of method"),
+           this.builtin.Qnil, args]);
       }
 
       var c_method = this.any2id(sf.iseq.info.func);
@@ -1165,7 +1185,7 @@ var $ = {
    * Converts +value+ to Ruby Fixnum (and to JavaScript number).
    */
   to_int: function(value) {
-    return check_convert_type(value, this.c.Fixnum, 'to_int');
+    return this.check_convert_type(value, this.c.Fixnum, 'to_int');
   },
 
   /*
@@ -1174,7 +1194,7 @@ var $ = {
    * Converts +value+ to Ruby String (and to JavaScript string).
    */
   to_str: function(value) {
-    return check_convert_type(value, this.c.String, 'to_str');
+    return this.check_convert_type(value, this.c.String, 'to_str');
   },
 
   /*
@@ -1183,7 +1203,7 @@ var $ = {
    * Converts +value+ to Ruby Array (and to JavaScript array).
    */
   to_ary: function(value) {
-    return check_convert_type(value, this.c.Array, 'to_ary');
+    return this.check_convert_type(value, this.c.Array, 'to_ary');
   },
 
   /*
@@ -1192,7 +1212,16 @@ var $ = {
    * Converts +value+ to Ruby Symbol.
    */
   to_sym: function(value) {
-    return check_convert_type(value, this.c.Symbol, 'to_sym');
+    return this.check_convert_type(value, this.c.Symbol, 'to_sym');
+  },
+
+  /*
+   * call-seq: to_float(value) -> number
+   *
+   * Converts +value+ to Ruby Float.
+   */
+  to_float: function(value) {
+    return this.check_convert_type(value, this.c.Float, 'to_f');
   },
 
   /*
@@ -1216,7 +1245,7 @@ var $ = {
     };
 
     ruby.define_singleton_method(ruby.toplevel, 'to_s', 0, function(self) {
-      return "main";
+      return this.string_new("main");
     });
 
     return ruby;

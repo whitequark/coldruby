@@ -41,12 +41,12 @@ $.define_method($c.Range, 'eql?', 1, function(self, other) {
 });
 
 $.define_method($c.Range, 'to_s', 0, function(self) {
-  var begin = this.to_str(self.ivs['@begin']);
-  var end   = this.to_str(self.ivs['@end']);
+  var begin = this.to_str(self.ivs['@begin']).value;
+  var end   = this.to_str(self.ivs['@end']).value;
   begin += $.test(self.ivs['@excl']) ? '...' : '..';
   begin += end;
   $.obj_infect(begin, end);
-  return begin;
+  return this.string_new(begin);
 });
 
 $.define_method($c.Range, 'each', 0, function(self) {
@@ -100,9 +100,9 @@ $.define_method($c.Range, 'first', -1, function(self, args) {
 });
 
 $.define_method($c.Range, 'inspect', 0, function(self) {
-  var begin = this.funcall(self.ivs['@begin'], 'inspect');
-  var end   = this.funcall(self.ivs['@end'],   'inspect');
-  return begin + ($.test(self.ivs['@excl']) ? '...' : '..') + end;
+  var begin = this.funcall(self.ivs['@begin'], 'inspect').value;
+  var end   = this.funcall(self.ivs['@end'],   'inspect').value;
+  return this.string_new(begin + ($.test(self.ivs['@excl']) ? '...' : '..') + end);
 });
 
 $.define_method($c.Range, 'include?', 1, function(self, other) {
