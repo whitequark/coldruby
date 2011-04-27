@@ -2,8 +2,8 @@ $.define_module('Enumerable');
 
 $.define_method($c.Enumerable, 'to_a', -1, function(self, args) {
   var array = [];
-  var iterator = function(self, args) {
-    array.append(args[0]);
+  var iterator = function(self, object) {
+    array.append(object);
 
     return Qnil;
   };
@@ -21,10 +21,8 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
   var block = this.block_proc();
 
   var memo = null;
-  var iterator = function(self, args) {
-    var obj = args[0];
-
-    if(this.test(this.funcall(block, 'call', obj))) {
+  var iterator = function(self, object) {
+    if(this.test(this.funcall(block, 'call', object))) {
       memo = obj;
       this.iter_break();
     }
