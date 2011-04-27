@@ -97,3 +97,16 @@ $.define_method($c.Enumerable, 'all?', 0, function(self) {
 
   return retval;
 });
+
+$.define_method($c.Enumerable, 'map', 0, function(self) {
+  var result = [], block = this.block_lambda();
+
+  var iterator = function(self, object) {
+    result.push(this.funcall(block, 'call', object));
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return result;
+});
+$.alias_method($c.Enumerable, 'collect', 'map');
