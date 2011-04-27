@@ -46,8 +46,28 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
 
-  var iterator = function(self, args) {
-    if(args[0] == needle) {
+  var iterator = function(self, object) {
+    if(object == needle) {
+      retval = Qtrue;
+      this.iter_break();
+    }
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return retval;
+});
+
+$.define_method($c.Enumerable, 'any?', 0, function(self) {
+  var retval = Qfalse, block;
+
+  if(this.block_given_p())
+    block = this.block_lambda();
+
+  var iterator = function(self, object) {
+    if(block) object = this.funcall(block, 'call', object);
+
+    if(this.test(object)) {
       retval = Qtrue;
       this.iter_break();
     }
