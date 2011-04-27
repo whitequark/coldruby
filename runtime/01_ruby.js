@@ -877,7 +877,7 @@ var $ = {
    * Yield to a block. Equivalent to Ruby `yield *args'.
    */
   yield2: function(args) {
-    var sf = this.context.sf, iseq;
+    var sf = this.context.sf.outer || this.context.sf.osf, iseq;
 
     if(sf.outer) {
       iseq = sf.outer.block;
