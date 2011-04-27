@@ -556,7 +556,7 @@ var $ = {
     if(typeof message == 'string')
       message = this.string_new(message);
 
-    if(typeof template == 'string') {
+    if(template.klass == this.c.String) {
       var exception = this.funcall2(this.internal_constants.RuntimeError, 'new', [template]);
     } else {
       var args = (message != null) ? [message] : [];
