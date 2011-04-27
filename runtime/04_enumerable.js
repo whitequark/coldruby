@@ -110,3 +110,26 @@ $.define_method($c.Enumerable, 'map', 0, function(self) {
   return result;
 });
 $.alias_method($c.Enumerable, 'collect', 'map');
+
+$.define_method($c.Enumerable, 'count', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var elem = args[0], block;
+
+  if(elem == null && this.block_given_p())
+    block = this.block_lambda();
+
+  var count = 0;
+  var iterator = function(self, object) {
+    if(elem != null) {
+      if(this.test(this.funcall(object, '==', elem)))
+        count++;
+    } else if(block != null) {
+      if(this.test(this.funcall(block, 'call', object)))
+        count++;
+    } else count++;
+  }
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return count;
+});
