@@ -846,7 +846,7 @@ var $ = {
         return closure.apply(this, args);
       };
     } else if(arg_count == -1) {
-      iseq = method;
+      iseq = closure;
     }
 
     iseq.context = {
