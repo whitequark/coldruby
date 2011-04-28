@@ -234,6 +234,19 @@ $.define_method($c.Array, 'join', -1, function(self, args) {
   return this.string_new(output);
 });
 
+$.define_method($c.Array, 'keep_if', 0, function(self) {
+  var block = this.block_lambda();
+
+  for(var i = 0; i < self.length; i++) {
+    if(!this.test(this.funcall(block, 'call', self[i]))) {
+      self.splice(i, 1);
+      i--;
+    }
+  }
+
+  return self;
+});
+
 $.define_method($c.Array, 'length', 0, function(self) {
   return self.length;
 });
