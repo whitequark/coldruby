@@ -49,6 +49,18 @@ $.define_method($c.Kernel, '!~', 1, function(self, other) {
 $c.Kernel.instance_methods[$.any2id('===')] =
           $c.BasicObject.instance_methods[$.any2id('==')];
 
+$.define_method($c.Kernel, 'send', -1, function(self, args) {
+  if(args.length < 1)
+    this.raise($e.ArgumentError, "Object#send requires at least one argument");
+
+  var message = this.to_sym(args[0]);
+  return this.funcall2(self, message, args.slice(1), this.context.sf.block);
+});
+
+$.define_method($c.Kernel, 'respond_to?', 1, function(self, symbol) {
+  return this.respond_to(self, this.to_sym(symbol)) ? Qtrue : Qfalse;
+});
+
 $.define_method($c.Kernel, 'class', 0, function(self) {
   return self.klass;
 });
