@@ -240,6 +240,37 @@ $.define_method($c.Enumerable, 'find_index', -1, function(self, args) {
   return found ? index : Qnil;
 });
 
+$.define_method($c.Enumerable, 'first', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var count = args[0];
+
+  if(count == null) {
+    var elem = Qnil;
+    var iterator = function(self, object) {
+      elem = object;
+      this.iter_break();
+    };
+
+    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+    return elem;
+  } else {
+    count = this.to_int(count);
+
+    var array = [];
+    var iterator = function(self, object) {
+      count -= 1;
+      if(count < 0) this.iter_break();
+
+      array.push(object);
+    };
+
+    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+    return array;
+  }
+});
+
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
 
