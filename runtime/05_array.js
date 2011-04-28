@@ -75,14 +75,14 @@ $.define_method($c.Array, 'at', 1, function(self, index) {
   return self[index];
 });
 
+$.define_method($c.Array, 'any?', 0, function(self) {
+  return self.length > 0 ? Qtrue : Qfalse;
+});
+
 $.define_method($c.Array, 'clear', 0, function(self) {
   self.splice(0, self.length);
 
   return self;
-});
-
-$.define_method($c.Array, 'any?', 0, function(self) {
-  return self.length > 0 ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Array, 'compact', 0, function(self) {
@@ -164,6 +164,48 @@ $.define_method($c.Array, 'each', 0, function(self) {
 $.define_method($c.Array, 'empty?', 0, function(self) {
   return self.length == 0 ? Qtrue : Qfalse;
 });
+
+$.define_method($c.Array, 'fetch', -1, function(self, args) {
+  this.check_args(args, 1, 1);
+  var index = args[0], def = args[1], block;
+
+  if(this.block_given_p() && def == null)
+    block = this.block_lambda();
+
+  if(index >= self.length || index < -self.length) {
+    if(block == null && def == null) {
+      this.raise(this.c.IndexError, "index " + index.toString() +
+            " outside of array bounds: " + (-self.length).toString() +
+            "..." + self.length.toString());
+    } else if(def != null) {
+      return def;
+    } else {
+      return this.funcall(block, 'call', index);
+    }
+  }
+
+  if(index < 0)
+    index = self.length + index;
+
+  return self[index];
+});
+
+$.define_method($c.Array, 'find_index', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var object = args[0], block;
+
+  if(object == null)
+    block = this.block_lambda();
+
+  for(var i = 0; i < self.length; i++) {
+    if((object != null && this.test(this.funcall(self[i], '==', object)) ||
+       (block != null && this.test(this.funcall(block, 'call', self[i])))))
+      return i;
+  }
+
+  return Qnil;
+});
+$.alias_method($c.Array, 'index', 'find_index');
 
 $.define_method($c.Array, 'join', -1, function(self, args) {
   $.check_args(args, 0, 1);
