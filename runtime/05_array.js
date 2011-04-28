@@ -239,6 +239,22 @@ $.define_method($c.Array, 'length', 0, function(self) {
 });
 $.alias_method($c.Array, 'size', 'length');
 
+$.define_method($c.Array, 'map', 0, function(self) {
+  var result = [];
+
+  for(var i = 0; i < self.length; i++)
+    result.push(this.yield(self[i]));
+
+  return result;
+});
+
+$.define_method($c.Array, 'map!', 0, function(self) {
+  for(var i = 0; i < self.length; i++)
+    self[i] = this.yield(self[i]);
+
+  return self;
+});
+
 $.define_method($c.Array, 'pop', 0, function(self) {
   return self.pop();
 });
@@ -250,6 +266,28 @@ $.define_method($c.Array, 'push', 1, function(self, obj) {
 });
 $.alias_method($c.Array, '<<', 'push');
 
+$.define_method($c.Array, 'reject', 0, function(self) {
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+    if(!this.test(this.yield(self[i])))
+      result.push(self[i]);
+  }
+
+  return result;
+});
+
+$.define_method($c.Array, 'reject!', 0, function(self) {
+  for(var i = 0; i < self.length; i++) {
+    if(this.test(this.yield(self[i]))) {
+      self.splice(i, 1);
+      i--;
+    }
+  }
+
+  return self;
+});
+
 $.define_method($c.Array, 'replace', 1, function(self, array) {
   array = this.to_ary(array);
 
@@ -257,6 +295,28 @@ $.define_method($c.Array, 'replace', 1, function(self, array) {
 
   for(var i = 0; i < array.length; i++) {
     self.push(array[i]);
+  }
+
+  return self;
+});
+
+$.define_method($c.Array, 'select', 0, function(self) {
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+    if(this.test(this.yield(self[i])))
+      result.push(self[i]);
+  }
+
+  return result;
+});
+
+$.define_method($c.Array, 'select!', 0, function(self) {
+  for(var i = 0; i < self.length; i++) {
+    if(!this.test(this.yield(self[i]))) {
+      self.splice(i, 1);
+      i--;
+    }
   }
 
   return self;
