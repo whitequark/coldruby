@@ -664,6 +664,9 @@ var $ = {
           ivs:               {},
         };
         this.const_set(cbase, name, klass);
+
+        if(superklass != this.builtin.Qnil)
+          this.funcall(superklass, 'inherited', klass);
       } else {
         var klass = this.const_get(cbase, name);
       }
