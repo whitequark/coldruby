@@ -118,12 +118,6 @@ $.define_method($c.Array, '==', 1, function(self, other) {
   return Qtrue;
 });
 
-$.define_method($c.Array, '[]', 1, function(self, index) {
-  index = this.to_int(index);
-
-  return self[index] == null ? Qnil : self[index];
-});
-
 $.define_method($c.Array, '[]=', 2, function(self, index, value) {
   index = this.to_int(index);
 
@@ -591,6 +585,65 @@ $.define_method($c.Array, 'select!', 0, function(self) {
 
 $.define_method($c.Array, 'shift', 0, function(self) {
   return self.shift();
+});
+
+$.define_method($c.Array, 'slice', -1, function(self, args) {
+  this.check_args(args, 1, 1);
+  var index = args[0], length = args[1];
+
+  if(length == null && index.klass != $c.Range) {
+    return this.funcall(self, 'at', index);
+  } else {
+    if(args.length == 2) {
+      index = this.to_int(index);
+      length = this.to_int(length);
+    } else if(index.klass == $c.Range) {
+      length = this.to_int(index.ivs['@end']) - (this.test(index.ivs['@excl']) ? 1 : 0);
+      index  = this.to_int(index.ivs['@begin']);
+    } else {
+      this.raise($c.ArgumentError, "Array#slice requires one or two integers or Range as arguments");
+    }
+
+    var result = [];
+
+    for(var i = 0; i < length; i++) {
+      if((index + i) < self.length && (index + i) >= -self.length) {
+        result.push(this.funcall(self, 'at', index + i));
+      }
+    }
+
+    return result;
+  }
+});
+$.alias_method($c.Array, '[]', 'slice');
+
+$.define_method($c.Array, 'slice!', -1, function(self, args) {
+  this.check_args(args, 1, 1);
+  var index = args[0], length = args[1];
+
+  if(length == null && index.klass != $c.Range) {
+    return this.funcall(self, 'delete_at', index);
+  } else {
+    if(args.length == 2) {
+      index = this.to_int(index);
+      length = this.to_int(length);
+    } else if(index.klass == $c.Range) {
+      length = this.to_int(index.ivs['@end']) - (this.test(index.ivs['@excl']) ? 1 : 0);
+      index  = this.to_int(index.ivs['@begin']);
+    } else {
+      this.raise($c.ArgumentError, "Array#slice! requires one or two integers or Range as arguments");
+    }
+
+    var result = [];
+
+    for(var i = 0; i < length; i++) {
+      if((index + i) < self.length && (index + i) >= -self.length) {
+        result.push(this.funcall(self, 'delete_at', index + i));
+      }
+    }
+
+    return result;
+  }
 });
 
 $.define_method($c.Array, 'take', 1, function(self, n) {
