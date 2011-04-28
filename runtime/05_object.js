@@ -53,10 +53,6 @@ $.define_method($c.Kernel, 'class', 0, function(self) {
   return self.klass;
 });
 
-$.define_method($c.Kernel, 'superclass', 0, function(self) {
-  return self.superklass == null ? Qnil : self.superklass;
-});
-
 // This complete method is an example of how _not_ to do
 // hash-functions, but it's the best I can think of now.
 $.define_method($c.Kernel, 'hash', 0, function(self) {
