@@ -313,6 +313,13 @@ $.define_method($c.Array, 'reverse!', 0, function(self) {
   return this.funcall(self, 'replace', this.funcall(self, 'reverse'));
 });
 
+$.define_method($c.Array, 'reverse_each', 0, function(self) {
+  for(var i = self.length - 1; i >= 0; i--)
+    this.yield(self[i]);
+
+  return self;
+});
+
 $.define_method($c.Array, 'rindex', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var object = args[0], block;
