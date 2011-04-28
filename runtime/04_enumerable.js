@@ -339,3 +339,16 @@ $.define_method($c.Enumerable, 'inject', -1, function(self, args) {
 });
 $.alias_method($c.Enumerable, 'reduce', 'inject');
 
+$.define_method($c.Enumerable, 'reject', 0, function(self, args) {
+  var block = this.block_proc(), result = [];
+
+  var iterator = function(self, object) {
+    if(!this.test(this.funcall(block, 'call', object)))
+      result.push(object);
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return result;
+});
+
