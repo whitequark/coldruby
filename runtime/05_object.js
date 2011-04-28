@@ -67,6 +67,10 @@ $.define_method($c.Kernel, 'inspect', 0, function(self) {
   return this.funcall(self, 'to_s');
 });
 
+$.define_method($c.Kernel, 'instance_of?', 1, function(self, klass) {
+  return (self.klass == klass) ? Qtrue : Qfalse;
+});
+
 $.define_method($c.Kernel, 'kind_of?', 1, function(self, klass) {
   return this.obj_is_kind_of(self, klass) ? Qtrue : Qfalse;
 });
