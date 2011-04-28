@@ -92,6 +92,17 @@ $.define_method($c.Array, '-', 1, function(self, other) {
   return result;
 });
 
+$.define_method($c.Array, '<=>', 1, function(self, other) {
+  var len = self.length < other.length ? self.length : other.length;
+
+  for(var i = 0; i < len; i++) {
+    var res = this.funcall(self[i], '<=>', other[i]);
+    if(res != 0) return res;
+  }
+
+  return this.funcall(self.length, '<=>', other.length);
+});
+
 $.define_method($c.Array, '==', 1, function(self, other) {
   if(other == self)
     return Qtrue;
