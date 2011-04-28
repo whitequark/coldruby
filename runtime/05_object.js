@@ -61,6 +61,11 @@ $.define_method($c.Kernel, 'respond_to?', 1, function(self, symbol) {
   return this.respond_to(self, this.to_sym(symbol)) ? Qtrue : Qfalse;
 });
 
+$.define_method($c.Kernel, 'respond_to_missing?', 2, function(self, symbol, include_private) {
+  var symbol = this.to_sym(symbol); // check type
+  return Qfalse;
+});
+
 $.define_method($c.Kernel, 'class', 0, function(self) {
   return self.klass;
 });
