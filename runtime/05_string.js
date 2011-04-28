@@ -53,7 +53,7 @@ $.define_method($c.String, '*', 1, function(self, count) {
 });
 
 $.define_method($c.String, 'to_sym', 0, function(self) {
-  return this.string_new($.text2sym(self.value));
+  return $.text2sym(self.value);
 });
 
 $.define_method($c.String, 'inspect', 0, function(self) {
