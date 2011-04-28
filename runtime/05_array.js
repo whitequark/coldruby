@@ -185,6 +185,27 @@ $.define_method($c.Array, 'delete_if', 0, function(self) {
   return self;
 });
 
+$.define_method($c.Array, 'drop', 1, function(self, n) {
+  n = this.to_int(n);
+  if(n < 0) n = 0;
+
+  return self.slice(n);
+});
+
+$.define_method($c.Array, 'drop_while', 0, function(self) {
+  var result = [], drop = true;
+
+  for(var i = 0; i < self.length; i++) {
+    if(drop && !this.test(this.yield(self[i]))) {
+      drop = false;
+    }
+    if(!drop)
+      result.push(self[i]);
+  }
+
+  return result;
+});
+
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
     this.yield(self[i]);
@@ -419,6 +440,25 @@ $.define_method($c.Array, 'select!', 0, function(self) {
 
 $.define_method($c.Array, 'shift', 0, function(self) {
   return self.shift();
+});
+
+$.define_method($c.Array, 'take', 1, function(self, n) {
+  n = this.to_int(n);
+  if(n < 0) n = 0;
+
+  return self.slice(0, n);
+});
+
+$.define_method($c.Array, 'take_while', 0, function(self) {
+  var result = [], drop = true;
+
+  for(var i = 0; i < self.length; i++) {
+    if(this.test(this.yield(self[i]))) {
+      result.push(self[i]);
+    } else break;
+  }
+
+  return result;
 });
 
 $.define_method($c.Array, 'to_ary', 0, function(self) {
