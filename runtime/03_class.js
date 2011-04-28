@@ -28,6 +28,10 @@ $.define_method($c.Class, 'new', -1, function(self, args) {
   return object;
 });
 
+$.define_method($c.Class, 'superclass', 0, function(self) {
+  return self.superklass == null ? Qnil : self.superklass;
+});
+
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
 });

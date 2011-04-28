@@ -15,6 +15,12 @@ $.string_new = function(value) {
   };
 };
 
+$.define_method($c.String, '==', 1, function(self, other) {
+  other = this.to_str(other);
+
+  return (self.value == other.value) ? Qtrue : Qfalse;
+});
+
 $.define_method($c.String, 'to_str', 0, function(self) {
   return self;
 });

@@ -89,3 +89,11 @@ $.define_method($c.Integer, 'pred', 0, function(self) {
 
   return this.funcall(self, '-', 1);
 });
+
+$.define_method($c.Integer, 'numerator', 0, function(self) {
+  return self;
+});
+
+$.define_method($c.Integer, 'denominator', 0, function(self) {
+  return 1;
+});
