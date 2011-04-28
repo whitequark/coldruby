@@ -143,7 +143,8 @@ module ColdRuby
         [
           %Q{var strings = sf.stack.slice(sf.sp - #{@info[0]}, sf.sp);},
           %Q{sf.sp -= #{@info[0]};},
-          %Q{#{PUSH} = strings.join('');}
+          %Q{for(var i = 0; i < strings.length; i++) strings[i] = strings[i].value;},
+          %Q{#{PUSH} = this.string_new(strings.join(''));}
         ]
 
       when :getconstant
