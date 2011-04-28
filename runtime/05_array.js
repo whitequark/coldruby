@@ -57,6 +57,32 @@ $.define_method($c.Array, 'any?', 0, function(self) {
   return self.length > 0 ? Qtrue : Qfalse;
 });
 
+$.define_method($c.Array, 'compact', 0, function(self) {
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+    if(self[i] != Qnil)
+      result.push(self[i]);
+  }
+
+  return result;
+});
+
+$.define_method($c.Array, 'compact!', 0, function(self) {
+  var retval = Qnil;
+
+  for(var i = 0; i < self.length; i++) {
+    if(self[i] == Qnil) {
+      self.splice(i, 1);
+      i--;
+
+      retval = self;
+    }
+  }
+
+  return retval;
+});
+
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
     this.yield(self[i]);
