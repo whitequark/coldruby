@@ -253,6 +253,15 @@ $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
     this.yield(self[i]);
   }
+
+  return self;
+});
+
+$.define_method($c.Array, 'each_index', 0, function(self) {
+  for(var i = 0; i < self.length; i++) {
+    this.yield(i);
+  }
+
   return self;
 });
 
