@@ -271,6 +271,27 @@ $.define_method($c.Enumerable, 'first', -1, function(self, args) {
   }
 });
 
+$.define_method($c.Enumerable, 'group_by', 0, function(self) {
+  var block = this.block_lambda();
+  var hash = this.funcall($c.Hash, 'new');
+
+  var iterator = function(self, object) {
+    var key = this.funcall(block, 'call', object);
+
+    var array = this.funcall(hash, '[]', key);
+    if(array == Qnil) {
+      array = [];
+      this.funcall(hash, '[]=', key, array);
+    }
+
+    array.push(object);
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return hash;
+});
+
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
 
