@@ -3,6 +3,7 @@ $.define_class('RuntimeError',   $e.StandardError);
 $.define_class('ArgumentError',  $e.StandardError);
 $.define_class('LocalJumpError', $e.StandardError);
 $.define_class('IOError',        $e.StandardError);
+$.define_class('EOFError',       $e.EOFError);
 $.define_class('IndexError',     $e.StandardError);
 $.define_class('KeyError',       $e.StandardError);
 $.define_class('RangeError',     $e.StandardError);
