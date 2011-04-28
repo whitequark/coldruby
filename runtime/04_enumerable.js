@@ -152,6 +152,30 @@ $.define_method($c.Enumerable, 'each_with_object', 1, function(self, memo) {
   return memo;
 });
 
+$.define_method($c.Enumerable, 'cycle', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var n = args[0];
+  var block = this.block_lambda();
+
+  if(n == null)
+    n = Qnil;
+  if(n != Qnil)
+    n = this.to_int(n);
+
+  var iterator = function(self, object) {
+    this.funcall(block, 'call', object);
+  };
+
+  while(n == Qnil || n > 0) {
+    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+    if(typeof n == "number")
+      n--;
+  }
+
+  return Qnil;
+});
+
 $.define_method($c.Enumerable, 'find', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var if_none = args[0];
