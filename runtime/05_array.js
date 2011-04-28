@@ -126,6 +126,22 @@ $.define_method($c.Array, 'compact!', 0, function(self) {
   return retval;
 });
 
+$.define_method($c.Array, 'cycle', 1, function(self, n) {
+  n = n || Qnil;
+  if(n != Qnil)
+    n = this.to_int(n);
+
+  while(n == Qnil || n > 0) {
+    for(var i = 0; i < self.length; i++)
+      this.yield(self[i]);
+
+    if(typeof n == "number")
+      n--;
+  }
+
+  return Qnil;
+});
+
 $.define_method($c.Array, 'delete', 1, function(self, object) {
   var block, result = null;
   if(this.block_given_p())
