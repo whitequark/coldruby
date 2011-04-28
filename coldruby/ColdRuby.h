@@ -41,6 +41,9 @@ public:
 	
 	const std::string &errorString() const;
 	
+	v8::Handle<v8::Function> pullFunction(const char *name);
+	v8::Handle<v8::Object> pullObject(const char *name);
+
 private:
 	void setErrorString(const std::string &string);
 	

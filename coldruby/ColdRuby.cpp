@@ -66,32 +66,33 @@ const std::string &ColdRuby::errorString() const {
 	return m_errorString;
 }
 
+v8::Handle<v8::Function> ColdRuby::pullFunction(const char *name) {
+	v8::Handle<v8::Value> ref = m_ruby->Get(v8::String::New(name));
+
+	if(!ref->IsFunction())
+		throw ColdRubyException("Internal error", "ruby." + std::string(name) + " is invalid");
+
+	return v8::Handle<v8::Function>::Cast(ref);
+}
+
+v8::Handle<v8::Object> ColdRuby::pullObject(const char *name) {
+	v8::Handle<v8::Value> ref = m_ruby->Get(v8::String::New(name));
+
+	if(!ref->IsObject())
+		throw ColdRubyException("Internal error", "ruby." + std::string(name) + " is invalid");
+
+	return ref->ToObject();
+}
+
 std::vector<std::string> ColdRuby::searchPath() {
 	std::vector<std::string> path;
 	
 	v8::HandleScope handle_scope;
 	v8::Context::Scope context_scope(m_vm->m_context);
 	
-	v8::Handle<v8::Function> gvar_get = v8::Handle<v8::Function>::Cast(
-		m_ruby->Get(v8::String::New("gvar_get"))
-	);
-	
-	if(gvar_get.IsEmpty())
-		throw ColdRubyException("Internal error", "ruby.gvar_get is invalid");
-	
-	v8::Handle<v8::Function> check_convert_type = v8::Handle<v8::Function>::Cast(
-		m_ruby->Get(v8::String::New("check_convert_type"))
-	);
-	
-	if(check_convert_type.IsEmpty())
-		throw ColdRubyException("Internal error", "ruby.check_convert_type is invalid");	
-	
-	v8::Handle<v8::Object> constants = v8::Handle<v8::Object>::Cast(
-		m_ruby->Get(v8::String::New("c"))
-	);
-	
-	if(constants.IsEmpty())
-		throw ColdRubyException("Internal error", "ruby.c is invalid");
+	v8::Handle<v8::Function> gvar_get = pullFunction("gvar_get");
+	v8::Handle<v8::Function> check_convert_type = pullFunction("check_convert_type");
+	v8::Handle<v8::Object> constants = pullObject("c");
 
 	v8::Handle<v8::Value> gvar;
 	v8::TryCatch try_catch;
@@ -119,7 +120,12 @@ std::vector<std::string> ColdRuby::searchPath() {
 			v8::String::New("to_a")
 		};
 	
-		pathArray = v8::Handle<v8::Array>::Cast(check_convert_type->Call(m_ruby, 3, argv));
+		v8::Handle<v8::Value> ref = check_convert_type->Call(m_ruby, 3, argv);
+
+		if(!ref->IsArray())
+			throw ColdRubyException("Internal error", "to_a returned something other than array");
+
+		pathArray = v8::Handle<v8::Array>::Cast(ref);
 	}
 	
 	if(try_catch.HasCaught()) {
@@ -161,12 +167,7 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 		pathArray->Set(i, v8::String::New(item.data(), item.length()));
 	}
 	
-	v8::Handle<v8::Function> gvar_set = v8::Handle<v8::Function>::Cast(
-		m_ruby->Get(v8::String::New("gvar_set"))
-	);
-	
-	if(gvar_set.IsEmpty())
-		throw ColdRubyException("Internal error", "ruby.gvar_set is invalid");
+	v8::Handle<v8::Function> gvar_set = pullFunction("gvar_set");
 	
 	v8::Handle<v8::Value> argv[] = {
 		v8::String::New("$:"),
@@ -183,3 +184,4 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 		throw ColdRubyException(m_vm->errorString());
 	}
 }
+
