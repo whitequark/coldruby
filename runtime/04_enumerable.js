@@ -188,8 +188,6 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
       memo = obj;
       this.iter_break();
     }
-
-    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
