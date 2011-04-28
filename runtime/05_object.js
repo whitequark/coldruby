@@ -74,6 +74,14 @@ $.define_method($c.Kernel, 'singleton_class', 0, function(self) {
   return this.get_singleton(self);
 });
 
+$.define_method($c.Kernel, 'extend', 1, function(self, module) {
+  this.check_type(module, $c.Module);
+
+  this.funcall(module, 'extend_object', self);
+
+  return self;
+});
+
 // This complete method is an example of how _not_ to do
 // hash-functions, but it's the best I can think of now.
 $.define_method($c.Kernel, 'hash', 0, function(self) {

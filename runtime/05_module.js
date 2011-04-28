@@ -150,6 +150,12 @@ $.define_method($c.Module, 'private_class_method', -1, function(self, args) {
   return Qnil;
 });
 
+$.define_method($c.Module, 'extend_object', 1, function(self, object) {
+  $.module_include(this.get_singleton(object), self);
+
+  return Qnil;
+});
+
 /* === PRIVATE === */
 
 $.visibility($c.Module, 'private');
