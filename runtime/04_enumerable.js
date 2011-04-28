@@ -218,6 +218,28 @@ $.define_method($c.Enumerable, 'find_all', 0, function(self, args) {
 });
 $.alias_method($c.Enumerable, 'select', 'find_all');
 
+$.define_method($c.Enumerable, 'find_index', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var value = args[0], block, index = 0, found = false;
+
+  if(value == null)
+    block = this.block_lambda();
+
+  var iterator = function(self, object) {
+    if((value != null && this.test(this.funcall(value, '==', object))) ||
+       (block != null && this.test(this.funcall(block, 'call', object)))) {
+      found = true;
+      this.iter_break();
+    }
+
+    index++;
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return found ? index : Qnil;
+});
+
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
 
