@@ -257,6 +257,20 @@ $.define_method($c.Array, 'fetch', -1, function(self, args) {
   return self[index];
 });
 
+$.define_method($c.Array, 'first', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+
+  if(args[0] == null) {
+    return self[0];
+  } else {
+    var n = this.to_int(args[0]);
+    if(n < 0)
+      n = 0;
+
+    return self.slice(0, n);
+  }
+});
+
 $.define_method($c.Array, 'find_index', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var object = args[0], block;
@@ -312,6 +326,20 @@ $.define_method($c.Array, 'keep_if', 0, function(self) {
   }
 
   return self;
+});
+
+$.define_method($c.Array, 'last', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+
+  if(args[0] == null) {
+    return self[self.length - 1];
+  } else {
+    var n = this.to_int(args[0]);
+    if(n > self.length)
+      n = self.length;
+
+    return self.slice(self.length - n);
+  }
 });
 
 $.define_method($c.Array, 'length', 0, function(self) {
