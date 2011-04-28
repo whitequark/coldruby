@@ -360,6 +360,55 @@ $.define_method($c.Array, 'find_index', -1, function(self, args) {
 });
 $.alias_method($c.Array, 'index', 'find_index');
 
+$.define_method($c.Array, 'flatten', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var level = args[0];
+
+  if(level != null && level <= 0)
+    return self;
+
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+    if(self[i].klass == $c.Array) {
+      var arr = this.funcall(self[i], 'flatten', level != null ? level - 1 : null);
+      for(var j = 0; j < arr.length; j++)
+        result.push(arr[j]);
+    } else {
+      result.push(self[i]);
+    }
+  }
+
+  return result;
+});
+
+$.define_method($c.Array, 'flatten!', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var level = args[0];
+
+  if(level != null && level <= 0)
+    return Qnil;
+
+  var result = [], changed = false;
+
+  for(var i = 0; i < self.length; i++) {
+    if(self[i].klass == $c.Array) {
+      var arr = this.funcall(self[i], 'flatten', level != null ? level - 1 : null);
+      for(var j = 0; j < arr.length; j++)
+        result.push(arr[j]);
+      changed = true;
+    } else {
+      result.push(self[i]);
+    }
+  }
+
+  if(changed) {
+    return this.funcall(self, 'replace', result);
+  } else {
+    return Qnil;
+  }
+});
+
 $.define_method($c.Array, 'insert', -1, function(self, args) {
   if(args.length < 1)
     this.raise($c.ArgumentError, "wrong number of arguments (at least 1)");
