@@ -82,6 +82,34 @@ $.define_method($c.Kernel, 'tap', 0, function(self) {
   return self;
 });
 
+$.define_method($c.Kernel, 'taint', 0, function(self) {
+  self.tainted = true;
+  return self;
+});
+
+$.define_method($c.Kernel, 'untaint', 0, function(self) {
+  self.tainted = false;
+  return self;
+});
+
+$.define_method($c.Kernel, 'tainted?', 0, function(self) {
+  return self.tainted ? Qtrue : Qfalse;
+});
+
+$.define_method($c.Kernel, 'trust', 0, function(self) {
+  self.trusted = true;
+  return self;
+});
+
+$.define_method($c.Kernel, 'untrust', 0, function(self) {
+  self.trusted = false;
+  return self;
+});
+
+$.define_method($c.Kernel, 'untrusted?', 0, function(self) {
+  return self.trusted ? Qfalse : Qtrue;
+});
+
 $.define_method($c.Kernel, 'instance_variable_defined?', 1, function(self, symbol) {
   symbol = this.to_sym(symbol);
 
