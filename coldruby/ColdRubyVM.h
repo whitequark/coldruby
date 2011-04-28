@@ -40,6 +40,8 @@ public:
 	static int debugFlags();
 	static void setDebugFlags(int flags);
 	
+	static void cleanup();
+
 	bool initialize(RubyCompiler *compiler);
 	RubyCompiler *compiler() const;
 	

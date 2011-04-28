@@ -141,6 +141,8 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 	} else {
 		ColdRubyVM::setDebugFlags(init->debugFlags);
 		
+		atexit(ColdRubyVM::cleanup);
+
 		ColdRubyVM vm;
 			
 		if(vm.initialize(compiler) == false) {

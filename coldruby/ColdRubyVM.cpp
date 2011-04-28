@@ -605,4 +605,9 @@ bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
 
 }
 
+void ColdRubyVM::cleanup() {
+	v8::V8::Dispose();
+}
+
 int ColdRubyVM::m_debugFlags = 0;
+
