@@ -204,6 +204,20 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
 });
 $.alias_method($c.Enumerable, 'detect', 'find');
 
+$.define_method($c.Enumerable, 'find_all', 0, function(self, args) {
+  var block = this.block_proc(), result = [];
+
+  var iterator = function(self, object) {
+    if(this.test(this.funcall(block, 'call', object)))
+      result.push(object);
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return result;
+});
+$.alias_method($c.Enumerable, 'select', 'find_all');
+
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
 
