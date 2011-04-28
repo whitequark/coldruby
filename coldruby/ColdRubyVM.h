@@ -40,6 +40,8 @@ public:
 	static int debugFlags();
 	static void setDebugFlags(int flags);
 	
+	static void cleanup();
+
 	bool initialize(RubyCompiler *compiler);
 	RubyCompiler *compiler() const;
 	
@@ -59,7 +61,7 @@ private:
 	bool formatRubyException(v8::Handle<v8::Object> exception, ColdRuby *ruby, std::string &description);
 	std::string exceptionArrow(v8::Handle<v8::Message> message);
 	bool dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_stream, ColdRubyStackTrace &stackTrace,
-			int *frame_index, const std::string &variable_name);
+			ColdRuby *ruby, int *frame_index, int flags, const std::string &variable_name);
 	void buildRubyFrame(ColdRubyStackFrame &frame, v8::Handle<v8::Object> info, v8::Handle<v8::Object> iseq,
 			    v8::Handle<v8::Object> sf, int frame_index);
 	
@@ -68,6 +70,26 @@ private:
 	bool m_initialized;
 	RubyCompiler *m_compiler;
 	static int m_debugFlags;
+
+
+	enum DumpFlags {
+		NewlineAfter = (1 << 0),
+		LastVariable = (1 << 1),
+		ObjectIsFrame = (1 << 2),
+		RubyObject = (1 << 3),
+		NotArray = (1 << 4),
+
+		NewlinePrefix = (1 << 0),
+		OutComma = (1 << 1),
+		LineFeed = (1 << 2)
+	};
+
+	typedef struct {
+		const char *variable;
+		unsigned int flags;
+	} frame_dump_variable_t;
+
+	static const frame_dump_variable_t m_dump_variables[];
 };
 
 #endif
