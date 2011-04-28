@@ -207,6 +207,18 @@ $.define_method($c.Array, 'find_index', -1, function(self, args) {
 });
 $.alias_method($c.Array, 'index', 'find_index');
 
+$.define_method($c.Array, 'insert', -1, function(self, args) {
+  if(args.length < 1)
+    this.raise($c.ArgumentError, "wrong number of arguments (at least 1)");
+
+  var index = this.to_int(args[0]);
+
+  for(var i = 1; i < args.length; i++)
+    self.splice(index, 0, args[i]);
+
+  return self;
+});
+
 $.define_method($c.Array, 'join', -1, function(self, args) {
   $.check_args(args, 0, 1);
 
@@ -237,6 +249,18 @@ $.define_method($c.Array, 'push', 1, function(self, obj) {
   return self;
 });
 $.alias_method($c.Array, '<<', 'push');
+
+$.define_method($c.Array, 'replace', 1, function(self, array) {
+  array = this.to_ary(array);
+
+  self.splice(0, self.length);
+
+  for(var i = 0; i < array.length; i++) {
+    self.push(array[i]);
+  }
+
+  return self;
+});
 
 $.define_method($c.Array, 'shift', 0, function(self) {
   return self.shift();
