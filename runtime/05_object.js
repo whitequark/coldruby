@@ -66,3 +66,41 @@ $.define_method($c.Kernel, 'to_s', 0, function(self) {
 $.define_method($c.Kernel, 'inspect', 0, function(self) {
   return this.funcall(self, 'to_s');
 });
+
+$.define_method($c.Kernel, 'instance_variable_defined?', 1, function(self, symbol) {
+  symbol = this.to_sym(symbol);
+
+  return self.ivs[this.id2text(this.to_sym(symbol).value)] != null ? Qtrue : Qfalse;
+});
+
+$.define_method($c.Kernel, 'instance_variable_get', 1, function(self, symbol) {
+  symbol = this.to_sym(symbol);
+
+  return self.ivs[this.id2text(this.to_sym(symbol).value)] || Qnil;
+});
+
+$.define_method($c.Kernel, 'instance_variable_set', 1, function(self, symbol, value) {
+  self.ivs[this.id2text(this.to_sym(symbol).value)] = value;
+
+  return value;
+});
+
+$.define_method($c.Kernel, 'remove_instance_variable', 1, function(self, symbol) {
+  var id = this.id2text(this.to_sym(symbol).value)
+
+  var value = self.ivs[id];
+  delete self.ivs[id];
+
+  return value;
+});
+
+$.define_method($c.Kernel, 'instance_variables', 0, function(self) {
+  var result = [];
+
+  for(var name in self.ivs) {
+    if(self.ivs.hasOwnProperty(name))
+      result.push(this.text2sym(name));
+  }
+
+  return result;
+});
