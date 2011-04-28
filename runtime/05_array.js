@@ -271,6 +271,15 @@ $.define_method($c.Array, 'first', -1, function(self, args) {
   }
 });
 
+$.define_method($c.Array, 'include?', 1, function(self, object) {
+  for(var i = 0; i < self.length; i++) {
+    if(this.test(this.funcall(self[i], '==', object)))
+      return Qtrue;
+  }
+
+  return Qfalse;
+});
+
 $.define_method($c.Array, 'find_index', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var object = args[0], block;
