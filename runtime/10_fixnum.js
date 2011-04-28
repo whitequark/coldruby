@@ -1,8 +1,9 @@
 $.define_class('Fixnum', $c.Integer, true);
 
-$.define_method($c.Fixnum, 'to_s', 0, function(self) {
+$.define_method($c.Fixnum, 'to_str', 0, function(self) {
   return this.string_new(self.toString());
 });
+$.alias_method($c.Fixnum, 'to_s', 'to_str');
 
 $.define_method($c.Fixnum, 'to_f', 0, function(self) {
   return $.float_new(self);
