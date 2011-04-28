@@ -556,7 +556,7 @@ var $ = {
     if(typeof message == 'string')
       message = this.string_new(message);
 
-    if(typeof template == 'string') {
+    if(template.klass == this.c.String) {
       var exception = this.funcall2(this.internal_constants.RuntimeError, 'new', [template]);
     } else {
       var args = (message != null) ? [message] : [];
@@ -843,10 +843,10 @@ var $ = {
       iseq = function(self, args) {
         this.check_args(args, arg_count);
         args.unshift(self);
-        return method.apply(this, args);
+        return closure.apply(this, args);
       };
     } else if(arg_count == -1) {
-      iseq = method;
+      iseq = closure;
     }
 
     iseq.context = {
@@ -877,7 +877,7 @@ var $ = {
    * Yield to a block. Equivalent to Ruby `yield *args'.
    */
   yield2: function(args) {
-    var sf = this.context.sf, iseq;
+    var sf = this.context.sf.outer || this.context.sf.osf, iseq;
 
     if(sf.outer) {
       iseq = sf.outer.block;

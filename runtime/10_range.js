@@ -1,4 +1,5 @@
 $.define_class('Range', $c.Object);
+$.module_include($c.Range, $c.Enumerable);
 
 $.define_method($c.Range, 'initialize', -1, function(self, args) {
   this.check_args(args, 2, 1);
@@ -86,11 +87,11 @@ $.define_method($c.Range, 'first', -1, function(self, args) {
     count = this.to_int(count);
 
     var array = [];
-    var iterator = function(self, args) {
+    var iterator = function(self, object) {
       count -= 1;
       if(count < 0) this.iter_break();
 
-      array.push(args[0]);
+      array.push(object);
     };
 
     this.funcall2(self, 'each', [], this.lambda(iterator, 1));

@@ -11,7 +11,7 @@ $.define_method($c.Proc, 'initialize', 0, function(self) {
   var new_iseq = {}, sf;
 
   // Proc#initialize->Proc.new->caller
-  var outer_sf = this.context.sf.parent.parent;
+  var outer_sf = (this.context.sf.outer || this.context.sf.osf).parent.parent;
 
   if(!outer_sf.block)
     this.raise(this.e.ArgumentError, "tried to create Proc object without a block");
