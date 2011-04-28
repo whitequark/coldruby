@@ -526,16 +526,24 @@ var $ = {
     }
   },
 
+  /*
+   * call-seq: check_type(arg, type) -> arg
+   *
+   * Check the type of argument +arg+. +type+ may be Class or array of Classes.
+   * An exception is raised if the type is not matched.
+   */
   check_type: function(arg, type) {
     if(type instanceof Array) {
       for(var i = 0; i < type.length; i++) {
-        if(arg.klass == type[i]) return arg;
+        if(this.obj_is_kind_of(arg, type[i]))
+          return arg;
       }
+
       this.raise(this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not expected");
     } else {
-      if(arg.klass != type) {
-        this.raise(this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not " + type.klass_name);
-      }
+      if(!this.obj_is_kind_of(arg, type))
+        this.raise(this.e.TypeError, "wrong argument type " + arg.klass.klass_name + " (expected " + type.klass_name + ")");
+
       return arg;
     }
   },
@@ -931,7 +939,9 @@ var $ = {
    */
   obj_is_kind_of: function(object, c) {
     var klass = object.klass;
-    this.check_type(c, [$c.Module, $c.Class]);
+
+    if(!"klass_name" in c)
+      this.raise($e.ArgumentError, "Object#kind_of?: Module is expected");
 
     do {
       if(klass == c)
