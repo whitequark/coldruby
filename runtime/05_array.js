@@ -49,6 +49,21 @@ $.define_method($c.Array, '-', 1, function(self, other) {
   return result;
 });
 
+$.define_method($c.Array, '==', 1, function(self, other) {
+  if(other == self)
+    return Qtrue;
+
+  if(other.length != self.length)
+    return Qfalse;
+
+  for(var i = 0; i < self.length; i++) {
+    if(!this.test(this.funcall(self[i], '==', other[i])))
+      return Qfalse;
+  }
+
+  return Qtrue;
+});
+
 $.define_method($c.Array, '[]', 1, function(self, index) {
   index = this.to_int(index);
 
@@ -163,6 +178,21 @@ $.define_method($c.Array, 'each', 0, function(self) {
 
 $.define_method($c.Array, 'empty?', 0, function(self) {
   return self.length == 0 ? Qtrue : Qfalse;
+});
+
+$.define_method($c.Array, 'eql?', 1, function(self, other) {
+  if(other == self)
+    return Qtrue;
+
+  if(other.length != self.length)
+    return Qfalse;
+
+  for(var i = 0; i < self.length; i++) {
+    if(self[i] != other[i])
+      return Qfalse;
+  }
+
+  return Qtrue;
 });
 
 $.define_method($c.Array, 'fetch', -1, function(self, args) {
