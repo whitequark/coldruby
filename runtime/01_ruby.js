@@ -921,6 +921,7 @@ var $ = {
    */
   obj_is_kind_of: function(object, c) {
     var klass = object.klass;
+    this.check_type(c, [$c.Module, $c.Class]);
 
     do {
       if(klass == c)
