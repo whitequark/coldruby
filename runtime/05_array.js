@@ -63,6 +63,24 @@ $.define_method($c.Array, '[]=', 2, function(self, index, value) {
   return value;
 });
 
+$.define_method($c.Array, 'at', 1, function(self, index) {
+  index = this.to_int(index);
+
+  if(index >= self.length || index < -self.length)
+    return Qnil;
+
+  if(index < 0)
+    index = self.length + index;
+
+  return self[index];
+});
+
+$.define_method($c.Array, 'clear', 0, function(self) {
+  self.splice(0, self.length);
+
+  return self;
+});
+
 $.define_method($c.Array, 'any?', 0, function(self) {
   return self.length > 0 ? Qtrue : Qfalse;
 });
