@@ -1,4 +1,5 @@
 $.define_class('Range', $c.Object);
+$.module_include($c.Range, $c.Enumerable);
 
 $.define_method($c.Range, 'initialize', -1, function(self, args) {
   this.check_args(args, 2, 1);
