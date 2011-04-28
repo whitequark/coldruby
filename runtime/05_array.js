@@ -313,6 +313,22 @@ $.define_method($c.Array, 'reverse!', 0, function(self) {
   return this.funcall(self, 'replace', this.funcall(self, 'reverse'));
 });
 
+$.define_method($c.Array, 'rindex', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var object = args[0], block;
+
+  if(object == null)
+    block = this.block_lambda();
+
+  for(var i = self.length - 1; i >= 0; i--) {
+    if((object != null && this.test(this.funcall(self[i], '==', object)) ||
+       (block != null && this.test(this.funcall(block, 'call', self[i])))))
+      return i;
+  }
+
+  return Qnil;
+});
+
 $.define_method($c.Array, 'select', 0, function(self) {
   var result = [];
 
