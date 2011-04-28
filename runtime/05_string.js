@@ -20,6 +20,11 @@ $.define_method($c.String, 'to_str', 0, function(self) {
 });
 $.alias_method($c.String, 'to_s', 'to_str');
 
+$.define_method($c.String, 'length', 0, function(self) {
+  return self.value.length;
+});
+$.alias_method($c.String, 'size', 'length');
+
 $.define_method($c.String, 'concat', 1, function(self, other) {
   self.value += this.to_str(other).value;
 
