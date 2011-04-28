@@ -290,9 +290,17 @@ var $ = {
     return module;
   },
 
-  get_singleton: function(klass) {
-    if(klass.singleton_klass)
-      return klass.singleton_klass;
+  get_singleton: function(object) {
+    if(object == this.builtin.Qtrue || object == this.builtin.Qfalse ||
+       object == this.builtin.Qnil) {
+      return object.klass;
+    } else if(object.klass != null && (
+              (object.klass == $c.Fixnum || object.klass == $c.Symbol))) {
+      this.raise($e.TypeError, "cannot define singleton class for Fixnum or Symbol");
+    }
+
+    if(object.singleton_klass)
+      return object.singleton_klass;
 
     var singleton = {
       klass_name:        '<eigenclass>',
@@ -302,9 +310,11 @@ var $ = {
       instance_methods:  {},
       ivs:               {},
       type:              'singleton',
+      object:            object,
     };
 
-    klass.singleton_klass = singleton;
+    object.singleton_klass = singleton;
+
     return singleton;
   },
 

@@ -1,5 +1,10 @@
 $.define_method($c.Module, 'name', 0, function(self) {
-  return this.string_new(self.klass_name);
+  if(self.type == 'singleton') {
+    var object = this.funcall(self.object, 'to_s').value;
+    return this.string_new("#<Class:" + object + ">");
+  } else {
+    return this.string_new(self.klass_name);
+  }
 });
 $.alias_method($c.Module, 'to_s', 'name');
 
