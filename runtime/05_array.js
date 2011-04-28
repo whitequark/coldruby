@@ -1,6 +1,28 @@
 $.define_class('Array', $c.Object);
 $.module_include($c.Array, $c.Enumerable);
 
+$.define_singleton_method($c.Array, 'new', -1, function(self, args) {
+  this.check_args(args, 0, 2);
+
+  var array = [];
+  if(args[0] != null && this.respond_to(args[0], 'to_ary')) {
+    /* A copy of an array */
+    array = this.to_ary(args[0]).slice();
+  } else {
+    var size = this.to_int(args[0] || 0), obj = args[1] || Qnil;
+
+    if(this.block_given_p()) {
+      for(var i = 0; i < size; i++)
+        array.push(this.yield(i));
+    } else {
+      for(var i = 0; i < size; i++)
+        array.push(obj);
+    }
+  }
+
+  return array;
+});
+
 $.define_singleton_method($c.Array, '[]', -1, function(self, args) {
   return args;
 });
