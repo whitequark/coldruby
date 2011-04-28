@@ -307,3 +307,35 @@ $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   return retval;
 });
 
+$.define_method($c.Enumerable, 'inject', -1, function(self, args) {
+  this.check_args(args, 0, 2);
+  var initial, sum, block;
+
+  if(args.length == 2) {
+    initial = args[0];
+    sym     = args[1];
+  } else if(args.length == 1 && this.block_given_p()) {
+    initial = args[0];
+    block   = this.block_lambda();
+  } else if(args.length == 1) {
+    sym     = args[0];
+  } else {
+    block   = this.block_lambda();
+  }
+
+  var iterator = function(self, object) {
+    if(initial == null) {
+      initial = object;
+    } else if(block) {
+      initial = this.funcall(block, 'call', initial, object);
+    } else {
+      initial = this.funcall(initial, sym, object);
+    }
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return initial;
+});
+$.alias_method($c.Enumerable, 'reduce', 'inject');
+
