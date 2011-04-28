@@ -3,7 +3,7 @@ $.define_module('Enumerable');
 $.define_method($c.Enumerable, 'to_a', -1, function(self, args) {
   var array = [];
   var iterator = function(self, object) {
-    array.append(object);
+    array.push(object);
 
     return Qnil;
   };
