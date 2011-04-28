@@ -10,19 +10,31 @@ $.define_method($c.Fixnum, 'to_f', 0, function(self) {
 });
 
 $.define_method($c.Fixnum, '+', 1, function(self, other) {
-  return self + other;
+  return self + this.to_int(other);
 });
+
 $.define_method($c.Fixnum, '-', 1, function(self, other) {
-  return self - other;
+  return self - this.to_int(other);
 });
+
 $.define_method($c.Fixnum, '*', 1, function(self, other) {
-  return self * other;
+  return self * this.to_int(other);
 });
+
 $.define_method($c.Fixnum, '/', 1, function(self, other) {
+  other = this.to_int(other);
   if(other == 0)
     this.raise(this.e.ZeroDivisionError, "divided by 0");
 
   return Math.floor(self / other);
+});
+
+$.define_method($c.Fixnum, '%', 1, function(self, other) {
+  other = this.to_int(other);
+  if(other == 0)
+    this.raise(this.e.ZeroDivisionError, "divided by 0");
+
+  return self % other;
 });
 
 $.define_method($c.Fixnum, '<=>', 1, function(self, other) {
