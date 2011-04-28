@@ -300,6 +300,19 @@ $.define_method($c.Array, 'replace', 1, function(self, array) {
   return self;
 });
 
+$.define_method($c.Array, 'reverse', 0, function(self) {
+  var result = [];
+
+  for(var i = self.length - 1; i >= 0; i--)
+    result.push(self[i]);
+
+  return result;
+});
+
+$.define_method($c.Array, 'reverse!', 0, function(self) {
+  return this.funcall(self, 'replace', this.funcall(self, 'reverse'));
+});
+
 $.define_method($c.Array, 'select', 0, function(self) {
   var result = [];
 
