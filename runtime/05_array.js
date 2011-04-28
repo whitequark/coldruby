@@ -364,6 +364,7 @@ $.define_method($c.Array, 'map', 0, function(self) {
 
   return result;
 });
+$.alias_method($c.Array, 'collect', 'map');
 
 $.define_method($c.Array, 'map!', 0, function(self) {
   for(var i = 0; i < self.length; i++)
@@ -371,6 +372,7 @@ $.define_method($c.Array, 'map!', 0, function(self) {
 
   return self;
 });
+$.alias_method($c.Array, 'collect!', 'map!');
 
 $.define_method($c.Array, 'pop', 0, function(self) {
   return self.pop();
