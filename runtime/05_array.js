@@ -33,6 +33,27 @@ $.define_singleton_method($c.Array, 'try_convert', 1, function(self, other) {
   } else return Qnil;
 });
 
+$.define_method($c.Array, '&', 1, function(self, other) {
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+    var go = false;
+
+    for(var j = 0; j < other.length; j++) {
+      if(this.test(this.funcall(self[i], '==', other[j]))) {
+        go = true;
+        break;
+      }
+    }
+
+    if(!go) continue;
+
+    result.push(self[i]);
+  }
+
+  return this.funcall(result, 'uniq');
+});
+
 $.define_method($c.Array, '+', 1, function(self, other) {
   other = this.to_ary(other);
 
@@ -540,9 +561,33 @@ $.define_method($c.Array, 'unshift', 1, function(self, obj) {
   return self;
 });
 
+$.define_method($c.Array, 'uniq', 0, function(self) {
+  var result = [];
+
+  for(var i = 0; i < self.length; i++) {
+
+    var go = true;
+    for(var j = 0; j < result.length; j++) {
+      if(this.test(this.funcall(self[i], '==', result[j]))) {
+        go = false;
+        break;
+      }
+    }
+
+    if(!go) continue;
+
+    result.push(self[i]);
+  }
+
+  return result;
+});
+
 $.define_method($c.Array, 'uniq!', 0, function(self) {
-  // TODO
-  return self;
+  return this.funcall(self, 'replace', this.funcall(self, 'uniq'));
+});
+
+$.define_method($c.Array, '|', 1, function(self, other) {
+  return this.funcall(this.funcall(self, '+', this.to_ary(other)), 'uniq');
 });
 
 Array.prototype.klass = $c.Array;
