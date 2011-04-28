@@ -586,6 +586,39 @@ $.define_method($c.Array, 'uniq!', 0, function(self) {
   return this.funcall(self, 'replace', this.funcall(self, 'uniq'));
 });
 
+$.define_method($c.Array, 'values_at', -1, function(self, args) {
+  var result = [];
+
+  var adder = function(n) {
+    if(n < self.length && n >= -self.length) {
+      if(n < 0)
+        n = self.length + n;
+
+      result.push(self[n]);
+    } else {
+      result.push(Qnil);
+    }
+  }
+
+  for(var i = 0; i < args.length; i++) {
+    this.check_type(args[i], [$c.Fixnum, $c.Range]);
+
+    if(args[i].klass == $c.Fixnum) {
+      adder(args[i]);
+    } else if(args[i].klass == $c.Range) {
+      var begin = this.to_int(args[i].ivs['@begin']);
+      var end = this.to_int(args[i].ivs['@end']);
+      if(this.test(args[i].ivs['@excl']))
+        end--;
+
+      for(var j = begin; j <= end; j++)
+        adder(j);
+    }
+  }
+
+  return result;
+});
+
 $.define_method($c.Array, '|', 1, function(self, other) {
   return this.funcall(this.funcall(self, '+', this.to_ary(other)), 'uniq');
 });
