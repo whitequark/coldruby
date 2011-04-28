@@ -1,6 +1,10 @@
 $.define_class('Array', $c.Object);
 $.module_include($c.Array, $c.Enumerable);
 
+$.define_singleton_method($c.Array, '[]', -1, function(self, args) {
+  return args;
+});
+
 $.define_singleton_method($c.Array, 'try_convert', 1, function(self, other) {
   if(this.respond_to(other, 'to_ary')) {
     return this.funcall(other, 'to_ary');
