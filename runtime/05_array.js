@@ -83,6 +83,49 @@ $.define_method($c.Array, 'compact!', 0, function(self) {
   return retval;
 });
 
+$.define_method($c.Array, 'delete', 1, function(self, object) {
+  var block, result = null;
+  if(this.block_given_p())
+    block = this.block_lambda();
+
+  for(var i = 0; i < self.length; i++) {
+    if(this.test(this.funcall(self[i], '==', object))) {
+      result = object;
+      self.splice(i, 1);
+      i--;
+    }
+  }
+
+  if(result) {
+    return result;
+  } else {
+    return block ? this.funcall(block, 'call') : Qnil;
+  }
+});
+
+$.define_method($c.Array, 'delete_at', 1, function(self, index) {
+  index = this.to_int(index);
+
+  if(index >= self.length) {
+    return Qnil;
+  } else {
+    return self.splice(index, 1)[0];
+  }
+});
+
+$.define_method($c.Array, 'delete_if', 0, function(self) {
+  var block = this.block_lambda();
+
+  for(var i = 0; i < self.length; i++) {
+    if(this.test(this.funcall(block, 'call', self[i]))) {
+      self.splice(i, 1);
+      i--;
+    }
+  }
+
+  return self;
+});
+
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
     this.yield(self[i]);
