@@ -600,6 +600,7 @@ $.define_method($c.Array, 'slice', -1, function(self, args) {
     } else if(index.klass == $c.Range) {
       length = this.to_int(index.ivs['@end']) - (this.test(index.ivs['@excl']) ? 1 : 0);
       index  = this.to_int(index.ivs['@begin']);
+      length -= index;
     } else {
       this.raise($c.ArgumentError, "Array#slice requires one or two integers or Range as arguments");
     }
@@ -630,6 +631,7 @@ $.define_method($c.Array, 'slice!', -1, function(self, args) {
     } else if(index.klass == $c.Range) {
       length = this.to_int(index.ivs['@end']) - (this.test(index.ivs['@excl']) ? 1 : 0);
       index  = this.to_int(index.ivs['@begin']);
+      length -= index;
     } else {
       this.raise($c.ArgumentError, "Array#slice! requires one or two integers or Range as arguments");
     }
