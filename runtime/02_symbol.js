@@ -62,7 +62,7 @@ $.define_method($c.Symbol, 'to_sym', 0, function(self) {
 $.alias_method($c.Symbol, 'intern', 'to_sym');
 
 $.define_method($c.Symbol, 'to_proc', 0, function(self) {
-  throw "not implemented";
+  return this.proc_new(this.to_block(self));
 });
 
 $.define_singleton_method($c.Symbol, 'all_symbols', 0, function(self) {

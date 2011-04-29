@@ -16,8 +16,17 @@ $.define_method($c.Proc, 'initialize', 0, function(self) {
   if(!outer_sf.block)
     this.raise(this.e.ArgumentError, "tried to create Proc object without a block");
 
-  for(var name in outer_sf.block)
-    new_iseq[name] = outer_sf.block[name];
+  if(typeof outer_sf.block == "object") {
+    /* A regular InstructionSequence */
+    for(var name in outer_sf.block)
+      new_iseq[name] = outer_sf.block[name];
+  } else {
+    /* A JavaScript closure. The JS closures created in ColdRuby are always
+     * temporary (they're created either by $.to_block() or $.lambda(), so
+     * we just muck with existing instance.
+     */
+    new_iseq = outer_sf.block;
+  }
 
   self.iseq = new_iseq;
   self.iseq.stack_frame = outer_sf;

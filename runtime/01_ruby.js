@@ -876,6 +876,12 @@ var $ = {
       cref: sf.cref,
     };
 
+    iseq.info = {
+      args: {
+        argc: arg_count,
+      }
+    };
+
     iseq.stack_frame = sf;
     iseq.lambda = true;
 
@@ -1031,7 +1037,8 @@ var $ = {
     }
 
     if(typeof iseq == 'object') {
-      if(args.length < iseq.info.args.argc && (iseq.info.type == 'method' || iseq.lambda)) {
+      if((iseq.lambda || iseq.info.type == 'method') &&
+          args.length < iseq.info.args.argc) {
         throw "argument count mismatch: " + args.length + " < " + iseq.info.args.argc;
       }
 
@@ -1244,6 +1251,26 @@ var $ = {
    */
   to_float: function(value) {
     return this.check_convert_type(value, this.c.Float, 'to_f');
+  },
+
+  /*
+   * call-seq: to_block(value) -> InstructionSequence
+   *
+   * Converts +value+ to Ruby InstructionSequence.
+   * +value+ may be Proc or Symbol.
+   */
+  to_block: function(value) {
+    this.check_type(value, [$c.Proc, $c.Symbol]);
+
+    if(value.klass == $c.Symbol) {
+      var proc = function(self, x) {
+        return this.funcall(x, value);
+      };
+
+      return this.lambda(proc, 1);
+    } else {
+      return value.iseq;
+    }
   },
 
   /*
