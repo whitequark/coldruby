@@ -45,6 +45,7 @@ $.define_class('Symbol', null); // will be set up later
 $.define_method($c.Symbol, '==', 1, function(self, other) {
   return (other.klass == $c.Symbol && this.value == other.value) ? Qtrue : Qfalse;
 });
+$.alias_method($c.Symbol, '===', '==');
 
 $.define_method($c.Symbol, 'inspect', 0, function(self) {
   return this.string_new(":" + $.symbols[self.value]);
