@@ -444,6 +444,7 @@ void ColdRubyVM::formatException(v8::TryCatch *try_catch, ColdRuby *ruby) {
 
 bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_stream, ColdRubyStackTrace &stackTrace, 
 			    ColdRuby *ruby, int *frame_index, int flags, const std::string &variable_name) {
+	v8::HandleScope handle_scope;
 	int child_flags = (flags & ~NotArray) | RubyObject;
 	
 	if(val.IsEmpty()) {
@@ -499,10 +500,11 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 			info_stream << val->Int32Value();
 		} else if(val->IsNumber()) {
 			info_stream << val->NumberValue();
-		} else if(val->IsObject()) { // object is sort of catch-all, so place it before <unknown>
+				
+		} else if(val->IsObject()) { // object is sort of catch-all, so place it before <unknown>	
 			if(flags & ObjectIsFrame) {
 				bool frameFound = false;
-		
+
 				for(ColdRubyStackTrace::const_iterator it = stackTrace.begin(); it != stackTrace.end(); it++) {
 					const ColdRubyStackFrame &frame = *it;
 			
@@ -510,13 +512,13 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 						if(val == frame.frame()) {
 							frameFound = true;
 						
-							info_stream << "frame " << frame.frameNumber() << "";
+							info_stream << "frame " << frame.frameNumber();
 					
 							break;
 						}
 					}
 				}
-		
+
 				if(!frameFound) {
 					ColdRubyStackFrame frame;
 			
@@ -524,13 +526,14 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 			
 					iseq = v8::Handle<v8::Object>::Cast(val->ToObject()->Get(v8::String::New("iseq")));
 					info = v8::Handle<v8::Object>::Cast(iseq->Get(v8::String::New("info")));
-			
+								
 					buildRubyFrame(frame, info, iseq, val->ToObject(), --*frame_index);
 			
-					stackTrace.insert(stackTrace.end(), frame);
+					stackTrace.push_back(frame);
 			
 					info_stream << "frame " << *frame_index;
 				}
+	
 			} else if((flags & RubyObject) && ruby) {
 				try {
 					v8::Handle<v8::Object> obj = val->ToObject();
@@ -620,7 +623,7 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 				
 				info_stream << " }";
 			}
-		} else
+		} else			
 			info_stream << "<unknown>";
 	}
 	
@@ -652,7 +655,8 @@ void ColdRubyVM::buildRubyFrame(ColdRubyStackFrame &frame, v8::Handle<v8::Object
 
 bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
 	v8::Handle<v8::Object> context;
-
+	v8::HandleScope handle_scope;
+	
 	try {
 		context = ruby->pullObject("context");
 	} catch(const ColdRubyException &e) {
@@ -712,8 +716,8 @@ bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
 		do {
 			want_keys.push_back(v8::Handle<v8::String>(v8::String::New(m_dump_variables[i].variable)));
 		} while(!(m_dump_variables[i++].flags & LastVariable));
-		for(ColdRubyStackTrace::iterator it = stackTrace.begin(); it != stackTrace.end(); it++) {
-			ColdRubyStackFrame &frame = *it;
+		for(int j = 0; j < stackTrace.size(); j++) {
+			ColdRubyStackFrame frame = stackTrace.at(j);
 			
 			if(frame.frameNumber() != INT_MIN) {
 				
@@ -753,7 +757,9 @@ bool ColdRubyVM::unwindRubyStack(ColdRuby *ruby, std::string &trace) {
 					}
 				} while(!(m_dump_variables[i++].flags & LastVariable));	
 				
-				frame.setInfo(info_stream.str().c_str());
+				frame.setInfo(info_stream.str());
+				
+				stackTrace.at(j) = frame;
 			}
 			
 		}
