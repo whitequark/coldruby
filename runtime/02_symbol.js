@@ -65,11 +65,13 @@ $.define_method($c.Symbol, 'to_proc', 0, function(self) {
 });
 
 $.define_singleton_method($c.Symbol, 'all_symbols', 0, function(self) {
-  var keys = $.symbols.keys;
   var symbols = [];
-  for(var i = 0; i < keys.length; i++) {
-    symbols.push(this.string_new($.text2sym(keys[i])));
+
+  for(var id in $.symbols) {
+    if(id < 0)
+      symbols.push(this.id2sym(id));
   }
+
   return symbols;
 });
 
