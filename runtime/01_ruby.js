@@ -535,13 +535,13 @@ var $ = {
   check_type: function(arg, type) {
     if(type instanceof Array) {
       for(var i = 0; i < type.length; i++) {
-        if(this.obj_is_kind_of(arg, type[i]))
+        if(arg.klass == type[i])
           return arg;
       }
 
       this.raise(this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not expected");
     } else {
-      if(!this.obj_is_kind_of(arg, type))
+      if(arg.klass != type)
         this.raise(this.e.TypeError, "wrong argument type " + arg.klass.klass_name + " (expected " + type.klass_name + ")");
 
       return arg;
@@ -938,10 +938,8 @@ var $ = {
    * Checks if +class+ is +object+'s class or one of its ancestors.
    */
   obj_is_kind_of: function(object, c) {
+    this.check_type(c, [$c.Class, $c.Module]);
     var klass = object.klass;
-
-    if(!"klass_name" in c)
-      this.raise($e.ArgumentError, "Object#kind_of?: Module is expected");
 
     do {
       if(klass == c)
