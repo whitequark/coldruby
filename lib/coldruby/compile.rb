@@ -21,8 +21,6 @@ def compile(code, file, line)
   iseq = ColdRuby::ISeq.new(pool, ruby_iseq.to_a)
 
   if ColdRuby.debug
-    require 'pp'
-
     puts ">>>>>>>>>>>>> DISASSEMBLE"
     puts ruby_iseq.disasm
     puts
