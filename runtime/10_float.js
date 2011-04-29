@@ -1,4 +1,4 @@
-$.define_class('Float', $c.Object, true);
+$.define_class('Float', $c.Numeric, true);
 
 $.float_new = function(value) {
   return {
@@ -6,6 +6,10 @@ $.float_new = function(value) {
     value: value,
   };
 };
+
+$.define_method($c.Float, '==', 1, function(self, other) {
+  return (self.value == this.to_float(other).value) ? Qtrue : Qfalse;
+});
 
 $.define_method($c.Float, 'to_s', 0, function(self) {
   if(self.value == Math.floor(self.value)) {

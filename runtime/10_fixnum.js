@@ -8,8 +8,12 @@ $.define_method($c.Fixnum, 'to_f', 0, function(self) {
   return $.float_new(self);
 });
 
-$.define_method($c.Fixnum, '-@', 1, function(self) {
+$.define_method($c.Fixnum, '-@', 0, function(self) {
   return -self;
+});
+
+$.define_method($c.Fixnum, '==', 1, function(self, other) {
+  return (self == this.to_float(other).value) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Fixnum, '+', 1, function(self, other) {
