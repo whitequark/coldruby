@@ -833,7 +833,7 @@ var $ = {
    * Convert a block in current context to a proc.
    */
   block_proc: function() {
-    return this.funcall(this.internal_constants.Proc, 'new');
+    return this.proc_new();
   },
 
   /*
@@ -842,7 +842,7 @@ var $ = {
    * Convert a block in current context to a lambda.
    */
   block_lambda: function() {
-    var proc = this.funcall(this.internal_constants.Proc, 'new');
+    var proc = this.proc_new();
 
     proc.iseq.lambda = true;
 
