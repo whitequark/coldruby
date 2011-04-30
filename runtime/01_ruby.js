@@ -1073,11 +1073,12 @@ var $ = {
 
     new_sf.dynamic.push(new_sf);
     if(new_sf.outer) {
-      for(var i = 0; i < new_sf.outer.dynamic.length; i++) {
-        new_sf.dynamic.push(new_sf.outer.dynamic[i]);
+      var outer = new_sf.outer;
+      while(outer != null) {
+        new_sf.dynamic.push(outer);
+        new_sf.osf = outer;
+        outer = outer.outer;
       }
-
-      new_sf.osf = this.context.sf;
     } else {
       new_sf.osf = new_sf;
     }
