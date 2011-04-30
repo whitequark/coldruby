@@ -575,6 +575,14 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 
 						dumpObject(line, info_stream, stackTrace, ruby, frame_index, flags, std::string());
 
+						info_stream << ", `" << STD_STRING(info->Get(v8::String::New("func"))) << "'";
+
+						info_stream << ", at ";
+
+						v8::Handle<v8::Value> stack_frame = obj->Get(v8::String::New("stack_frame"));
+
+						dumpObject(stack_frame, info_stream, stackTrace, ruby, frame_index, ObjectIsFrame, std::string());
+
 						info_stream << " }";
 
 					} else {
