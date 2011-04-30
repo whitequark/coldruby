@@ -185,3 +185,39 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 	}
 }
 
+#define DO_RUBY_CALL(func, argc, ...) \
+	v8::HandleScope handle_scope; \
+	v8::Context::Scope context_scope(m_vm->m_context); \
+	v8::Handle<v8::Function> func = pullFunction(#func); \
+	v8::TryCatch try_catch; \
+	v8::Handle<v8::Value> args[] = { __VA_ARGS__ }; \
+	v8::Handle<v8::Value> ret = func->Call(m_ruby, argc, args); \
+	if(try_catch.HasCaught()) { \
+		m_vm->formatException(&try_catch, this); \
+		throw ColdRubyException(m_vm->errorString()); \
+	}
+	
+v8::Local<v8::Boolean> ColdRuby::gvar_defined(v8::Handle<v8::String> name) {
+	DO_RUBY_CALL(gvar_defined, 1, name);
+	
+	if(!ret->IsBoolean())
+		throw ColdRubyException("Internal error", "gvar_defined returned something other than boolean");
+	
+	return ret->ToBoolean();
+}
+
+
+void ColdRuby::gvar_alias(v8::Handle<v8::String> name, v8::Handle<v8::String> other) {
+	DO_RUBY_CALL(gvar_alias, 2, name, other)
+}
+
+v8::Local<v8::Value> ColdRuby::gvar_get(v8::Handle<v8::String> name) {
+	DO_RUBY_CALL(gvar_get, 1, name);
+	
+	return v8::Local<v8::Value>::New(ret);
+}
+
+void ColdRuby::gvar_set(v8::Handle<v8::String> name, v8::Handle<v8::Value> value) {
+	DO_RUBY_CALL(gvar_set, 2, name, value);
+}
+

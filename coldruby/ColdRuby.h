@@ -44,6 +44,12 @@ public:
 	v8::Handle<v8::Function> pullFunction(const char *name);
 	v8::Handle<v8::Object> pullObject(const char *name);
 
+// gvar functions
+	v8::Local<v8::Boolean> gvar_defined(v8::Handle<v8::String> name);
+	void gvar_alias(v8::Handle<v8::String> name, v8::Handle<v8::String> other);
+	v8::Local<v8::Value> gvar_get(v8::Handle<v8::String> name);
+	void gvar_set(v8::Handle<v8::String> name, v8::Handle<v8::Value> value);
+	
 private:
 	void setErrorString(const std::string &string);
 	
