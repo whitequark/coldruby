@@ -28,7 +28,7 @@ public:
 	ColdRubyException(std::string info = std::string());
 	ColdRubyException(std::string what, std::string info);
 	virtual ~ColdRubyException() throw();
-	
+
 	const std::string &exceptionInfo() const throw();
 	virtual const char *what() const throw();
 private:

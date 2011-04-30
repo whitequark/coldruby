@@ -29,28 +29,28 @@ public:
 
 	void parse(const std::string &line);
 	std::string rebuild();
-	
+
 	const std::string &file() const;
 	void setFile(const std::string &file);
-	
+
 	const std::string &function() const;
 	void setFunction(const std::string &function);
-	
+
 	const std::string &info() const;
 	void setInfo(const std::string &info);
-	
+
 	int line() const;
 	void setLine(int line);
-	
+
 	int column() const;
 	void setColumn(int column);
-	
+
 	int frameNumber() const;
 	void setFrameNumber(int number);
-	
+
 	v8::Handle<v8::Object> frame() const;
 	void setFrame(v8::Handle<v8::Object> frame);
-	
+
 private:
 	std::string m_file, m_function, m_info;
 	int m_line, m_column, m_frameNumber;

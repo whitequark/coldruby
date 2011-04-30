@@ -27,124 +27,124 @@ void MRIRubyCompiler::sysinit(int *argc, char ***argv) {
 
 int MRIRubyCompiler::initialize(int (*post_init)(RubyCompiler *compiler, void *arg), void *arg) {
 	RUBY_INIT_STACK;
-		
+
 	ruby_init();
-	
+
 	return post_init(this, arg);
 }
 
 bool MRIRubyCompiler::boot(const std::string &code, const std::string &file) {
 	std::string dummy;
 	compile_data_t boot = { this, code, file, dummy };
-	
+
 	int state;
-	
+
 	rb_protect(boot_protected_wrapper, (VALUE) &boot, &state);
-	
+
 	if(state != 0) {
 		mri_exception();
-		
+
 		return false;
 	}
-			
+
 	return true;
 }
 
 VALUE MRIRubyCompiler::boot_protected_wrapper(VALUE arg) {
 	compile_data_t *boot = (compile_data_t *) arg;
-	
+
 	boot->this_compiler->boot_protected(boot);
-	
+
 	return Qnil;
 }
 
-void MRIRubyCompiler::boot_protected(compile_data_t *boot) {	
+void MRIRubyCompiler::boot_protected(compile_data_t *boot) {
 	VALUE lib_path = rb_gv_get("$:");
 	rb_ary_push(lib_path, rb_str_new_cstr(COMPILER_ROOT));
 
 	VALUE code = rb_str_new(boot->code.data(), boot->code.length());
 	VALUE file = rb_str_new(boot->file.data(), boot->file.length());
-		
+
 	rb_funcall(Qnil, rb_intern("eval"), 4, code, Qnil, file, INT2FIX(1));
-			
+
 	VALUE runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 2, rb_str_new_cstr(RUNTIME_ROOT), Qfalse);
-	
+
 	m_runtime.resize(RARRAY_LEN(runtime));
-	
+
 	for(long i = 0; i < RARRAY_LEN(runtime); i++) {
 		VALUE item = rb_ary_entry(runtime, i);
-				
+
 		std::string filename = RSTRING_STD(rb_ary_entry(item, 0));
 		std::string code = RSTRING_STD(rb_ary_entry(item, 1));
-				
+
 		m_runtime[i] = ColdRubyRuntime(code, filename);
 	}
-	
+
 }
 
 void MRIRubyCompiler::mri_exception() {
 	std::ostringstream stream;
-	
+
 	const char *file = rb_sourcefile();
 	int line = rb_sourceline();
-	
+
 	if(file == 0)
 		stream << "<unknown>";
 	else
 		stream << file;
-	
+
 	if(line)
 		stream << ":" << line;
-	
-	stream << ": ";	
-	
+
+	stream << ": ";
+
 	VALUE exception = rb_gv_get("$!");
-	
+
 	VALUE exception_class = rb_class_path(CLASS_OF(exception));
-	
+
 	if(TYPE(exception_class) == T_STRING) {
 		stream << RSTRING_STD(exception_class);
 	} else {
 		stream << "[invalid exception class]";
 	}
-		
+
 	VALUE message = rb_obj_as_string(exception);
-	
+
 	stream << ": " << RSTRING_STD(message);
-	
+
 	setErrorString(stream.str());
 }
 
 bool MRIRubyCompiler::compile(const std::string &code, const std::string &file, std::string &js) {
 	compile_data_t compile = { this, code, file, js };
-	
+
 	int state;
-	
+
 	rb_protect(compile_protected_wrapper, (VALUE) &compile, &state);
-	
+
 	if(state != 0) {
 		mri_exception();
-		
+
 		return false;
 	}
-			
+
 	return true;
 }
 
 VALUE MRIRubyCompiler::compile_protected_wrapper(VALUE arg) {
 	compile_data_t *compile = (compile_data_t *) arg;
-	
+
 	compile->this_compiler->compile_protected(compile);
-	
+
 	return Qnil;
 }
 
 void MRIRubyCompiler::compile_protected(compile_data_t *data) {
 	VALUE code = rb_str_new(data->code.data(), data->code.length());
 	VALUE file = rb_str_new(data->file.data(), data->file.length());
-	
+
 	VALUE js = rb_funcall(Qnil, rb_intern("compile"), 3, code, file, INT2FIX(1));
-	
+
 	data->js = RSTRING_STD(js);
 }
 

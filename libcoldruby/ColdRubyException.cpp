@@ -20,15 +20,15 @@
 #include "ColdRubyException.h"
 
 ColdRubyException::ColdRubyException(std::string info) : m_what("Uncaught exception"), m_info(info) {
-	
+
 }
 
 ColdRubyException::ColdRubyException(std::string what, std::string info) : m_what(what), m_info(info) {
-	
+
 }
 
 ColdRubyException::~ColdRubyException() throw() {
-	
+
 }
 
 const std::string &ColdRubyException::exceptionInfo() const throw() {

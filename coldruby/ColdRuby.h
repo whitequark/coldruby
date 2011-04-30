@@ -30,17 +30,17 @@ class ColdRuby {
 public:
 	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
 	virtual ~ColdRuby();
-	
+
 	v8::Handle<v8::Object> ruby() const;
-	
+
 	std::vector<std::string> searchPath();
 	void setSearchPath(std::vector<std::string> path);
-	
+
 	void run(const std::string &code, const std::string &file);
 	void run(const std::string &file);
-	
+
 	const std::string &errorString() const;
-	
+
 	v8::Handle<v8::Function> pullFunction(const char *name);
 	v8::Handle<v8::Object> pullObject(const char *name);
 
@@ -49,13 +49,13 @@ public:
 	void gvar_alias(v8::Handle<v8::String> name, v8::Handle<v8::String> other);
 	v8::Local<v8::Value> gvar_get(v8::Handle<v8::String> name);
 	void gvar_set(v8::Handle<v8::String> name, v8::Handle<v8::Value> value);
-	
+
 private:
 	void setErrorString(const std::string &string);
-	
+
 	ColdRubyVM *m_vm;
 	v8::Persistent<v8::Object> m_ruby;
-	
+
 	std::string m_errorString;
 };
 

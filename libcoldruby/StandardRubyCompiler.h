@@ -34,7 +34,7 @@
 class StandardRubyCompiler: public RubyCompiler {
 public:
 	virtual bool boot(const std::string &code, const std::string &file) = 0;
-	
+
 	/** \brief Метод для загрузки кода компилятора из файла.
 	 *
 	 * Читает содержимое файла file, а затем вызывает метод boot для
@@ -44,9 +44,9 @@ public:
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
 	virtual bool boot(const std::string &file);
-	
+
 	virtual bool compile(const std::string &code, const std::string &file, std::string &js) = 0;
-	
+
 	/** \brief Метод для компиляции кода на Ruby из файла.
 	 *
 	 * Загружает код из файла file и вызывает compile для компиляции кода.
@@ -68,7 +68,7 @@ protected:
 	 *
 	 * \param msg Описание ошибки, которое следует возвращать при
 	 *            последующих вызовах \ref errorString.
-	 */ 
+	 */
 	void setErrorString(const std::string &msg);
 
 private:

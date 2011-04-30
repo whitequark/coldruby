@@ -22,30 +22,30 @@
 
 void ColdRubyStackTrace::parse(const std::string &trace) {
 	std::istringstream stream(trace);
-	
+
 	clear();
-	
+
 	while(!stream.eof()) {
 		std::string line;
-		
+
 		std::getline(stream, line);
-		
+
 		if(line.length() == 0)
 			break;
-		
+
 		ColdRubyStackFrame frame;
 		frame.parse(line);
-		
+
 		push_back(frame);
 	}
 }
 
 std::string ColdRubyStackTrace::rebuild() {
 	std::ostringstream stream;
-	
-	for(ColdRubyStackTrace::iterator it = begin(); it != end(); it++) {		
+
+	for(ColdRubyStackTrace::iterator it = begin(); it != end(); it++) {
 		stream << (*it).rebuild() << "\n";
 	}
-	
+
 	return stream.str();
 }

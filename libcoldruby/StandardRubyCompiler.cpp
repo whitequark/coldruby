@@ -24,61 +24,61 @@
 
 bool StandardRubyCompiler::boot(const std::string &file) {
 	FILE *source = fopen(file.c_str(), "rb");
-	
+
 	if(source == NULL) {
 		setErrorString(strerror(errno));
-		
+
 		return false;
 	}
-	
+
 	fseek(source, 0, SEEK_END);
-	
+
 	long size = ftell(source);
-	
+
 	rewind(source);
-	
+
 	char *content = new char[size];
-	
+
 	fread(content, 1, size, source);
-	
+
 	size_t bytes_read = 0;
-	
+
 	fclose(source);
-	
+
 	std::string line;
 	line.assign(content, size);
-	
+
 	delete[] content;
-		
+
 	return boot(line, file);
 }
 
 bool StandardRubyCompiler::compile(const std::string &file, std::string &js) {
 	FILE *source = fopen(file.c_str(), "rb");
-	
+
 	if(source == NULL) {
 		setErrorString(strerror(errno));
-		
+
 		return false;
 	}
-	
+
 	fseek(source, 0, SEEK_END);
-	
+
 	long size = ftell(source);
-	
+
 	rewind(source);
-	
+
 	char *content = new char[size + 1];
 	content[size] = 0;
-	
+
 	fread(content, 1, size, source);
-	
+
 	fclose(source);
-	
+
 	std::string line(content, size);
-	
+
 	delete[] content;
-	
+
 	return compile(content, file, js);
 }
 

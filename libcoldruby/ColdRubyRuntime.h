@@ -40,7 +40,7 @@ public:
 	 * \param file Имя файла рантайма для отладочной информации.
 	 */
 	ColdRubyRuntime(std::string code = std::string(), std::string file = std::string()) : m_code(code), m_file(file) {
-		
+
 	}
 
 	/** \brief Метод для получения кода рантайма.
@@ -48,7 +48,7 @@ public:
 	 * \return Код рантайма.
 	 */
 	inline const std::string &code() const { return m_code; }
-	
+
 	/** \brief Метод для получения имени файла рантайма.
 	 *
 	 * \return Имя файла рантайма.

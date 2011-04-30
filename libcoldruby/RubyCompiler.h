@@ -55,7 +55,7 @@ public:
 
 	/** \brief Пустой конструктор класса. */
 	RubyCompiler() {}
-	
+
 	/** \brief Пустой виртуальный деструктор класса. */
 	virtual ~RubyCompiler() {}
 
@@ -87,7 +87,7 @@ public:
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
 	virtual bool boot(const std::string &code, const std::string &file) = 0;
-	
+
 	/** \brief Метод для загрузки кода компилятора из файла.
 	 *
 	 * Выполняет действие, аналогичное load(file) Ruby, но без поиска файла
@@ -113,7 +113,7 @@ public:
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
 	virtual bool compile(const std::string &code, const std::string &file, std::string &js) = 0;
-	
+
 	/** \brief Метод для компиляции кода на Ruby из файла.
 	 *
 	 * Компилирует код, находящий в файле file, в JavaScript и помещает его в переменную js.
@@ -121,7 +121,7 @@ public:
 	 * \param file Файл, в котором находится код.
 	 * \param js Ссылка на строку, куда будет помещен скомпилированный код.
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
-	 */	
+	 */
 	virtual bool compile(const std::string &file, std::string &js) = 0;
 
 	/** \brief Метод для получения описания ошибки.
@@ -129,7 +129,7 @@ public:
 	 * \return Строку с описанием последней ошибки.
 	 */
 	virtual const std::string &errorString() const = 0;
-	
+
 	/** \brief Метод для получения кода рантайма.
 	 *
 	 * \return Код рантайма на JavaScript.

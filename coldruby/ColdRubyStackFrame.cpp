@@ -24,7 +24,7 @@
 #include "ColdRubyStackFrame.h"
 
 ColdRubyStackFrame::ColdRubyStackFrame() : m_line(0), m_column(0), m_frameNumber(INT_MIN) {
-	
+
 }
 
 const std::string &ColdRubyStackFrame::file() const {
@@ -34,7 +34,7 @@ const std::string &ColdRubyStackFrame::file() const {
 void ColdRubyStackFrame::setFile(const std::string &file) {
 	m_file = file;
 }
-	
+
 const std::string &ColdRubyStackFrame::function() const {
 	return m_function;
 }
@@ -86,10 +86,10 @@ void ColdRubyStackFrame::setFrame(v8::Handle<v8::Object> frame) {
 
 void ColdRubyStackFrame::parse(const std::string &trace_line) {
 	std::string line = trace_line.substr(7);
-	
+
 	int sep = line.find(' ');
 	std::string location;
-	
+
 	if(sep == -1) {
 		location = line;
 		m_function.clear();
@@ -97,10 +97,10 @@ void ColdRubyStackFrame::parse(const std::string &trace_line) {
 		location = line.substr(sep + 2, line.length() - sep - 3);
 		m_function = line.substr(0, sep);
 	}
-	
-	
+
+
 	int sep_1 = location.find(':'), sep_2 = location.rfind(':');
-	
+
 	m_file = location.substr(0, sep_1);
 	m_line = atoi(location.substr(sep_1 + 1, sep_2 - sep_1 - 1).c_str());
 	m_column = atoi(location.substr(sep_2 + 1).c_str());
@@ -108,33 +108,33 @@ void ColdRubyStackFrame::parse(const std::string &trace_line) {
 
 std::string ColdRubyStackFrame::rebuild() {
 	std::ostringstream stream;
-	
+
 	stream << "   ";
-	
+
 	if(m_frameNumber != INT_MIN)
 		stream << "frame " << m_frameNumber << " ";
 	else
 		stream << "native  ";
-	
+
 	stream << "at ";
-	
+
 	if(m_function.length() > 0) {
 		stream << m_function << " (" << m_file << ':' << m_line;
-		
+
 		if(m_column)
 			stream << ':' << m_column;
-		
+
 		stream << ')';
 	} else {
 		stream << m_file << ':' << m_line;
-		
+
 		if(m_column)
 			stream << ':' << m_column;
 	}
-	
+
 	if(m_info.length() > 0) {
 		stream << " {\n" << m_info << "\n   }";
 	}
-	
+
 	return stream.str();
 }

@@ -33,28 +33,28 @@ public:
 		DumpRubyFrame = 0x01,
 		DumpRubyStack = 0x02
 	};
-	
+
 	ColdRubyVM();
 	virtual ~ColdRubyVM();
-	
+
 	static int debugFlags();
 	static void setDebugFlags(int flags);
-	
+
 	static void cleanup();
 
 	bool initialize(RubyCompiler *compiler);
 	RubyCompiler *compiler() const;
-	
+
 	ColdRuby *createRuby();
-	
+
 	const std::string &errorString();
-	
+
 private:
 	friend class ColdRuby;
-	
+
 	bool runRubyJS(ColdRuby *ruby, const std::string &code, const std::string &file);
 	bool evaluate(const std::string &file, v8::Handle<v8::Value> &ret);
-	bool evaluate(const std::string &code, const std::string &file, 
+	bool evaluate(const std::string &code, const std::string &file,
 		      v8::Handle<v8::Value> &ret);
 	void formatException(v8::TryCatch *try_catch, ColdRuby *ruby = 0);
 	bool unwindRubyStack(ColdRuby *ruby, std::string &trace);
@@ -64,7 +64,7 @@ private:
 			ColdRuby *ruby, int *frame_index, int flags, const std::string &variable_name);
 	void buildRubyFrame(ColdRubyStackFrame &frame, v8::Handle<v8::Object> info, v8::Handle<v8::Object> iseq,
 			    v8::Handle<v8::Object> sf, int frame_index);
-	
+
 	std::string m_errorString;
 	v8::Persistent<v8::Context> m_context;
 	bool m_initialized;

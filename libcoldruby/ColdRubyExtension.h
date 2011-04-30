@@ -39,7 +39,7 @@
 	int COLDRUBY_EXT_DLLSPEC coldruby_extension_abi() { \
 		return COLDRUBY_EXTENSION_ABI; \
 	}
-	
+
 class ColdRuby;
 
 class ColdRubyExtension {

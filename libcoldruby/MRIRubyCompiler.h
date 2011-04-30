@@ -51,8 +51,8 @@ class MRIRubyCompiler: public StandardRubyCompiler {
 		const std::string &code;
 		const std::string &file;
 		std::string &js;
-	} compile_data_t;	
-	
+	} compile_data_t;
+
 public:
 	/** \brief Метод для инициализации аргументов командной строки MRI.
 	 *
@@ -64,7 +64,7 @@ public:
 	 * \param argv Указатель на массив C-строк, содержащих аргументы.
 	 */
 	static void sysinit(int *argc, char ***argv);
-		
+
 	/** \brief Метод для инициализации стека.
 	 *
 	 * Инициализирует стек макросом RUBY_INIT_STACK, MRI функцией
@@ -82,21 +82,21 @@ public:
 	 * \return Значение, возвращенное post_init.
 	 */
 	virtual int initialize(post_init_t post_init, void *arg);
-	
+
 	virtual bool boot(const std::string &code, const std::string &file);
 
 	virtual bool compile(const std::string &code, const std::string &file, std::string &js);
-	
+
 	virtual const std::vector<ColdRubyRuntime> &runtime() const;
 private:
 	static VALUE boot_protected_wrapper(VALUE arg);
 	static VALUE compile_protected_wrapper(VALUE arg);
-	
+
 	void boot_protected(compile_data_t *data);
 	void compile_protected(compile_data_t *data);
-	
+
 	void mri_exception();
-	
+
 	std::vector<ColdRubyRuntime> m_runtime;
 };
 
