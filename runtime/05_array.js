@@ -148,6 +148,10 @@ $.define_method($c.Array, 'clear', 0, function(self) {
   return self;
 });
 
+$.define_method($c.Array, 'concat', 1, function(self, other) {
+  return this.funcall(self, 'replace', self.concat(other));
+});
+
 $.define_method($c.Array, 'compact', 0, function(self) {
   var result = [];
 
