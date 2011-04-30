@@ -17,8 +17,10 @@
 
 noinst_LIBRARIES = libcoldruby.a
 libcoldruby_a_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp \
-	ColdRubyException.cpp
+	ColdRubyException.cpp ColdRuby.cpp ColdRubyVM.cpp \
+	ColdRubyStackFrame.cpp ColdRubyStackTrace.cpp
 noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h \
-	ColdRubyRuntime.h ColdRubyException.h
+	ColdRubyRuntime.h ColdRubyException.h ColdRuby.h ColdRubyVM.h  \
+	ColdRubyStackFrame.h ColdRubyStackTrace.h 
 libcoldruby_a_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\"" ${MRI_CPPFLAGS}
