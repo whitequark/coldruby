@@ -310,7 +310,7 @@ module ColdRuby
         end
 
         if (options & VM_CALL_ARGS_BLOCKARG_BIT) != 0
-          code.unshift %Q{var block = #{POP}.iseq;}
+          code.unshift %Q{var block = this.to_block(#{POP});}
           args << ', block'
         end
 
