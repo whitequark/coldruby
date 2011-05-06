@@ -456,13 +456,13 @@ var $ = {
     }
   },
 
-  find_method: function(object, method, super, search_klass) {
+  find_method: function(object, method, superobject, search_klass) {
     var func = null;
 
     if(object != null) {
       var klass;
 
-      if(!search_klass && !super) {
+      if(!search_klass && !superobject) {
         func = this.find_method(object.singleton_klass, method, false, true);
 
         if(func == null && object.klass == this.internal_constants.Class &&
@@ -477,7 +477,7 @@ var $ = {
         }
       }
 
-      klass = search_klass ? object : (super ? super.superklass : object.klass);
+      klass = search_klass ? object : (superobject ? superobject.superklass : object.klass);
 
       while(func == null && klass != null) {
         if(func == null && klass.instance_methods)
@@ -754,13 +754,13 @@ var $ = {
       }
 
       var c_method = this.any2id(sf.iseq.info.func);
-      var super = sf.super || c_receiver.klass;
+      var superobj = sf['super'] || c_receiver.klass;
     } else {
       var c_method = this.any2id(method);
-      var super = null;
+      var superobj = null;
     }
 
-    func = this.find_method(c_receiver, c_method, super);
+    func = this.find_method(c_receiver, c_method, superobj);
 
     if(func == undefined) {
       if(method) {
@@ -779,7 +779,7 @@ var $ = {
 
     var sf_opts = {
       block: block,
-      super: super ? super.superklass : undefined,
+      'super': superobj ? superobj.superklass : undefined,
 
       self: c_receiver,
       ddef: func.context.ddef,
@@ -790,11 +790,11 @@ var $ = {
   },
 
   /*
-   * call-seq: super(...) -> value
+   * call-seq: super1(...) -> value
    *
    * Call a superclass method. Arguments are interpreted as a vararg list.
    */
-  super: function() {
+  super1: function() {
     return this.funcall2(null, null, arguments);
   },
 
