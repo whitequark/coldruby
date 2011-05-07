@@ -106,12 +106,12 @@ def get_runtime(directory, epilogue_type=nil)
   epilogue = ""
   case epilogue_type
     when 'global-ruby'
-      epilogue << "ruby = $.create_ruby();"
+      epilogue << "ruby = $.create_ruby();\n"
     when 'nodejs'
-      epilogue << "module.exports = $.create_ruby();"
+      epilogue << "module.exports = $.create_ruby();\n"
       epilogue << CONSOLE_LOG_PUTS
     when 'browser'
-      epilogue << "ruby = $.create_ruby();"
+      epilogue << "ruby = $.create_ruby();\n"
       epilogue << CONSOLE_LOG_PUTS
     when nil
     else
