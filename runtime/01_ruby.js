@@ -290,6 +290,10 @@ var $ = {
     return klass;
   },
 
+  define_module_under: function(module, name) {
+    return this.define_module(name, module);
+  },
+
   define_class: function(name, superklass) {
     return this.define_class_under(null, name, superklass);
   },
