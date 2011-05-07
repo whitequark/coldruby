@@ -76,7 +76,7 @@ module ColdRuby
     TOP    = 'sf.stack[sf.sp - 1]'
     SYMBOL = lambda { |opcode, symbol|
                       opcode.pool.register_symbol(symbol);
-                      %Q{this.id2sym(this.symbols[#{symbol.object_id}])}
+                      %Q{this.id2sym(symbols[#{symbol.object_id}])}
                     }
 
     # Here I'd like to express my appreciation to everyone who has thoroughly documented
@@ -334,7 +334,7 @@ module ColdRuby
           @pool.register_symbol method
 
           code << %Q[var ret = this.funcall2(#{receiver}, ] +
-                  %Q[this.symbols[#{method.object_id}], #{args}, ] +
+                  %Q[symbols[#{method.object_id}], #{args}, ] +
                   %Q[#{(options & VM_CALL_VCALL_BIT) != 0});]
         elsif type == :invokeblock
           code << %Q[var ret = this.yield2(#{args});]

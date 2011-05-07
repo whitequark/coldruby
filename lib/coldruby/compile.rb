@@ -30,12 +30,13 @@ def compile(code, file, line)
 
   compiled = <<-EPILOGUE
 (function(ruby) {
-  var iseq = #{code};
-
-  var new_symbols = #{pool.symbols};
-  for(var k in new_symbols) {
-    ruby.symbols[k] = parseInt(ruby.text2sym(new_symbols[k]).value);
+  var symbols = {};
+  var local_symbols = #{pool.symbols};
+  for(var k in local_symbols) {
+    symbols[k] = parseInt(ruby.text2sym(local_symbols[k]).value);
   }
+
+  var iseq = #{code};
 
   var sf_opts = {
     self: ruby.toplevel,
