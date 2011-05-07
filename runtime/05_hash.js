@@ -62,36 +62,39 @@ $.define_method($c.Hash, '[]=', 2, function(self, key, value) {
 $.alias_method($c.Hash, 'store', '[]=');
 
 $.define_method($c.Hash, 'each', 0, function(self) {
-  for(var hash in self.keys) {
+  for(var hash in self.keys)
     this.yield(self.keys[hash], self.values[hash]);
-  }
+
+  return self;
 });
 $.alias_method($c.Hash, 'each_pair', 'each');
 
 $.define_method($c.Hash, 'each_key', 0, function(self) {
-  for(var hash in self.keys) {
+  for(var hash in self.keys)
     this.yield(self.keys[hash]);
-  }
+
+  return self;
 });
 
 $.define_method($c.Hash, 'each_value', 0, function(self) {
-  for(var hash in self.keys) {
+  for(var hash in self.keys)
     this.yield(self.keys[hash]);
-  }
+
+  return self;
 });
 
 $.define_method($c.Hash, 'empty?', 0, function(self) {
-  for(var hash in self.keys) {
+  for(var hash in self.keys)
     return Qfalse;
-  }
+
   return Qtrue;
 });
 
 $.define_method($c.Hash, 'length', 0, function(self) {
   var count = 0;
-  for(var hash in self.keys) {
+  for(var hash in self.keys)
     count += 1;
-  }
+
   return count;
 });
 $.alias_method($c.Hash, 'size', 'length');
@@ -107,9 +110,9 @@ $.alias_method($c.Hash, 'key?',     'has_key?');
 
 $.define_method($c.Hash, 'keys', 0, function(self) {
   var keys = [];
-  for(var hash in self.keys) {
+  for(var hash in self.keys)
     keys.push(self.keys[hash]);
-  }
+
   return keys;
 });
 
@@ -118,15 +121,16 @@ $.define_method($c.Hash, 'has_value?', 0, function(self, value) {
     if($.test(this.funcall(self.values[hash], '==', [value])))
       return Qtrue;
   }
+
   return Qfalse;
 });
 $.alias_method($c.Hash, 'value?', 'has_value?');
 
 $.define_method($c.Hash, 'values', 0, function(self) {
   var values = [];
-  for(var hash in self.values) {
+  for(var hash in self.values)
     values.push(self.values[hash]);
-  }
+
   return values;
 });
 
@@ -156,6 +160,7 @@ $.define_method($c.Hash, 'delete_if', 0, function(self) {
       delete self.values[key];
     }
   }
+
   return self;
 });
 
@@ -178,5 +183,6 @@ $.define_method($c.Hash, 'inspect', 0, function(self) {
     desc += '=>';
     desc += this.funcall(self.values[hash], 'inspect').value;
   }
+
   return this.string_new('{' + desc + '}');
 });
