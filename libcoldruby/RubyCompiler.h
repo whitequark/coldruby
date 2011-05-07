@@ -86,7 +86,7 @@ public:
 	 * \param file Файл, откуда был загружен код (передается в переменную __FILE__).
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
-	virtual bool boot(const std::string &code, const std::string &file) = 0;
+	virtual bool boot(const std::string &code, const std::string &file, const std::string &epilogue) = 0;
 
 	/** \brief Метод для загрузки кода компилятора из файла.
 	 *
@@ -101,7 +101,7 @@ public:
 	 * \param file Файл, откуда следует загрузить код.
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
-	virtual bool boot(const std::string &file) = 0;
+	virtual bool boot(const std::string &file, const std::string &epilogue) = 0;
 
 	/** \brief Метод для компиляции кода на Ruby.
 	 *
@@ -112,7 +112,7 @@ public:
 	 * \param js Ссылка на строку, куда будет помещен скомпилированный код.
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
-	virtual bool compile(const std::string &code, const std::string &file, std::string &js) = 0;
+	virtual bool compile(const std::string &code, const std::string &file, std::string &js, const std::string &epilogue) = 0;
 
 	/** \brief Метод для компиляции кода на Ruby из файла.
 	 *
@@ -122,7 +122,7 @@ public:
 	 * \param js Ссылка на строку, куда будет помещен скомпилированный код.
 	 * \return true в случае успеха, false и сообщение об ошибке в \ref errorString в случае ошибки.
 	 */
-	virtual bool compile(const std::string &file, std::string &js) = 0;
+	virtual bool compile(const std::string &file, std::string &js, const std::string &epilogue) = 0;
 
 	/** \brief Метод для получения описания ошибки.
 	 *

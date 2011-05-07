@@ -41,7 +41,7 @@ void ColdRuby::run(const std::string &code, const std::string &file) {
 
 	RubyCompiler *compiler = m_vm->compiler();
 
-	if(compiler->compile(code, file, js) == false)
+	if(compiler->compile(code, file, js, std::string()) == false)
 		throw ColdRubyException("Compilation failed", compiler->errorString());
 
 	if(m_vm->runRubyJS(this, js, file) == false)
@@ -53,7 +53,7 @@ void ColdRuby::run(const std::string &file) {
 
 	RubyCompiler *compiler = m_vm->compiler();
 
-	if(compiler->compile(file, js) == false)
+	if(compiler->compile(file, js, std::string()) == false)
 		throw ColdRubyException("Compilation failed", m_vm->errorString());
 
 	if(m_vm->runRubyJS(this, js, file) == false)

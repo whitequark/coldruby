@@ -33,9 +33,9 @@ int MRIRubyCompiler::initialize(int (*post_init)(RubyCompiler *compiler, void *a
 	return post_init(this, arg);
 }
 
-bool MRIRubyCompiler::boot(const std::string &code, const std::string &file) {
+bool MRIRubyCompiler::boot(const std::string &code, const std::string &file, const std::string &epilogue) {
 	std::string dummy;
-	compile_data_t boot = { this, code, file, dummy };
+	compile_data_t boot = { this, code, file, dummy, epilogue };
 
 	int state;
 
@@ -67,7 +67,12 @@ void MRIRubyCompiler::boot_protected(compile_data_t *boot) {
 
 	rb_funcall(Qnil, rb_intern("eval"), 4, code, Qnil, file, INT2FIX(1));
 
-	VALUE runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 2, rb_str_new_cstr(RUNTIME_ROOT), Qfalse);
+	VALUE runtime;
+
+	if(boot->epilogue.empty())
+		runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 1, rb_str_new_cstr(RUNTIME_ROOT));
+	else
+		runtime = rb_funcall(Qnil, rb_intern("get_runtime"), 2, rb_str_new_cstr(RUNTIME_ROOT), rb_str_new_cstr(boot->epilogue.c_str()));
 
 	m_runtime.resize(RARRAY_LEN(runtime));
 
@@ -115,8 +120,8 @@ void MRIRubyCompiler::mri_exception() {
 	setErrorString(stream.str());
 }
 
-bool MRIRubyCompiler::compile(const std::string &code, const std::string &file, std::string &js) {
-	compile_data_t compile = { this, code, file, js };
+bool MRIRubyCompiler::compile(const std::string &code, const std::string &file, std::string &js, const std::string &epilogue) {
+	compile_data_t compile = { this, code, file, js, epilogue };
 
 	int state;
 
@@ -143,7 +148,12 @@ void MRIRubyCompiler::compile_protected(compile_data_t *data) {
 	VALUE code = rb_str_new(data->code.data(), data->code.length());
 	VALUE file = rb_str_new(data->file.data(), data->file.length());
 
-	VALUE js = rb_funcall(Qnil, rb_intern("compile"), 3, code, file, INT2FIX(1));
+	VALUE js;
+
+	if(data->epilogue.empty())
+		js = rb_funcall(Qnil, rb_intern("compile"), 3, code, file, INT2FIX(1));
+	else
+		js = rb_funcall(Qnil, rb_intern("compile"), 4, code, file, INT2FIX(1), rb_str_new_cstr(data->epilogue.c_str()));
 
 	data->js = RSTRING_STD(js);
 }

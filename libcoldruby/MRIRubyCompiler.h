@@ -51,6 +51,7 @@ class MRIRubyCompiler: public StandardRubyCompiler {
 		const std::string &code;
 		const std::string &file;
 		std::string &js;
+		const std::string &epilogue;
 	} compile_data_t;
 
 public:
@@ -83,9 +84,9 @@ public:
 	 */
 	virtual int initialize(post_init_t post_init, void *arg);
 
-	virtual bool boot(const std::string &code, const std::string &file);
+	virtual bool boot(const std::string &code, const std::string &file, const std::string &epilogue);
 
-	virtual bool compile(const std::string &code, const std::string &file, std::string &js);
+	virtual bool compile(const std::string &code, const std::string &file, std::string &js, const std::string &epilogue);
 
 	virtual const std::vector<ColdRubyRuntime> &runtime() const;
 private:

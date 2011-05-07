@@ -15,16 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-include aminclude.am
-
-EXTRA_DIST = GPL generate-gitfiles.sh $(DX_CONFIG) doc/html
-SUBDIRS = libcoldruby coldruby coldruby-static lib runtime stdlib ext
-MOSTLYCLEANFILES = $(DX_CLEANFILES)
-ACLOCAL_AMFLAGS = -I m4
-
-if DX_COND_html
-$(DX_DOCDIR)/html: doxygen-run
-endif
-
-dist-hook:
-	sh $(top_srcdir)/generate-gitfiles.sh $(top_srcdir) $(distdir)
+bin_PROGRAMS = coldruby-static
+coldruby_static_SOURCES = main.cpp
+coldruby_static_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
+	-DRUNTIME_ROOT="\"$(runtimedir)\"" -I../libcoldruby ${MRI_CPPFLAGS} \
+	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""
+coldruby_static_LDADD = ../libcoldruby/libcoldruby.a ${MRI_LIBS}

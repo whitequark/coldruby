@@ -159,6 +159,7 @@ AC_CONFIG_FILES([
 	Makefile
 	libcoldruby/Makefile
 	coldruby/Makefile
+	coldruby-static/Makefile
 	lib/Makefile
 	runtime/Makefile
 	stdlib/Makefile

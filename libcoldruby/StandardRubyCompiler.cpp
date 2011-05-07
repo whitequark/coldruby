@@ -22,7 +22,7 @@
 #include <errno.h>
 #include "StandardRubyCompiler.h"
 
-bool StandardRubyCompiler::boot(const std::string &file) {
+bool StandardRubyCompiler::boot(const std::string &file, const std::string &epilogue) {
 	FILE *source = fopen(file.c_str(), "rb");
 
 	if(source == NULL) {
@@ -50,10 +50,10 @@ bool StandardRubyCompiler::boot(const std::string &file) {
 
 	delete[] content;
 
-	return boot(line, file);
+	return boot(line, file, epilogue);
 }
 
-bool StandardRubyCompiler::compile(const std::string &file, std::string &js) {
+bool StandardRubyCompiler::compile(const std::string &file, std::string &js, const std::string &epilogue) {
 	FILE *source = fopen(file.c_str(), "rb");
 
 	if(source == NULL) {
@@ -79,7 +79,7 @@ bool StandardRubyCompiler::compile(const std::string &file, std::string &js) {
 
 	delete[] content;
 
-	return compile(content, file, js);
+	return compile(content, file, js, epilogue);
 }
 
 const std::string &StandardRubyCompiler::errorString() const {

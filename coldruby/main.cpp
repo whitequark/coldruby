@@ -31,23 +31,14 @@
 #include <config.h>
 #endif
 
-enum InitFlag {
-	FlagBare = (1 << 0)
-};
-
 typedef struct {
-	int flags;
 	int debugFlags;
 	std::string content;
 	std::string filename;
 	std::vector<std::string> args;
-	std::string static_out;
 } init_data_t;
 
 static const struct option longopts[] = {
-	{ "static", optional_argument, NULL, 's' },
-	{ "bare", no_argument, NULL, 'B' },
-
 	{ "version", no_argument, NULL, 'v' },
 	{ "help", no_argument, NULL, 'h' },
 
@@ -61,9 +52,6 @@ static void usage(const char *app) {
 static void help(const char *app) {
 	printf("Usage: %s [switches] [--] [programfile] [arguments]\n"
 	"  -e 'command'         one line of script. Several -e's allowed. Omit [programfile]\n"
-	"  -s, --static=[FILE]  static mode: compile only, do not run. If FILE is not specified,\n"
-	"                       output to stdout.\n"
-	"  -B, --bare           do not include runtime or top-level wrapper into generated code.\n"
 	"  -d                   enable virtual machine debugging.\n"
 	"  -h, --help           print this text\n"
 	"  -v, --version        print the version\n"
@@ -78,115 +66,59 @@ static void version() {
 static int post_compiler(RubyCompiler *compiler, void *arg) {
 	init_data_t *init = (init_data_t *) arg;
 
-	if(compiler->boot(COMPILER_ROOT "/coldruby/compile.rb") == false) {
+	if(compiler->boot(COMPILER_ROOT "/coldruby/compile.rb", std::string()) == false) {
 		fprintf(stderr, "coldruby: compiler boot failed: %s\n", compiler->errorString().c_str());
 
 		return 1;
 	}
 
-	if(!init->static_out.empty()) {
-		std::string js;
+	ColdRubyVM::setDebugFlags(init->debugFlags);
 
-		if(!compiler->compile(init->content, init->filename, js)) {
-			fprintf(stderr, "coldruby: compile: %s\n", compiler->errorString().c_str());
+	atexit(ColdRubyVM::cleanup);
 
-			return 1;
-		}
+	ColdRubyVM vm;
 
-		FILE *dest;
+	if(vm.initialize(compiler) == false) {
+		fprintf(stderr, "coldruby: vm.initialize: %s\n", vm.errorString().c_str());
 
-		if(!(init->flags & FlagBare)) {
-			const std::vector<ColdRubyRuntime> &runtime =
-				compiler->runtime();
-
-			std::string runtime_str;
-
-			for(std::vector<ColdRubyRuntime>::const_iterator it =
-				runtime.begin(); it != runtime.end(); it++) {
-
-				runtime_str += "/* Runtime: " +
-					(*it).file() + " */\n";
-
-				runtime_str += (*it).code();
-			}
-
-			js = runtime_str + js;
-		}
-
-		if(init->static_out == "-")
-			dest = stdout;
-		else {
-			dest = fopen(init->static_out.c_str(), "w");
-
-			if(dest == NULL) {
-				fprintf(stderr, "coldruby: %s: %s\n", init->static_out.c_str(), strerror(errno));
-
-				return 1;
-			}
-		}
-
-		fputs(js.c_str(), dest);
-
-		int is_error = ferror(dest), errno_copy = errno;
-
-		if(dest != stdout);
-			fclose(dest);
-
-		if(is_error) {
-			fprintf(stderr, "coldruby: %s: %s\n", init->static_out.c_str(), strerror(errno_copy));
-
-			return 1;
-		} else
-			return 0;
-	} else {
-		ColdRubyVM::setDebugFlags(init->debugFlags);
-
-		atexit(ColdRubyVM::cleanup);
-
-		ColdRubyVM vm;
-
-		if(vm.initialize(compiler) == false) {
-			fprintf(stderr, "coldruby: vm.initialize: %s\n", vm.errorString().c_str());
-
-			return 1;
-		}
-
-
-		ColdRuby *ruby = vm.createRuby();
-
-		if(ruby == NULL) {
-			fprintf(stderr, "coldruby: ruby creation failed: %s\n", vm.errorString().c_str());
-
-			return 1;
-		}
-
-		try {
-			std::vector<std::string> path;
-
-			path.push_back(STDLIB_ROOT);
-			path.push_back(EXTENSION_ROOT);
-
-			ruby->setSearchPath(path);
-
-			ruby->run(init->content, init->filename);
-		} catch(const ColdRubyException &e) {
-			fprintf(stderr, "coldruby: %s\n", e.what());
-
-			std::string info = e.exceptionInfo();
-
-			if(info.length() > 0) {
-				fputs(info.c_str(), stderr);
-				fputc('\n', stderr);
-			}
-
-
-			return 1;
-		}
-
-		delete ruby;
-
-		return 0;
+		return 1;
 	}
+
+
+	ColdRuby *ruby = vm.createRuby();
+
+	if(ruby == NULL) {
+		fprintf(stderr, "coldruby: ruby creation failed: %s\n", vm.errorString().c_str());
+
+		return 1;
+	}
+
+	try {
+		std::vector<std::string> path;
+
+		path.push_back(STDLIB_ROOT);
+		path.push_back(EXTENSION_ROOT);
+
+		ruby->setSearchPath(path);
+
+		ruby->run(init->content, init->filename);
+	} catch(const ColdRubyException &e) {
+		fprintf(stderr, "coldruby: %s\n", e.what());
+
+		std::string info = e.exceptionInfo();
+
+		if(info.length() > 0) {
+			fputs(info.c_str(), stderr);
+			fputc('\n', stderr);
+		}
+
+
+		return 1;
+	}
+
+	delete ruby;
+
+	return 0;
 }
 
 static bool load_file(const char *filename, std::string &content, std::string &error) {
@@ -210,6 +142,8 @@ static bool load_file(const char *filename, std::string &content, std::string &e
 	while(fgets(buf, 8192, file) != 0)
 		content += std::string(buf);
 
+	delete buf;
+
 	if(ferror(file)) {
 		error = std::string(strerror(errno));
 
@@ -228,10 +162,10 @@ int main(int argc, char *argv[]) {
 	MRIRubyCompiler::sysinit(&argc, &argv);
 	std::vector<std::string> execute;
 
-	init_data_t init = { 0, 0 };
+	init_data_t init = { 0 };
 	int debugRepeats = 0;
 
-	while((ret = getopt_long(argc, argv, "+vhe:s::Bd", longopts, &longidx)) != -1) {
+	while((ret = getopt_long(argc, argv, "+vhe:d", longopts, &longidx)) != -1) {
 		switch(ret) {
 		case '?':
 		case ':':
@@ -254,18 +188,6 @@ int main(int argc, char *argv[]) {
 
 			break;
 
-		case 's':
-			if(optarg)
-				init.static_out = optarg;
-			else
-				init.static_out = "-";
-
-			break;
-
-		case 'B':
-			init.flags |= FlagBare;
-
-			break;
 
 		case 'd':
 			init.debugFlags |= (1 << debugRepeats++);
