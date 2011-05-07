@@ -28,7 +28,14 @@ def compile(code, file, line, epilogue=nil)
 
   code = iseq.compile
 
-  compiled = <<-CODE
+  case epilogue
+    when 'nodejs'
+      compiled = "var ruby = require('ruby');\n"
+    else
+      compiled = ""
+  end
+
+  compiled.append <<-CODE
 (function(ruby) {
   var symbols = {};
   var local_symbols = #{pool.symbols};
@@ -48,7 +55,7 @@ def compile(code, file, line, epilogue=nil)
   CODE
 
   case epilogue
-    when 'global-ruby'
+    when 'global-ruby', 'nodejs'
       compiled << '})(ruby);'
     when nil
       compiled << '});'
@@ -89,6 +96,21 @@ def get_runtime(directory, epilogue=nil)
     case epilogue
       when 'global-ruby'
         runtime << "ruby = $.create_ruby();"
+      when 'nodejs'
+        runtime.append <<-EPILOGUE
+$.define_method($c.Kernel, "puts", -1, function(self, args) {
+  if(args.length < 1)
+    args.push("");
+  args = this.to_ary(args);
+
+  for(var i = 0; i < args.length; i++)
+    console.log(this.to_str(args[i]).value);
+
+  return Qnil;
+});
+
+module.exports = $.create_ruby();
+        EPILOGUE
       when nil
       else
         raise "Unknown epilogue type #{epilogue}"
