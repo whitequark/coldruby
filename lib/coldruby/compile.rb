@@ -14,7 +14,7 @@ CompilerOptions = {
   :stack_caching            => false,
 }
 
-def compile(code, file, line)
+def compile(code, file, line, epilogue=nil)
   ruby_iseq = RubyVM::InstructionSequence.compile code, file, nil, line, CompilerOptions
 
   pool = ColdRuby::Pool.new
@@ -28,7 +28,14 @@ def compile(code, file, line)
 
   code = iseq.compile
 
-  compiled = <<-EPILOGUE
+  case epilogue
+    when 'nodejs'
+      compiled = "var ruby = require('ruby');\n"
+    else
+      compiled = ""
+  end
+
+  compiled.append <<-CODE
 (function(ruby) {
   var symbols = {};
   var local_symbols = #{pool.symbols};
@@ -45,8 +52,16 @@ def compile(code, file, line)
   };
 
   ruby.execute(sf_opts, iseq, []);
-});
-  EPILOGUE
+  CODE
+
+  case epilogue
+    when 'global-ruby', 'nodejs', 'browser'
+      compiled << '})(ruby);'
+    when nil
+      compiled << '});'
+    else
+      raise "Unknown epilogue type #{epilogue}"
+  end
 
   if ColdRuby.debug
     puts ">>>>>>>>>>>>> COMPILE"
@@ -57,7 +72,20 @@ def compile(code, file, line)
   compiled
 end
 
-def get_runtime(directory, plaintext=false)
+CONSOLE_LOG_PUTS = <<-CODE
+$.define_method($c.Kernel, "puts", -1, function(self, args) {
+  if(args.length < 1)
+    args.push("");
+  args = this.to_ary(args);
+
+  for(var i = 0; i < args.length; i++)
+    console.log(this.to_str(args[i]).value);
+
+  return Qnil;
+});
+CODE
+
+def get_runtime(directory, epilogue=nil)
   runtime = []
   Dir[File.join(directory, '*.js')].sort.each do |runtime_file|
     # Preprocess
@@ -72,15 +100,25 @@ def get_runtime(directory, plaintext=false)
       end
     }
 
-    if plaintext
-      runtime_part = ''
-      runtime_part << "/* Runtime: #{runtime_file} */\n\n" if plaintext
-      runtime_part << lines.join
-      runtime_part << "\n\n"
-      runtime << runtime_part
-    else
-      runtime << [File.basename(runtime_file), lines.join]
+    runtime_part = ''
+    runtime_part << "/* Runtime: #{runtime_file} */\n\n" if plaintext
+    runtime_part << lines.join
+    runtime_part << "\n\n"
+    runtime << runtime_part
+
+    case epilogue
+      when 'global-ruby'
+        runtime << "ruby = $.create_ruby();"
+      when 'nodejs'
+        runtime << "module.exports = $.create_ruby();"
+        runtime << CONSOLE_LOG_PUTS
+      when 'browser'
+        runtime << "ruby = $.create_ruby();"
+        runtime << CONSOLE_LOG_PUTS
+      when nil
+      else
+        raise "Unknown epilogue type #{epilogue}"
     end
   end
-  runtime
+  runtime.join
 end
