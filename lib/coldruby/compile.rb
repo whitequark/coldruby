@@ -101,7 +101,7 @@ def get_runtime(directory, epilogue=nil)
     }
 
     runtime_part = ''
-    runtime_part << "/* Runtime: #{runtime_file} */\n\n" if plaintext
+    runtime_part << "/* Runtime: #{runtime_file} */\n\n"
     runtime_part << lines.join
     runtime_part << "\n\n"
     runtime << runtime_part
