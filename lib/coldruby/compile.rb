@@ -35,7 +35,7 @@ def compile(code, file, line, epilogue=nil)
       compiled = ""
   end
 
-  compiled.append <<-CODE
+  compiled.concat <<-CODE
 (function(ruby) {
   var symbols = {};
   var local_symbols = #{pool.symbols};
