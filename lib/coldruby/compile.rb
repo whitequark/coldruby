@@ -85,7 +85,7 @@ $.define_method($c.Kernel, "puts", -1, function(self, args) {
 });
 CODE
 
-def get_runtime(directory, epilogue=nil)
+def get_runtime(directory, epilogue_type=nil)
   runtime = []
   Dir[File.join(directory, '*.js')].sort.each do |runtime_file|
     # Preprocess
@@ -100,25 +100,25 @@ def get_runtime(directory, epilogue=nil)
       end
     }
 
-    runtime_part = ''
-    runtime_part << "/* Runtime: #{runtime_file} */\n\n"
-    runtime_part << lines.join
-    runtime_part << "\n\n"
-    runtime << runtime_part
-
-    case epilogue
-      when 'global-ruby'
-        runtime << "ruby = $.create_ruby();"
-      when 'nodejs'
-        runtime << "module.exports = $.create_ruby();"
-        runtime << CONSOLE_LOG_PUTS
-      when 'browser'
-        runtime << "ruby = $.create_ruby();"
-        runtime << CONSOLE_LOG_PUTS
-      when nil
-      else
-        raise "Unknown epilogue type #{epilogue}"
-    end
+    runtime << [ File.basename(runtime_file), lines.join ]
   end
+
+  epilogue = ""
+  case epilogue_type
+    when 'global-ruby'
+      epilogue << "ruby = $.create_ruby();"
+    when 'nodejs'
+      epilogue << "module.exports = $.create_ruby();"
+      epilogue << CONSOLE_LOG_PUTS
+    when 'browser'
+      epilogue << "ruby = $.create_ruby();"
+      epilogue << CONSOLE_LOG_PUTS
+    when nil
+    else
+      raise "Unknown epilogue type #{epilogue}"
+  end
+
+  runtime << [ "<internal:epilogue>", epilogue ]
+
   runtime
 end
