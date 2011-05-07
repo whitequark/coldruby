@@ -26,4 +26,5 @@ libtool
 .deps
 .libs
 coldruby/coldruby
+coldruby-static/coldruby-static
 ext/extensions
