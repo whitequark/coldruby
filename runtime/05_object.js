@@ -1,4 +1,5 @@
 $.define_method($c.Object, 'initialize', 0, function(self) {
+  return Qnil;
 });
 
 $.define_method($c.Object, 'method_missing', -1, function(self, args) {
