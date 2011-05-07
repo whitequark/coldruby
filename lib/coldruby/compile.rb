@@ -120,5 +120,5 @@ def get_runtime(directory, epilogue=nil)
         raise "Unknown epilogue type #{epilogue}"
     end
   end
-  runtime.join
+  runtime
 end
