@@ -23,7 +23,7 @@ $.define_method($c.Class, 'allocate', 0, function(self) {
 
 $.define_method($c.Class, 'new', -1, function(self, args) {
   var object = this.funcall(self, 'allocate');
-  this.funcall2(object, 'initialize', args);
+  this.funcall2(object, 'initialize', args, this.context.sf.block);
 
   return object;
 });
