@@ -55,7 +55,7 @@ def compile(code, file, line, epilogue=nil)
   CODE
 
   case epilogue
-    when 'global-ruby', 'nodejs'
+    when 'global-ruby', 'nodejs', 'browser'
       compiled << '})(ruby);'
     when nil
       compiled << '});'
@@ -71,6 +71,19 @@ def compile(code, file, line, epilogue=nil)
 
   compiled
 end
+
+CONSOLE_LOG_PUTS = <<-CODE
+$.define_method($c.Kernel, "puts", -1, function(self, args) {
+  if(args.length < 1)
+    args.push("");
+  args = this.to_ary(args);
+
+  for(var i = 0; i < args.length; i++)
+    console.log(this.to_str(args[i]).value);
+
+  return Qnil;
+});
+CODE
 
 def get_runtime(directory, epilogue=nil)
   runtime = []
@@ -97,20 +110,11 @@ def get_runtime(directory, epilogue=nil)
       when 'global-ruby'
         runtime << "ruby = $.create_ruby();"
       when 'nodejs'
-        runtime.append <<-EPILOGUE
-$.define_method($c.Kernel, "puts", -1, function(self, args) {
-  if(args.length < 1)
-    args.push("");
-  args = this.to_ary(args);
-
-  for(var i = 0; i < args.length; i++)
-    console.log(this.to_str(args[i]).value);
-
-  return Qnil;
-});
-
-module.exports = $.create_ruby();
-        EPILOGUE
+        runtime << "module.exports = $.create_ruby();"
+        runtime << CONSOLE_LOG_PUTS
+      when 'browser'
+        runtime << "ruby = $.create_ruby();"
+        runtime << CONSOLE_LOG_PUTS
       when nil
       else
         raise "Unknown epilogue type #{epilogue}"
