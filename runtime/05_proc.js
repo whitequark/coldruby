@@ -1,17 +1,17 @@
 $.define_class('Proc');
 
-$.proc_new = function(iseq) {
-  return {
-    klass: $c.Proc,
-    iseq:  iseq,
-  }
+$.proc_new = function() {
+  var proc = { klass: $c.Proc };
+  this.funcall(proc, 'initialize');
+
+  return proc;
 }
 
 $.define_method($c.Proc, 'initialize', 0, function(self) {
   var new_iseq = {}, sf;
 
   // Proc#initialize->Proc.new->caller
-  var outer_sf = (this.context.sf.outer || this.context.sf.osf).parent.parent;
+  var outer_sf = this.context.sf.parent.osf;
 
   if(!outer_sf.block)
     this.raise(this.e.ArgumentError, "tried to create Proc object without a block");
@@ -29,7 +29,7 @@ $.define_method($c.Proc, 'initialize', 0, function(self) {
   }
 
   self.iseq = new_iseq;
-  self.iseq.stack_frame = outer_sf;
+  self.iseq.stack_frame = outer_sf.parent;
 
   if(self.iseq.lambda == undefined) {
     self.iseq.lambda = false;

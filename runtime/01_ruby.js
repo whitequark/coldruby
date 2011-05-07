@@ -269,7 +269,7 @@ var $ = {
   },
 
   /* === CLASSES AND MODULES === */
-  define_module: function(name, self_klass) {
+  define_module: function(name, under, self_klass) {
     var klass = {
       klass_name:        name,
       klass:             self_klass || this.internal_constants.Module,
@@ -279,13 +279,23 @@ var $ = {
       instance_methods:  {},
       ivs:               {},
     };
-    this.constants[this.any2id(name)] = klass;
-    this.internal_constants[name]     = klass;
+
+    if(under == null) {
+      this.internal_constants[name] = klass;
+      under = this;
+    }
+
+    under.constants[this.any2id(name)] = klass;
+
     return klass;
   },
 
   define_class: function(name, superklass) {
-    var module = this.define_module(name, this.internal_constants.Class);
+    return this.define_class_under(null, name, superklass);
+  },
+
+  define_class_under: function(module, name, superklass) {
+    var module = this.define_module(name, module, this.internal_constants.Class);
     module.superklass = superklass || this.internal_constants.Object;
     return module;
   },
@@ -456,13 +466,13 @@ var $ = {
     }
   },
 
-  find_method: function(object, method, super, search_klass) {
+  find_method: function(object, method, superobject, search_klass) {
     var func = null;
 
     if(object != null) {
       var klass;
 
-      if(!search_klass && !super) {
+      if(!search_klass && !superobject) {
         func = this.find_method(object.singleton_klass, method, false, true);
 
         if(func == null && object.klass == this.internal_constants.Class &&
@@ -477,7 +487,7 @@ var $ = {
         }
       }
 
-      klass = search_klass ? object : (super ? super.superklass : object.klass);
+      klass = search_klass ? object : (superobject ? superobject.superklass : object.klass);
 
       while(func == null && klass != null) {
         if(func == null && klass.instance_methods)
@@ -754,13 +764,13 @@ var $ = {
       }
 
       var c_method = this.any2id(sf.iseq.info.func);
-      var super = sf.super || c_receiver.klass;
+      var superobj = sf['super'] || c_receiver.klass;
     } else {
       var c_method = this.any2id(method);
-      var super = null;
+      var superobj = null;
     }
 
-    func = this.find_method(c_receiver, c_method, super);
+    func = this.find_method(c_receiver, c_method, superobj);
 
     if(func == undefined) {
       if(method) {
@@ -779,7 +789,7 @@ var $ = {
 
     var sf_opts = {
       block: block,
-      super: super ? super.superklass : undefined,
+      'super': superobj ? superobj.superklass : undefined,
 
       self: c_receiver,
       ddef: func.context.ddef,
@@ -790,11 +800,11 @@ var $ = {
   },
 
   /*
-   * call-seq: super(...) -> value
+   * call-seq: super1(...) -> value
    *
    * Call a superclass method. Arguments are interpreted as a vararg list.
    */
-  super: function() {
+  super1: function() {
     return this.funcall2(null, null, arguments);
   },
 
@@ -833,7 +843,7 @@ var $ = {
    * Convert a block in current context to a proc.
    */
   block_proc: function() {
-    return this.funcall(this.internal_constants.Proc, 'new');
+    return this.proc_new();
   },
 
   /*
@@ -842,7 +852,7 @@ var $ = {
    * Convert a block in current context to a lambda.
    */
   block_lambda: function() {
-    var proc = this.funcall(this.internal_constants.Proc, 'new');
+    var proc = this.proc_new();
 
     proc.iseq.lambda = true;
 
@@ -1073,11 +1083,12 @@ var $ = {
 
     new_sf.dynamic.push(new_sf);
     if(new_sf.outer) {
-      for(var i = 0; i < new_sf.outer.dynamic.length; i++) {
-        new_sf.dynamic.push(new_sf.outer.dynamic[i]);
+      var outer = new_sf.outer;
+      while(outer != null) {
+        new_sf.dynamic.push(outer);
+        new_sf.osf = outer;
+        outer = outer.outer;
       }
-
-      new_sf.osf = this.context.sf;
     } else {
       new_sf.osf = new_sf;
     }
