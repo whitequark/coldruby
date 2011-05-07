@@ -100,7 +100,7 @@ static bool write_file(const std::string &file, const std::string &content, std:
 
 	if(!ret)
 		error = strerror(errno);
-		
+
 	if(target != stdout)
 		fclose(target);
 	else
@@ -113,7 +113,7 @@ static bool load_file(const std::string &filename, std::string &content, std::st
 	FILE *file;
 	bool ret = true;
 
-	if(filename == "-") 
+	if(filename == "-")
 		file = stdin;
 	else {
 		file = fopen(filename.c_str(), "r");
@@ -188,7 +188,7 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 		std::string compiled, error;
 
 		if(!(init->flags & FlagBare)) {
-			compiled = compile_runtime(compiler);	
+			compiled = compile_runtime(compiler);
 		}
 
 		if(init->execute.empty()) {
@@ -207,7 +207,7 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 					return 1;
 				}
 
-				compiled += js;				
+				compiled += js;
 
 
 			}
@@ -261,6 +261,7 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case 'E':
+			init.flags |= FlagBare;
 			init.epilogue = optarg;
 
 			break;
