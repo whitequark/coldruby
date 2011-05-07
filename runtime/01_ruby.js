@@ -1044,6 +1044,8 @@ var $ = {
     args = [];
     for(var i = 0; i < old_args.length; i++) {
       args.push(old_args[i]);
+      if(args[i] == null || args[i].klass == undefined)
+        throw new Error("argument " + i + " (" + args[i] + ") does not look like Ruby object");
     }
 
     if(typeof iseq == 'object') {
@@ -1185,6 +1187,9 @@ var $ = {
     } else {
       try {
         var retval = iseq.call(this, new_sf.self, args);
+
+        if(retval == null || retval.klass == undefined)
+          throw new Error("return value (" + retval + ") does not look like Ruby object");
       } catch(e) {
         var type = null;
         if(e.hasOwnProperty('op')) {
