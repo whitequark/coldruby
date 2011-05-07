@@ -878,6 +878,8 @@ var $ = {
       };
     } else if(arg_count == -1) {
       iseq = closure;
+    } else {
+      throw new Error("lambda with incorrect argument count");
     }
 
     iseq.context = {
