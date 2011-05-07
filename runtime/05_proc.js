@@ -34,6 +34,8 @@ $.define_method($c.Proc, 'initialize', 0, function(self) {
   if(self.iseq.lambda == undefined) {
     self.iseq.lambda = false;
   }
+
+  return Qnil;
 });
 
 $.define_method($c.Proc, 'call', -1, function(self, args) {
