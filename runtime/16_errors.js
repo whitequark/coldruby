@@ -18,6 +18,8 @@ $.define_method($e.NameError, 'initialize', -1, function(self, args) {
   this.super1(args[0]);
 
   self.ivs['@name'] = args[1];
+
+  return Qnil;
 });
 
 $.define_class('NoMethodError', $e.NameError);
@@ -27,6 +29,8 @@ $.define_method($e.NoMethodError, 'initialize', -1, function(self, args) {
   this.super1(args[0], args[1]);
 
   self.ivs['@args'] = args[2] || Qnil;
+
+  return Qnil;
 });
 
 $.define_class('ScriptError',         $e.StandardError);
@@ -44,6 +48,8 @@ $.define_method($e.SystemExit, 'initialize', -1, function(self, args) {
   this.super1('exit');
 
   self.ivs['@status'] = this.to_int(args[0] || 0);
+
+  return Qnil;
 });
 $.define_method($e.SystemExit, 'success?', 0, function(self) {
   return self.ivs['@status'] == 0 ? Qtrue : Qfalse;

@@ -11,6 +11,8 @@ $.define_method($e.Exception, 'initialize', -1, function(self, args) {
   }
 
   self.ivs['@backtrace'] = Qnil;
+
+  return Qnil;
 });
 
 $.define_method($e.Exception, '==', 1, function(self, other) {
@@ -29,6 +31,8 @@ $.attr('reader', $e.Exception, ['backtrace', 'message']);
 
 $.define_method($e.Exception, 'set_backtrace', 1, function(self, trace) {
   self.ivs['@backtrace'] = trace;
+
+  return Qnil;
 });
 
 $.define_singleton_method($e.Exception, 'exception', -1, function(self, args) {
