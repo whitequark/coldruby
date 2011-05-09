@@ -269,7 +269,11 @@ var $ = {
   },
 
   /* === CLASSES AND MODULES === */
-  define_module: function(name, under, self_klass) {
+  define_module: function(name) {
+    return this.define_module_under(null, name);
+  },
+
+  define_module_under: function(under, name, self_klass) {
     var klass = {
       klass_name:        name,
       klass:             self_klass || this.internal_constants.Module,
@@ -290,16 +294,12 @@ var $ = {
     return klass;
   },
 
-  define_module_under: function(module, name) {
-    return this.define_module(name, module);
-  },
-
   define_class: function(name, superklass) {
     return this.define_class_under(null, name, superklass);
   },
 
   define_class_under: function(module, name, superklass) {
-    var module = this.define_module(name, module, this.internal_constants.Class);
+    var module = this.define_module_under(module, name, this.internal_constants.Class);
     module.superklass = superklass || this.internal_constants.Object;
     return module;
   },
