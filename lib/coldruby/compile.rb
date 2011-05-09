@@ -30,7 +30,12 @@ def compile(code, file, line, epilogue=nil)
 
   case epilogue
     when 'nodejs'
-      compiled = "var ruby = require('ruby');\n"
+      compiled = <<END
+var ruby = require('ruby');
+require('ruby/nodejs');
+
+ruby.protect_node(function() {
+END
     else
       compiled = ""
   end
@@ -55,8 +60,13 @@ def compile(code, file, line, epilogue=nil)
   CODE
 
   case epilogue
-    when 'global-ruby', 'nodejs', 'browser'
+    when 'global-ruby', 'browser'
       compiled << '})(ruby);'
+    when 'nodejs'
+      compiled << <<END
+})(ruby);
+})();
+END
     when nil
       compiled << '});'
     else

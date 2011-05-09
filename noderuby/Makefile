@@ -1,5 +1,5 @@
 run: runtime hello_ruby.js
-	node server.js
+	node hello_ruby.js
 
 hello_ruby.js: nodejs-rack.js
 
@@ -8,3 +8,6 @@ hello_ruby.js: nodejs-rack.js
 
 runtime:
 	coldruby-static -Enodejs -Rnode_modules/ruby.js
+
+clean:
+	rm *.js
