@@ -504,6 +504,27 @@ var $ = {
     return func;
   },
 
+  code_location: function() {
+    var sf = this.context.sf, iseq = sf.iseq;
+
+    if(iseq.info != null) {
+      var line = iseq.info.line;
+      if(sf.line != null)
+        line = sf.line;
+
+      return iseq.info.file + ":" + line;
+    }
+
+    return "<unknown>:0";
+  },
+
+  warn: function(message) {
+    message = this.code_location() + ": warning: " + message;
+
+    this.funcall(this.context.sf.self, 'puts',
+            this.string_new(message));
+  },
+
   obj_infect: function(object, source) {
     // implement tainting here
   },
