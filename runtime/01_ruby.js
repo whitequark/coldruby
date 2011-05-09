@@ -149,7 +149,7 @@ var $ = {
 
     if(scope.constants[name] != undefined) {
       var strname = this.id2text(name);
-      //this.raise2(this.e.NameError, ["Constant " + strname + " is already defined", strname]);
+      this.warn("Constant " + strname + " is already defined");
     }
 
     scope.constants[name] = value;
