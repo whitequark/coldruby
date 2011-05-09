@@ -1,3 +1,5 @@
+require 'nodejs/http'
+
 server = NodeJS::HTTP::Server.new
 
 server.on 'request' do |req, resp|
