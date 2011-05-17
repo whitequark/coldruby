@@ -42,8 +42,8 @@ $.define_method($c.Range, 'eql?', 1, function(self, other) {
 });
 
 $.define_method($c.Range, 'to_s', 0, function(self) {
-  var begin = this.to_str(self.ivs['@begin']).value;
-  var end   = this.to_str(self.ivs['@end']).value;
+  var begin = this.funcall(self.ivs['@begin'], 'to_s').value;
+  var end   = this.funcall(self.ivs['@end'], 'to_s').value;
   begin += $.test(self.ivs['@excl']) ? '...' : '..';
   begin += end;
   $.obj_infect(begin, end);
