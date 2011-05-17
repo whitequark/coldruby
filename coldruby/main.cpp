@@ -26,6 +26,7 @@
 #include "ColdRubyVM.h"
 #include "ColdRubyException.h"
 #include "ColdRuby.h"
+#include <v8-debug.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -33,6 +34,7 @@
 
 typedef struct {
 	int debugFlags;
+	int debugPort;
 	std::string content;
 	std::string filename;
 	std::vector<std::string> args;
@@ -52,7 +54,8 @@ static void usage(const char *app) {
 static void help(const char *app) {
 	printf("Usage: %s [switches] [--] [programfile] [arguments]\n"
 	"  -e 'command'         one line of script. Several -e's allowed. Omit [programfile]\n"
-	"  -d                   enable virtual machine debugging.\n"
+	"  -d                   enable virtual machine debugging\n"
+	"  -D port              enable V8 debugger\n"
 	"  -h, --help           print this text\n"
 	"  -v, --version        print the version\n"
 	"\n"
@@ -91,6 +94,12 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 		fprintf(stderr, "coldruby: ruby creation failed: %s\n", vm.errorString().c_str());
 
 		return 1;
+	}
+
+	if(init->debugPort != 0) {
+		fprintf(stderr, "coldruby: waiting for V8 debugger connection on port %d\n",
+						init->debugPort);
+		v8::Debug::EnableAgent("coldruby", init->debugPort, true);
 	}
 
 	try {
@@ -165,7 +174,7 @@ int main(int argc, char *argv[]) {
 	init_data_t init = { 0 };
 	int debugRepeats = 0;
 
-	while((ret = getopt_long(argc, argv, "+vhe:d", longopts, &longidx)) != -1) {
+	while((ret = getopt_long(argc, argv, "+vheD:d", longopts, &longidx)) != -1) {
 		switch(ret) {
 		case '?':
 		case ':':
@@ -188,6 +197,10 @@ int main(int argc, char *argv[]) {
 
 			break;
 
+		case 'D':
+			init.debugPort = atoi(optarg);
+
+			break;
 
 		case 'd':
 			init.debugFlags |= (1 << debugRepeats++);
