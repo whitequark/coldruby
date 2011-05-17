@@ -75,3 +75,21 @@ $.define_method($c.BasicObject, 'method_missing', -1, function(self, args) {
             this.context.last_call_type) ]);
   }
 });
+
+$.define_method($c.BasicObject, 'instance_exec', -1, function(self, args) {
+  var sf = this.context.sf;
+
+  var sf_opts = {
+    self: sf.self,
+    ddef: sf.ddef,
+    cref: sf.cref,
+
+    outer: sf,
+  };
+
+  return this.execute(sf_opts, sf.block, args);
+});
+
+$.define_method($c.BasicObject, 'instance_eval', -1, function(self) {
+  return this.funcall2(self, 'instance_exec', [], this.context.sf.block);
+});
