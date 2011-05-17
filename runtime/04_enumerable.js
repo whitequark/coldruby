@@ -27,6 +27,8 @@ $.define_method($c.Enumerable, 'any?', 0, function(self) {
       retval = Qtrue;
       this.iter_break();
     }
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -47,6 +49,8 @@ $.define_method($c.Enumerable, 'all?', 0, function(self) {
       retval = Qfalse;
       this.iter_break();
     }
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -59,6 +63,8 @@ $.define_method($c.Enumerable, 'map', 0, function(self) {
 
   var iterator = function(self, object) {
     result.push(this.funcall(block, 'call', object));
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -83,6 +89,8 @@ $.define_method($c.Enumerable, 'count', -1, function(self, args) {
       if(this.test(this.funcall(block, 'call', object)))
         count++;
     } else count++;
+
+    return Qnil;
   }
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -100,6 +108,8 @@ $.define_method($c.Enumerable, 'drop', 1, function(self, n) {
     } else if(n == 0) {
       result.push(object);
     } else this.iter_break();
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -119,6 +129,8 @@ $.define_method($c.Enumerable, 'drop_while', 0, function(self) {
 
     if(!do_drop)
       result.push(object);
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -132,6 +144,8 @@ $.define_method($c.Enumerable, 'each_with_index', -1, function(self, args) {
   var iterator = function(self, object) {
     this.funcall(block, 'call', object, index);
     index++;
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', args, this.lambda(iterator, 1));
@@ -145,6 +159,8 @@ $.define_method($c.Enumerable, 'each_with_object', 1, function(self, memo) {
   var iterator = function(self, args) {
     args.push(memo);
     this.funcall2(block, 'call', args);
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, -1));
@@ -164,6 +180,8 @@ $.define_method($c.Enumerable, 'cycle', -1, function(self, args) {
 
   var iterator = function(self, object) {
     this.funcall(block, 'call', object);
+
+    return Qnil;
   };
 
   while(n == Qnil || n > 0) {
@@ -188,6 +206,8 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
       memo = obj;
       this.iter_break();
     }
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -210,6 +230,8 @@ $.define_method($c.Enumerable, 'find_all', 0, function(self, args) {
   var iterator = function(self, object) {
     if(this.test(this.funcall(block, 'call', object)))
       result.push(object);
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -233,6 +255,8 @@ $.define_method($c.Enumerable, 'find_index', -1, function(self, args) {
     }
 
     index++;
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -249,6 +273,8 @@ $.define_method($c.Enumerable, 'first', -1, function(self, args) {
     var iterator = function(self, object) {
       elem = object;
       this.iter_break();
+
+      return Qnil;
     };
 
     this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -263,6 +289,8 @@ $.define_method($c.Enumerable, 'first', -1, function(self, args) {
       if(count < 0) this.iter_break();
 
       array.push(object);
+
+      return Qnil;
     };
 
     this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -285,6 +313,8 @@ $.define_method($c.Enumerable, 'group_by', 0, function(self) {
     }
 
     array.push(object);
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -300,6 +330,8 @@ $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
       retval = Qtrue;
       this.iter_break();
     }
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -331,6 +363,8 @@ $.define_method($c.Enumerable, 'inject', -1, function(self, args) {
     } else {
       initial = this.funcall(initial, sym, object);
     }
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
@@ -345,6 +379,8 @@ $.define_method($c.Enumerable, 'reject', 0, function(self, args) {
   var iterator = function(self, object) {
     if(!this.test(this.funcall(block, 'call', object)))
       result.push(object);
+
+    return Qnil;
   };
 
   this.funcall2(self, 'each', [], this.lambda(iterator, 1));
