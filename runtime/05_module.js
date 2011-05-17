@@ -61,7 +61,7 @@ $.define_method($c.Module, 'define_method', -1, function(self, args) {
   this.check_type(name, [$c.String, $c.Symbol]);
 
   if(!method) {
-    method = this.funcall(this.c.Proc, 'new');
+    method = this.block_proc();
   } else {
     this.check_type(method, $c.Proc);
   }
