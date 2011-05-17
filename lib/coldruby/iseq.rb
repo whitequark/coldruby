@@ -152,7 +152,7 @@ function() {
       INFO
       elems += chunks.map { |chunk| "  #{chunk.id}: #{chunk.to_js}" }
 
-      pad = "  " + "  " * @level
+      pad = "  " * @level
       output = "{\n#{elems.join ",\n"}\n}"
 
       output.gsub(/^/, pad).lstrip

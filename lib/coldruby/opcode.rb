@@ -132,7 +132,7 @@ module ColdRuby
           raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
         end
       when :putiseq
-        %Q{#{PUSH} = #{ISeq.new(@pool, @info[0], @level + 1).compile};}
+        %Q{#{PUSH} = #{ISeq.new(@pool, @info[0], @level - 1).compile};}
 
       when :tostring
         [
@@ -315,7 +315,7 @@ module ColdRuby
         end
 
         if block
-          code << %Q{var iseq = #{ISeq.new(@pool, block, @level + 1).compile};}
+          code << %Q{var iseq = #{ISeq.new(@pool, block, @level + 2).compile};}
           code << %Q{iseq.stack_frame = sf;}
           args << ', iseq'
         else
