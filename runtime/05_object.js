@@ -55,7 +55,7 @@ $.define_method($c.Kernel, 'extend', 1, function(self, module) {
 // This complete method is an example of how _not_ to do
 // hash-functions, but it's the best I can think of now.
 $.define_method($c.Kernel, 'hash', 0, function(self) {
-  return self.toString();
+  return this.string_new(self.toString());
 });
 
 $.define_method($c.Kernel, 'to_s', 0, function(self) {

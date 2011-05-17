@@ -76,4 +76,8 @@ $.define_singleton_method($c.Symbol, 'all_symbols', 0, function(self) {
   return symbols;
 });
 
+$.define_method($c.Symbol, 'hash', 0, function(self) {
+  return this.string_new($.symbols[self.value]);
+});
+
 $.builtin.setup();
