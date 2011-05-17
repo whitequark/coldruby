@@ -49,7 +49,7 @@ $.define_method($c.Proc, 'call', -1, function(self, args) {
     outer: sf,
   };
 
-  return this.execute(sf_opts, self.iseq, args)
+  return this.execute(sf_opts, self.iseq, args);
 });
 $.alias_method($c.Proc, 'yield', 'call');
 $.alias_method($c.Proc, '[]', 'call');

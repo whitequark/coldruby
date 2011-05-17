@@ -158,10 +158,6 @@ var $ = {
   },
 
   /* === CLASS VARIABLES === */
-  constants: {},
-  internal_constants: {},
-  c: null, // like rb_cSomething
-  e: null,
 
   /*
    * call-seq: cvar_find_scope(name) -> module instance
@@ -795,7 +791,7 @@ var $ = {
       var superobj = null;
     }
 
-    func = this.find_method(c_receiver, c_method, superobj);
+    var func = this.find_method(c_receiver, c_method, superobj);
 
     if(func == undefined) {
       if(method) {
@@ -926,12 +922,12 @@ var $ = {
   },
 
   /*
-   * call-seq: yield(...) -> value
+   * call-seq: yield1(...) -> value
    *
    * Yield to a block. Equivalent to Ruby `yield' with vararg list as
    * arguments.
    */
-  yield: function() {
+  yield1: function() {
     return this.yield2(arguments);
   },
 

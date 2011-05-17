@@ -22,7 +22,7 @@ $.define_method($c.Kernel, 'raise', -1, function(self, args) {
 $.define_method($c.Kernel, 'loop', 0, function(self) {
   return this.protect(function() {
     while(true)
-      this.yield();
+      this.yield1();
 
     return Qnil;
   }, function(e) {

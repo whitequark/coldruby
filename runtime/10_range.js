@@ -57,7 +57,7 @@ $.define_method($c.Range, 'each', 0, function(self) {
       (typeof self.ivs['@end'] == "number")) {
     var last = this.test(self.ivs['@excl']) ? self.ivs['@end'] - 1 : self.ivs['@end'];
     for(i = self.ivs['@begin']; i <= last; i++)
-      this.yield(i);
+      this.yield1(i);
   } else {
     if(!this.respond_to(self.ivs['@begin'], 'succ'))
       this.raise($e.TypeError, 'can\'t iterate from ' +
@@ -65,13 +65,13 @@ $.define_method($c.Range, 'each', 0, function(self) {
 
     var i = self.ivs['@begin'];
     while(!this.test(this.funcall(i, '==', self.ivs['@end']))) {
-      this.yield(i);
+      this.yield1(i);
 
       i = this.funcall(i, 'succ');
     }
 
     if(!this.test(self.ivs['@excl']))
-      this.yield(i);
+      this.yield1(i);
   }
 
   return self;

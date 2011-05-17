@@ -100,6 +100,8 @@ def get_runtime(directory, epilogue_type=nil)
   Dir[File.join(directory, '*.js')].sort.each do |runtime_file|
     # Preprocess
     lines = File.readlines(runtime_file)
+    lines.unshift %Q{"use strict";\n}
+
     last_definition = nil
     lines.each_with_index { |line, index|
       if line =~ %r{^\$\.define_method\(}

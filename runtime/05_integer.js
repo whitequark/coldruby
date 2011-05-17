@@ -12,13 +12,13 @@ $.alias_method($c.Integer, 'truncate', 'to_int');
 $.define_method($c.Integer, 'times', 0, function(self) {
   if(typeof self == 'number') {
     for(var i = 0; i < self; i++) {
-      this.yield(i);
+      this.yield1(i);
     }
   } else {
     var i = 0;
 
     while($.test(this.funcall(i, '<', self))) {
-      this.yield(i);
+      this.yield1(i);
 
       i = this.funcall(i, '+', 1);
     }
@@ -30,13 +30,13 @@ $.define_method($c.Integer, 'times', 0, function(self) {
 $.define_method($c.Integer, 'upto', 1, function(from, to) {
   if(typeof from == 'number' && typeof to == 'number') {
     for(var i = from; i <= to; i++) {
-      this.yield(i);
+      this.yield1(i);
     }
   } else {
     var i = 0;
 
     while(!$.test(this.funcall(i, '>', self))) {
-      this.yield(i);
+      this.yield1(i);
 
       i = this.funcall(i, '+', 1);
     }
@@ -48,13 +48,13 @@ $.define_method($c.Integer, 'upto', 1, function(from, to) {
 $.define_method($c.Integer, 'downto', 1, function(from, to) {
   if(typeof from == 'number' && typeof to == 'number') {
     for(var i = from; i >= to; i--) {
-      this.yield(i);
+      this.yield1(i);
     }
   } else {
     var i = 0;
 
     while(!$.test(this.funcall(i, '<', self))) {
-      this.yield(i);
+      this.yield1(i);
 
       i = this.funcall(i, '-', 1);
     }

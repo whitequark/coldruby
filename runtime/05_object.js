@@ -76,7 +76,7 @@ $.define_method($c.Kernel, 'kind_of?', 1, function(self, klass) {
 $.alias_method($c.Kernel, 'is_a?', 'kind_of?');
 
 $.define_method($c.Kernel, 'tap', 0, function(self) {
-  this.yield(self);
+  this.yield1(self);
 
   return self;
 });

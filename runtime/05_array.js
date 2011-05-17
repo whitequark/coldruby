@@ -13,7 +13,7 @@ $.define_singleton_method($c.Array, 'new', -1, function(self, args) {
 
     if(this.block_given_p()) {
       for(var i = 0; i < size; i++)
-        array.push(this.yield(i));
+        array.push(this.yield1(i));
     } else {
       for(var i = 0; i < size; i++)
         array.push(obj);
@@ -185,7 +185,7 @@ $.define_method($c.Array, 'cycle', 1, function(self, n) {
 
   while(n == Qnil || n > 0) {
     for(var i = 0; i < self.length; i++)
-      this.yield(self[i]);
+      this.yield1(self[i]);
 
     if(typeof n == "number")
       n--;
@@ -248,7 +248,7 @@ $.define_method($c.Array, 'drop_while', 0, function(self) {
   var result = [], drop = true;
 
   for(var i = 0; i < self.length; i++) {
-    if(drop && !this.test(this.yield(self[i]))) {
+    if(drop && !this.test(this.yield1(self[i]))) {
       drop = false;
     }
     if(!drop)
@@ -260,7 +260,7 @@ $.define_method($c.Array, 'drop_while', 0, function(self) {
 
 $.define_method($c.Array, 'each', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
-    this.yield(self[i]);
+    this.yield1(self[i]);
   }
 
   return self;
@@ -268,7 +268,7 @@ $.define_method($c.Array, 'each', 0, function(self) {
 
 $.define_method($c.Array, 'each_index', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
-    this.yield(i);
+    this.yield1(i);
   }
 
   return self;
@@ -470,7 +470,7 @@ $.define_method($c.Array, 'map', 0, function(self) {
   var result = [];
 
   for(var i = 0; i < self.length; i++)
-    result.push(this.yield(self[i]));
+    result.push(this.yield1(self[i]));
 
   return result;
 });
@@ -478,7 +478,7 @@ $.alias_method($c.Array, 'collect', 'map');
 
 $.define_method($c.Array, 'map!', 0, function(self) {
   for(var i = 0; i < self.length; i++)
-    self[i] = this.yield(self[i]);
+    self[i] = this.yield1(self[i]);
 
   return self;
 });
@@ -499,7 +499,7 @@ $.define_method($c.Array, 'reject', 0, function(self) {
   var result = [];
 
   for(var i = 0; i < self.length; i++) {
-    if(!this.test(this.yield(self[i])))
+    if(!this.test(this.yield1(self[i])))
       result.push(self[i]);
   }
 
@@ -508,7 +508,7 @@ $.define_method($c.Array, 'reject', 0, function(self) {
 
 $.define_method($c.Array, 'reject!', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
-    if(this.test(this.yield(self[i]))) {
+    if(this.test(this.yield1(self[i]))) {
       self.splice(i, 1);
       i--;
     }
@@ -544,7 +544,7 @@ $.define_method($c.Array, 'reverse!', 0, function(self) {
 
 $.define_method($c.Array, 'reverse_each', 0, function(self) {
   for(var i = self.length - 1; i >= 0; i--)
-    this.yield(self[i]);
+    this.yield1(self[i]);
 
   return self;
 });
@@ -569,7 +569,7 @@ $.define_method($c.Array, 'select', 0, function(self) {
   var result = [];
 
   for(var i = 0; i < self.length; i++) {
-    if(this.test(this.yield(self[i])))
+    if(this.test(this.yield1(self[i])))
       result.push(self[i]);
   }
 
@@ -578,7 +578,7 @@ $.define_method($c.Array, 'select', 0, function(self) {
 
 $.define_method($c.Array, 'select!', 0, function(self) {
   for(var i = 0; i < self.length; i++) {
-    if(!this.test(this.yield(self[i]))) {
+    if(!this.test(this.yield1(self[i]))) {
       self.splice(i, 1);
       i--;
     }
@@ -663,7 +663,7 @@ $.define_method($c.Array, 'take_while', 0, function(self) {
   var result = [], drop = true;
 
   for(var i = 0; i < self.length; i++) {
-    if(this.test(this.yield(self[i]))) {
+    if(this.test(this.yield1(self[i]))) {
       result.push(self[i]);
     } else break;
   }

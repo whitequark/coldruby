@@ -63,7 +63,7 @@ $.alias_method($c.Hash, 'store', '[]=');
 
 $.define_method($c.Hash, 'each', 0, function(self) {
   for(var hash in self.keys)
-    this.yield(self.keys[hash], self.values[hash]);
+    this.yield1(self.keys[hash], self.values[hash]);
 
   return self;
 });
@@ -71,14 +71,14 @@ $.alias_method($c.Hash, 'each_pair', 'each');
 
 $.define_method($c.Hash, 'each_key', 0, function(self) {
   for(var hash in self.keys)
-    this.yield(self.keys[hash]);
+    this.yield1(self.keys[hash]);
 
   return self;
 });
 
 $.define_method($c.Hash, 'each_value', 0, function(self) {
   for(var hash in self.keys)
-    this.yield(self.keys[hash]);
+    this.yield1(self.keys[hash]);
 
   return self;
 });
@@ -144,7 +144,7 @@ $.define_method($c.Hash, 'delete', 1, function(self, key) {
 
   if(value == undefined) {
     if(this.block_given_p()) {
-      return this.yield(key);
+      return this.yield1(key);
     } else {
       return self.iv['@default'];
     }
@@ -155,7 +155,7 @@ $.define_method($c.Hash, 'delete', 1, function(self, key) {
 
 $.define_method($c.Hash, 'delete_if', 0, function(self) {
   for(var hash in self.keys) {
-    if($.test(this.yield(self.keys[key]))) {
+    if($.test(this.yield1(self.keys[key]))) {
       delete self.keys[key];
       delete self.values[key];
     }
