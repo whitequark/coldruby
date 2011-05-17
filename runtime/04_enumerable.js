@@ -203,7 +203,7 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
   var memo = null;
   var iterator = function(self, object) {
     if(this.test(this.funcall(block, 'call', object))) {
-      memo = obj;
+      memo = object;
       this.iter_break();
     }
 
