@@ -288,11 +288,15 @@ var $ = {
     };
 
     if(under == null) {
-      this.internal_constants[name] = klass;
-      under = this;
-    }
+      klass.klass_name = name;
 
-    return this.const_set(under, name, klass);
+      this.internal_constants[name] = klass;
+      this.constants[this.any2id(name)] = klass;
+
+      return klass;
+    } else {
+      return this.const_set(under, name, klass);
+    }
   },
 
   define_class: function(name, superklass) {
