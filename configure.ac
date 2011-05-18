@@ -23,6 +23,10 @@ AM_INIT_AUTOMAKE
 LT_INIT([dlopen win32-dll])
 AC_LANG([C++])
 AC_PROG_CXX
+AX_PTHREAD([:], [AC_MSG_ERROR([pthreads is required])])
+CC="$PTHREAD_CC"
+AC_SUBST([PTHREAD_CFLAGS])
+AC_SUBST([PTHREAD_LIBS])
 
 AC_MSG_CHECKING([for ruby >= 1.9])
 
@@ -133,6 +137,19 @@ AC_CHECK_LIB([v8], [_ZN2v86Script3RunEv], [V8_LIBS=-lv8], [
 
 AC_SUBST([V8_LIBS])
 
+AC_CACHE_CHECK(for stack end address, rb_cv_stack_end_address,
+[rb_cv_stack_end_address=no
+for addr in __libc_stack_end _SEND; do
+  AC_TRY_LINK(
+    [extern void *$addr;],
+    [if (!$addr) return 1;],
+    [rb_cv_stack_end_address="$addr"; break])
+done])
+if test $rb_cv_stack_end_address != no; then
+  AC_DEFINE_UNQUOTED(STACK_END_ADDRESS, $rb_cv_stack_end_address,
+    [Symbol containing end of stack])
+fi
+
 AH_TOP(
 [/*
  * ColdRuby -- V8-based Ruby implementation.
@@ -160,6 +177,7 @@ AC_CONFIG_FILES([
 	libcoldruby/Makefile
 	coldruby/Makefile
 	coldruby-static/Makefile
+	coldruby-nodejs/Makefile
 	lib/Makefile
 	runtime/Makefile
 	stdlib/Makefile

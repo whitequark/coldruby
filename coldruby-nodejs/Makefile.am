@@ -14,18 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
+extension_LTLIBRARIES = libcoldruby-nodejs.la
+libcoldruby_nodejs_la_SOURCES = main.cpp ColdRubyNodeExtension.h ColdRubyNodeExtension.cpp \
+	ThreadedMRIRubyCompiler.h ThreadedMRIRubyCompiler.cpp
+libcoldruby_nodejs_la_LDFLAGS = -avoid-version ${PTHREAD_CFLAGS}
+libcoldruby_nodejs_la_CFLAGS = ${PTHREAD_CFLAGS}
+libcoldruby_nodejs_la_LIBADD = ${PTHREAD_LIBS} ../libcoldruby/libcoldruby.a ${MRI_LIBS}
+libcoldruby_nodejs_la_CPPFLAGS = -I../libcoldruby ${MRI_CPPFLAGS} \
+	-DCOMPILER_ROOT="\"$(compilerdir)\""
 
-include aminclude.am
+all-local:
+	ln -sf .libs/libcoldruby-nodejs.so coldruby.node
 
-EXTRA_DIST = GPL generate-gitfiles.sh $(DX_CONFIG) doc/html
-SUBDIRS = libcoldruby coldruby coldruby-static coldruby-nodejs lib runtime \
-	stdlib ext
-MOSTLYCLEANFILES = $(DX_CLEANFILES)
-ACLOCAL_AMFLAGS = -I m4
-
-if DX_COND_html
-$(DX_DOCDIR)/html: doxygen-run
-endif
-
-dist-hook:
-	sh $(top_srcdir)/generate-gitfiles.sh $(top_srcdir) $(distdir)
+mostlyclean-local:
+	rm -f coldruby.node
