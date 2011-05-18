@@ -144,15 +144,23 @@ var $ = {
    * TODO: emit a warning if the constant is already defined
    */
   const_set: function(scope, name, value) {
-    if(scope == this.builtin.Qnil) scope = this;
+    if(scope == this.builtin.Qnil) scope = this.c.Object;
     name = this.any2id(name);
 
-    if(scope.constants[name] != undefined) {
-      var strname = this.id2text(name);
-      this.warn("Constant " + strname + " is already defined");
-    }
+    if(scope.constants[name] != undefined)
+      this.warn("Constant " + this.id2text(strname) + " is already defined");
 
     scope.constants[name] = value;
+
+    if(this.c && this.c.Kernel /* bind to a certain point in initialization */
+              && this.obj_is_kind_of(value, this.c.Module)
+              && scope.klass_name) {
+      if(scope == this.c.Object) {
+        value.klass_name = this.id2text(name);
+      } else {
+        value.klass_name = scope.klass_name + '::' + this.id2text(name);
+      }
+    }
 
     return value;
   },
@@ -211,7 +219,7 @@ var $ = {
     if(!(name in scope.class_variables)) {
       this.raise2(this.e.NameError,
           [this.string_new("uninitialized class variable " +
-          this.id2text(name) + ' in ' + scope.klass_name), this.id2sym(name)]);
+          this.id2text(name) + ' in ' + this.class2name(scope)), this.id2sym(name)]);
     }
 
     return scope.class_variables[name];
@@ -248,13 +256,13 @@ var $ = {
     if(real_scope.class_variables[name] != undefined && real_scope != scope) {
       this.raise2(this.e.NameError,
           [this.string_new("cannot remove " + this.id2text(name) + ' for ' +
-           scope.klass_name), this.id2sym(name)]);
+           this.class2name(scope)), this.id2sym(name)]);
     }
 
     if(scope.class_variables[name] == undefined) {
       this.raise2(this.e.NameError,
           [this.string_new("class variable " + this.id2text(name) +
-           ' not defined for ' + scope.klass_name), this.id2sym(name)]);
+           ' not defined for ' + this.class2name(scope)), this.id2sym(name)]);
     }
 
     var value = scope.class_variables[name];
@@ -271,7 +279,6 @@ var $ = {
 
   define_module_under: function(under, name, self_klass) {
     var klass = {
-      klass_name:        name,
       klass:             self_klass || this.internal_constants.Module,
       singleton_klass:   null,
       constants:         {},
@@ -285,9 +292,7 @@ var $ = {
       under = this;
     }
 
-    under.constants[this.any2id(name)] = klass;
-
-    return klass;
+    return this.const_set(under, name, klass);
   },
 
   define_class: function(name, superklass) {
@@ -570,10 +575,13 @@ var $ = {
           return arg;
       }
 
-      this.raise(this.e.TypeError, "Type mismatch: " + arg.klass.klass_name + " is not expected");
+      this.raise(this.e.TypeError, "Type mismatch: " + this.obj_classname(arg) +
+                                   " is not expected");
     } else {
       if(arg.klass != type)
-        this.raise(this.e.TypeError, "wrong argument type " + arg.klass.klass_name + " (expected " + type.klass_name + ")");
+        this.raise(this.e.TypeError, "wrong argument type " +
+                   this.obj_classname(arg) + " (expected " +
+                   this.class2name(type) + ")");
 
       return arg;
     }
@@ -585,7 +593,7 @@ var $ = {
         return this.funcall(arg, converter);
       } else {
         this.raise(this.e.TypeError, "Cannot convert " +
-              this.obj_classname(arg) + " into " + type.klass_name);
+              this.obj_classname(arg) + " into " + this.class2name(type));
       }
     } else {
       return arg;
@@ -684,6 +692,14 @@ var $ = {
     return object.klass.klass_name;
   },
 
+  /* call-seq: class2name(klass) -> string
+   *
+   * Return a name for class +klass+.
+   */
+  class2name: function(klass) {
+    return klass.klass_name ? klass.klass_name : '<anonymous class>';
+  },
+
   /*
    * call-seq: execute_class(cbase, name, superklass, is_class, iseq) -> value
    *
@@ -697,13 +713,15 @@ var $ = {
    */
   execute_class: function(cbase, name, superklass, is_class, iseq) {
     if(name != null) {
+      if(!this.obj_is_kind_of(cbase, this.c.Module))
+        this.raise(this.e.TypeError, this.funcall(cbase, 'inspect').value +
+                   " is not a class/module");
+
       if(!this.const_defined(cbase, name)) {
-        if(superklass.type == 'singleton') {
+        if(superklass.type == 'singleton')
           this.raise(this.e.TypeError, "can't make subclass of singleton class");
-        }
 
         var klass = {
-          klass_name:        name,
           klass:             is_class ? this.internal_constants.Class : this.internal_constants.Module,
           superklass:        superklass == this.builtin.Qnil ? this.internal_constants.Object : superklass,
           singleton_klass:   null,
@@ -718,6 +736,16 @@ var $ = {
           this.funcall(superklass, 'inherited', klass);
       } else {
         var klass = this.const_get(cbase, name);
+
+        if((is_class  && klass.klass == this.c.Module) ||
+           (!is_class && klass.klass == this.c.Class))
+          this.raise(this.e.TypeError, this.funcall(klass, 'inspect').value +
+                     " is not a " + (is_class ? 'class' : 'module'));
+
+        if(superklass != this.builtin.Qnil &&
+           klass.superklass != superklass)
+          this.raise(this.e.TypeError, "superklass mismatch for class " +
+                     this.funcall(klass, 'inspect'));
       }
     } else { // singleton
       var klass = this.get_singleton(cbase);
@@ -800,12 +828,13 @@ var $ = {
         } else {
           this.context.last_call_type = 'vcall';
         }
+
+        args = [ this.id2sym(this.any2id(method)) ].concat(args);
       } else {
         this.context.last_call_type = 'super';
       }
 
-      return this.funcall2(c_receiver, 'method_missing',
-                  [ this.id2sym(this.any2id(method)) ].concat(args), block);
+      return this.funcall2(c_receiver, 'method_missing', args, block);
     }
 
     var sf_opts = {

@@ -59,7 +59,7 @@ $.define_method($c.Kernel, 'hash', 0, function(self) {
 });
 
 $.define_method($c.Kernel, 'to_s', 0, function(self) {
-  return this.string_new("#<" + self.klass.klass_name + ">");
+  return this.string_new("#<" + this.obj_classname(self) + ">");
 });
 
 $.define_method($c.Kernel, 'inspect', 0, function(self) {

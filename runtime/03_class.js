@@ -1,9 +1,15 @@
 $.define_class('BasicObject', null);
-$.define_class('Object', $c.BasicObject);
-$.define_class('Module', $c.Object);
-$.define_class('Class',  $c.Module);
+$c.BasicObject.klass_name = 'BasicObject';
 
+$.define_class('Object', $c.BasicObject);
+$c.Object.klass_name = 'Object';
 $c.Object.constants = $.constants;
+
+$.define_class('Module', $c.Object);
+$c.Module.klass_name = 'Module';
+
+$.define_class('Class',  $c.Module);
+$c.Class.klass_name = 'Class';
 
 $c.BasicObject.klass = $c.Object.klass = $c.Module.klass = $c.Class.klass = $c.Class;
 
@@ -32,6 +38,10 @@ $.define_method($c.Class, 'superclass', 0, function(self) {
   return self.superklass == null ? Qnil : self.superklass;
 });
 
+$.define_method($.c.Class, 'inherited', 1, function(subclass) {
+  return Qnil;
+});
+
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
 });
@@ -51,7 +61,7 @@ $.define_method($c.BasicObject, 'method_missing', -1, function(self, args) {
 
   var sym = args[0];
   var for_obj = " `" + this.id2text(sym.value) + "' for " +
-        this.funcall(self, 'inspect').value + ':' + self.klass.klass_name;
+        this.funcall(self, 'inspect').value + ':' + this.obj_classname(self);
 
   switch(this.context.last_call_type) {
     case 'method':

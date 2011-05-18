@@ -3,7 +3,7 @@ $.define_method($c.Module, 'name', 0, function(self) {
     var object = this.funcall(self.object, 'to_s').value;
     return this.string_new("#<Class:" + object + ">");
   } else {
-    return this.string_new(self.klass_name);
+    return this.string_new(this.class2name(self));
   }
 });
 $.alias_method($c.Module, 'to_s', 'name');
@@ -217,7 +217,7 @@ $.define_method($c.Module, 'const_missing', 1, function(self, name) {
 
   this.raise2(this.e.NameError,
       [this.string_new("uninitialized constant " +
-       self.klass_name + '::' + this.id2text(name.value)), name], undefined, 1);
+       this.class2name(self) + '::' + this.id2text(name.value)), name], undefined, 1);
 });
 
 $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
