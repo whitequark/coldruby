@@ -1128,18 +1128,19 @@ var $ = {
           new_args[argsinfo.block] = this.builtin.Qnil;
         }
       }
-      for(var i = 0; i < argsinfo.argc; i++) {
+
+      for(var i = 0; i < argsinfo.argc; i++)
         new_args[i] = args[i];
-      }
+
       args = args.splice(argsinfo.argc);
       if(argsinfo.rest > -1) {
         new_args[argsinfo.rest] = args;
         args = [];
       }
 
-      if(args.length > 0 && !(iseq.info.type == 'block' && !iseq.lambda)) {
-        throw new Error("Incorrect argument exploding");
-      }
+      if(args.length > 0 && !(iseq.info.type == 'block' && !iseq.lambda))
+        this.raise(this.e.ArgumentError, "wrong number of arguments " +
+                   "(" + old_args.length + " for " + argsinfo.argc + ")");
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
         new_sf.locals[iseq.info.local_size - i] =
