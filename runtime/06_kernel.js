@@ -1,5 +1,5 @@
 $.define_method($c.Kernel, 'block_given?', 0, function(self) {
-  return this.block_given_p() ? Qtrue : Qfalse;
+  return this.block_given_p(this.context.sf.parent) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Kernel, 'proc', 0, function(self) {

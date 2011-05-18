@@ -879,12 +879,20 @@ var $ = {
   },
 
   /*
-   * call-seq: block_given_p() -> true or false
+   * call-seq: block_given_p(sf=null) -> true or false
    *
-   * Check existence of a block in current context.
+   * Check existence of a block in current context or stack frame +sf+.
    */
-  block_given_p: function() {
-    return !!this.context.sf.block;
+  block_given_p: function(sf) {
+    var sf = sf || this.context.sf, block;
+
+    if(sf.outer) {
+      block = sf.outer.osf.block;
+    } else {
+      block = sf.osf.block;
+    }
+
+    return !!block;
   },
 
   /*
@@ -966,12 +974,12 @@ var $ = {
    * Yield to a block. Equivalent to Ruby `yield *args'.
    */
   yield2: function(args) {
-    var sf = this.context.sf.outer || this.context.sf.osf, iseq;
+    var sf = this.context.sf, iseq;
 
     if(sf.outer) {
-      iseq = sf.outer.block;
+      iseq = sf.outer.osf.block;
     } else {
-      iseq = sf.block;
+      iseq = sf.osf.block;
     }
 
     if(!iseq) {
