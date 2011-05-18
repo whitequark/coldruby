@@ -35,9 +35,8 @@ module ColdRuby
 
     attr_reader :type, :info, :pool
 
-    def initialize(pool, opcode, level=0)
+    def initialize(pool, opcode)
       @pool = pool
-      @level = level
 
       case opcode
       when Fixnum
@@ -132,7 +131,7 @@ module ColdRuby
           raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
         end
       when :putiseq
-        %Q{#{PUSH} = #{ISeq.new(@pool, @info[0], @level - 1).compile};}
+        %Q{#{PUSH} = #{ISeq.new(@pool, @info[0]).compile};}
 
       when :tostring
         [
@@ -315,7 +314,7 @@ module ColdRuby
         end
 
         if block
-          code << %Q{var iseq = #{ISeq.new(@pool, block, @level + 2).compile};}
+          code << %Q{var iseq = #{ISeq.new(@pool, block).compile};}
           code << %Q{iseq.stack_frame = sf;}
           args << ', iseq'
         else
@@ -355,7 +354,7 @@ module ColdRuby
 
       when :defineclass
         code = [
-          %Q{var iseq = #{ISeq.new(@pool, @info[1], @level + 1).compile};},
+          %Q{var iseq = #{ISeq.new(@pool, @info[1]).compile};},
           %Q{var superklass = #{POP};},
           %Q{var cbase = #{POP};},
         ]
@@ -433,8 +432,8 @@ module ColdRuby
       end
     end
 
-    def self.parse(pool, opcodes, level=0)
-      opcodes.map { |opcode| Opcode.new(pool, opcode, level) }
+    def self.parse(pool, opcodes)
+      opcodes.map { |opcode| Opcode.new(pool, opcode) }
     end
   end
 end

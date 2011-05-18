@@ -32,7 +32,7 @@ function() {
   class ISeq
     attr_reader :function, :file, :path, :line
 
-    def initialize(pool, opcodes, level=0)
+    def initialize(pool, opcodes)
       if opcodes[0] != "YARVInstructionSequence/SimpleDataFormat"
         raise Exception, "Invalid opcode magic"
       end
@@ -64,8 +64,7 @@ function() {
       @catch_table = opcodes[12]
 
       @pool   = pool
-      @level  = level
-      @seq    = Opcode.parse(@pool, opcodes[13], level)
+      @seq    = Opcode.parse(@pool, opcodes[13])
     end
 
     # Returns a list of chunks.
@@ -107,7 +106,7 @@ function() {
           if !iseq.nil?
             chunk_id += 1
             chunks << CatchTableChunk.new(chunk_id, type,
-                                ISeq.new(@pool, iseq, @level + 1))
+                                ISeq.new(@pool, iseq))
             handler = chunk_id
           end
 
@@ -152,7 +151,7 @@ function() {
       INFO
       elems += chunks.map { |chunk| "  #{chunk.id}: #{chunk.to_js}" }
 
-      pad = "  " * @level
+      pad = "    "# * (@level + 1)
       output = "{\n#{elems.join ",\n"}\n}"
 
       output.gsub(/^/, pad).lstrip
