@@ -468,6 +468,11 @@ Local<Object> ColdRuby::to_block(Handle<Object> value) {
 	RETURN_CHECK_TYPE(to_block, Object);
 }
 
-void ColdRuby::rubyDisposed(v8::Persistent<v8::Value> object, void *arg) {	
+Local<Object> ColdRuby::string_new(Handle<String> value) {
+	DO_RUBY_CALL(string_new, 1, value);
+	RETURN_CHECK_TYPE(string_new, Object);
+}
+
+void ColdRuby::rubyDisposed(v8::Persistent<v8::Value> object, void *arg) {
 	delete static_cast<ColdRuby *>(arg);
 }

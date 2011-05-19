@@ -114,9 +114,11 @@ public:
 	v8::Local<v8::Object> to_float(v8::Handle<v8::Object> value);
 	v8::Local<v8::Object> to_block(v8::Handle<v8::Object> value);
 
+	v8::Local<v8::Object> string_new(v8::Handle<v8::String> value);
+
 private:
 	static void rubyDisposed(v8::Persistent<v8::Value> object, void *arg);
-	
+
 	void setErrorString(const std::string &string);
 
 	ColdRubyVM *m_vm;
