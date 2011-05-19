@@ -31,6 +31,8 @@ public:
 	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
 	virtual ~ColdRuby();
 
+	void delegateToJS();
+
 	v8::Handle<v8::Object> ruby() const;
 
 	std::vector<std::string> searchPath();
@@ -113,6 +115,8 @@ public:
 	v8::Local<v8::Object> to_block(v8::Handle<v8::Object> value);
 
 private:
+	static void rubyDisposed(v8::Persistent<v8::Value> object, void *arg);
+	
 	void setErrorString(const std::string &string);
 
 	ColdRubyVM *m_vm;

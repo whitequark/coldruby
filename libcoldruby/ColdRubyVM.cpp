@@ -37,6 +37,12 @@ ColdRubyVM::ColdRubyVM(): m_initialized(false) {
 	m_context = v8::Context::New();
 }
 
+ColdRubyVM::ColdRubyVM(v8::Handle<v8::Context> ctx) :
+	m_context(v8::Persistent<v8::Context>::New(ctx)),
+	m_initialized(false) {
+
+} 
+
 ColdRubyVM::~ColdRubyVM() {
 	m_context.Dispose();
 }

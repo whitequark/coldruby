@@ -29,7 +29,14 @@ ColdRuby::ColdRuby(ColdRubyVM *vm, Handle<Object> ruby) : m_vm(vm), m_ruby(Persi
 }
 
 ColdRuby::~ColdRuby() {
-	m_ruby.Dispose();
+	if(!m_ruby.IsWeak())
+		m_ruby.Dispose();
+}
+
+void ColdRuby::delegateToJS() {
+	if(!m_ruby.IsWeak()) {
+		m_ruby.MakeWeak(this, rubyDisposed);
+	}
 }
 
 Handle<Object> ColdRuby::ruby() const {
@@ -459,4 +466,8 @@ Local<Object> ColdRuby::to_float(Handle<Object> value) {
 Local<Object> ColdRuby::to_block(Handle<Object> value) {
 	DO_RUBY_CALL(to_block, 1, value);
 	RETURN_CHECK_TYPE(to_block, Object);
+}
+
+void ColdRuby::rubyDisposed(v8::Persistent<v8::Value> object, void *arg) {	
+	delete static_cast<ColdRuby *>(arg);
 }

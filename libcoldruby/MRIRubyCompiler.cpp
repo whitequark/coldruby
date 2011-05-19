@@ -17,18 +17,56 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+
+
 #include <sstream>
 
 #include "MRIRubyCompiler.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef STACK_END_ADDRESS
+#include <sys/mman.h>
+#endif
+
+#ifdef STACK_END_ADDRESS
+extern void *STACK_END_ADDRESS;
+
+#define RUBY_PROLOGUE \
+	do { \
+		char stack_dummy;\
+		do {\
+			void *stack_backup = STACK_END_ADDRESS; \
+			STACK_END_ADDRESS = &stack_dummy;
+
+#define RUBY_EPILOGUE \
+			STACK_END_ADDRESS = stack_backup; \
+		} while(0); \
+	} while(0);
+#else
+#define RUBY_PROLOGUE
+#define RUBY_EPILOGUE
+#endif
 
 void MRIRubyCompiler::sysinit(int *argc, char ***argv) {
 	ruby_sysinit(argc, argv);
 }
 
 int MRIRubyCompiler::initialize(int (*post_init)(RubyCompiler *compiler, void *arg), void *arg) {
+#ifdef STACK_END_ADDRESS
+	int page = sysconf(_SC_PAGE_SIZE);
+	mprotect((void *)((unsigned long)&STACK_END_ADDRESS & ~(page - 1)), page, PROT_READ | PROT_WRITE | PROT_EXEC);
+#endif
+
+	RUBY_PROLOGUE
+
 	RUBY_INIT_STACK;
 
 	ruby_init();
+
+	RUBY_EPILOGUE
 
 	return post_init(this, arg);
 }
@@ -39,7 +77,9 @@ bool MRIRubyCompiler::boot(const std::string &code, const std::string &file, con
 
 	int state;
 
+	RUBY_PROLOGUE
 	rb_protect(boot_protected_wrapper, (VALUE) &boot, &state);
+	RUBY_EPILOGUE
 
 	if(state != 0) {
 		mri_exception();
@@ -125,7 +165,9 @@ bool MRIRubyCompiler::compile(const std::string &code, const std::string &file, 
 
 	int state;
 
+	RUBY_PROLOGUE
 	rb_protect(compile_protected_wrapper, (VALUE) &compile, &state);
+	RUBY_EPILOGUE
 
 	if(state != 0) {
 		mri_exception();
@@ -145,6 +187,7 @@ VALUE MRIRubyCompiler::compile_protected_wrapper(VALUE arg) {
 }
 
 void MRIRubyCompiler::compile_protected(compile_data_t *data) {
+	RUBY_PROLOGUE
 	VALUE code = rb_str_new(data->code.data(), data->code.length());
 	VALUE file = rb_str_new(data->file.data(), data->file.length());
 
@@ -156,6 +199,7 @@ void MRIRubyCompiler::compile_protected(compile_data_t *data) {
 		js = rb_funcall(Qnil, rb_intern("compile"), 4, code, file, INT2FIX(1), rb_str_new_cstr(data->epilogue.c_str()));
 
 	data->js = RSTRING_STD(js);
+	RUBY_EPILOGUE
 }
 
 const std::vector<ColdRubyRuntime> &MRIRubyCompiler::runtime() const {
