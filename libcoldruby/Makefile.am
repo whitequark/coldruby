@@ -23,4 +23,5 @@ noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h \
 	ColdRubyRuntime.h ColdRubyException.h ColdRuby.h ColdRubyVM.h  \
 	ColdRubyStackFrame.h ColdRubyStackTrace.h 
 libcoldruby_a_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
-	-DRUNTIME_ROOT="\"$(runtimedir)\"" ${MRI_CPPFLAGS}
+	-DRUNTIME_ROOT="\"$(runtimedir)\"" ${MRI_CPPFLAGS} \
+	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""

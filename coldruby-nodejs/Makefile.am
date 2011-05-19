@@ -20,12 +20,13 @@ libcoldruby_nodejs_la_SOURCES = main.cpp ColdRubyNodeExtension.h ColdRubyNodeExt
 	ThreadedMRIRubyCompiler.h ThreadedMRIRubyCompiler.cpp
 libcoldruby_nodejs_la_LDFLAGS = -avoid-version ${PTHREAD_CFLAGS}
 libcoldruby_nodejs_la_CFLAGS = ${PTHREAD_CFLAGS}
-libcoldruby_nodejs_la_LIBADD = ${PTHREAD_LIBS} ../libcoldruby/libcoldruby.a ${MRI_LIBS}
+libcoldruby_nodejs_la_LIBADD = ${PTHREAD_LIBS} ../libcoldruby/libcoldruby.a \
+	${MRI_LIBS} ${V8_LIBS}
 libcoldruby_nodejs_la_CPPFLAGS = -I../libcoldruby ${MRI_CPPFLAGS} \
 	-DCOMPILER_ROOT="\"$(compilerdir)\""
 
 all-local:
-	ln -sf .libs/libcoldruby-nodejs.so coldruby.node
+	cp .libs/libcoldruby-nodejs.so coldruby.node
 
 mostlyclean-local:
 	rm -f coldruby.node

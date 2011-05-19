@@ -33,6 +33,8 @@ public:
 
 	void delegateToJS();
 
+	std::string resolve(const std::string &file);
+	
 	v8::Handle<v8::Object> ruby() const;
 
 	std::vector<std::string> searchPath();

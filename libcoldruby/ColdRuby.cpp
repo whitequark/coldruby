@@ -25,7 +25,14 @@
 using namespace v8;
 
 ColdRuby::ColdRuby(ColdRubyVM *vm, Handle<Object> ruby) : m_vm(vm), m_ruby(Persistent<Object>::New(ruby)) {
-
+	std::vector<std::string> default_path;
+	default_path.push_back(EXTENSION_ROOT);
+	default_path.push_back(STDLIB_ROOT);
+	setSearchPath(default_path);
+	
+	std::string resolved = resolve("kernel");
+	
+	printf("kernel resolved to '%s'\n", resolved.c_str());
 }
 
 ColdRuby::~ColdRuby() {
@@ -80,8 +87,10 @@ Handle<Function> ColdRuby::pullFunction(const char *name) {
 
 	if(!ref->IsFunction())
 		throw ColdRubyException("Internal error", "ruby." + std::string(name) + " is invalid");
-
-	return Handle<Function>::Cast(ref);
+	
+	printf("%s -> %p\n", name, *(ref.As<Function>()));
+	
+	return ref.As<Function>();
 }
 
 Handle<Object> ColdRuby::pullObject(const char *name) {
@@ -98,51 +107,14 @@ std::vector<std::string> ColdRuby::searchPath() {
 
 	HandleScope handle_scope;
 	Context::Scope context_scope(m_vm->m_context);
-
-	Handle<Function> gvar_get = pullFunction("gvar_get");
-	Handle<Function> check_convert_type = pullFunction("check_convert_type");
-	Handle<Object> constants = pullObject("c");
-
-	Handle<Value> gvar;
-	TryCatch try_catch;
-
-	{
-		Handle<Value> argv[] = {
-			String::New("$:")
-		};
-
-		gvar = gvar_get->Call(m_ruby, 1, argv);
-	}
-
-	if(try_catch.HasCaught()) {
-		m_vm->formatException(&try_catch, this);
-
-		throw ColdRubyException(m_vm->errorString());
-	}
-
-	Handle<Array> pathArray;
-
-	{
-		Handle<Value> argv[] = {
-			gvar,
-			constants->Get(String::New("Array")),
-			String::New("to_a")
-		};
-
-		Handle<Value> ref = check_convert_type->Call(m_ruby, 3, argv);
-
-		if(!ref->IsArray())
-			throw ColdRubyException("Internal error", "to_a returned something other than array");
-
-		pathArray = Handle<Array>::Cast(ref);
-	}
-
-	if(try_catch.HasCaught()) {
-		m_vm->formatException(&try_catch, this);
-
-		throw ColdRubyException(m_vm->errorString());
-	}
-
+	
+	Handle<Value> gvar = gvar_get(v8::String::New("$:"));
+	
+	if(!gvar->IsObject())
+		return path;
+	
+	Handle<Array> pathArray = to_ary(gvar->ToObject());
+	
 	int len = pathArray->Length();
 
 	path.resize(len);
@@ -150,7 +122,7 @@ std::vector<std::string> ColdRuby::searchPath() {
 	for(int i = 0; i < len; i++) {
 		std::string item;
 
-		String::Utf8Value str(pathArray->Get(i));
+		String::Utf8Value str(to_str(pathArray->Get(i)->ToObject()));
 
 		if(str.length() > 0) {
 			item.assign(*str, str.length());
@@ -173,25 +145,10 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 	for(int i = 0; i < count; i++) {
 		std::string item = path.at(i);
 
-		pathArray->Set(i, String::New(item.data(), item.length()));
+		pathArray->Set(i, string_new(String::New(item.data(), item.length())));
 	}
-
-	Handle<Function> gvar_set = pullFunction("gvar_set");
-
-	Handle<Value> argv[] = {
-		String::New("$:"),
-		pathArray
-	};
-
-	TryCatch try_catch;
-
-	gvar_set->Call(m_ruby, 2, argv);
-
-	if(try_catch.HasCaught()) {
-		m_vm->formatException(&try_catch, this);
-
-		throw ColdRubyException(m_vm->errorString());
-	}
+	
+	gvar_set(String::New("$:"), pathArray);
 }
 
 #define DO_RUBY_CALL(func, argc, ...) \
@@ -446,11 +403,10 @@ Local<String> ColdRuby::to_str(Handle<Object> value) {
 
 Local<Array> ColdRuby::to_ary(Handle<Object> value) {
 	DO_RUBY_CALL(to_ary, 1, value);
-
 	if(!ret->IsArray())
 		throw ColdRubyException("Internal error", "to_ary returned something other than array");
 
-	return Local<Array>::New(Handle<Array>::Cast(ret));
+	return Local<Array>::New(ret.As<Array>());
 }
 
 Local<Object> ColdRuby::to_sym(Handle<Object> value) {
@@ -475,4 +431,27 @@ Local<Object> ColdRuby::string_new(Handle<String> value) {
 
 void ColdRuby::rubyDisposed(v8::Persistent<v8::Value> object, void *arg) {
 	delete static_cast<ColdRuby *>(arg);
+}
+
+std::string ColdRuby::resolve(const std::string &name) {
+	size_t slash_off = name.rfind('/');
+	std::vector<std::string> dirs;
+	std::string basename;
+	
+	if(slash_off == std::string::npos) {
+		basename = name;
+		dirs = searchPath();
+	} else {
+		dirs.push_back(name.substr(0, slash_off + 1));
+		basename = name.substr(slash_off + 1);
+	}
+	
+	for(std::vector<std::string>::const_iterator it = dirs.begin();
+	    it != dirs.end();
+	    it++) {
+		printf("Searching for '%s' in '%s'\n",
+		       basename.c_str(), (*it).c_str());
+	}
+	
+	return std::string();
 }

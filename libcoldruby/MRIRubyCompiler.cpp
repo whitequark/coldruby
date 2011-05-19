@@ -67,7 +67,6 @@ int MRIRubyCompiler::initialize(int (*post_init)(RubyCompiler *compiler, void *a
 	ruby_init();
 
 	RUBY_EPILOGUE
-
 	return post_init(this, arg);
 }
 

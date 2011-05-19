@@ -91,12 +91,13 @@ CPPFLAGS="$OLD_CPPFLAGS"
 LIBS="$OLD_LIBS"
 
 AC_ARG_ENABLE([developer-mode], [AS_HELP_STRING([--enable-developer-mode], [use local coldruby compiler instead of system])],
-	[compilerdir="$PWD/lib" runtimedir="$PWD/runtime" stdlibdir="$PWD/stdlib" DEVELOPER_MODE=1], [compilerdir="$datadir/coldruby" runtimedir="$datadir/coldruby/runtime" stdlibdir="$datadir/coldruby/stdlib" DEVELOPER_MODE=0])
+	[compilerdir="$PWD/lib" runtimedir="$PWD/runtime" stdlibdir="$PWD/stdlib"
+         extensiondir="$PWD/ext/extensions" DEVELOPER_MODE=1],
+	[compilerdir="$datadir/coldruby" runtimedir="$datadir/coldruby/runtime" stdlibdir="$datadir/coldruby/stdlib" 
+	 extensiondir=${libdir}/coldruby/${VERSION} DEVELOPER_MODE=0])
 
 AC_SUBST([DEVELOPER_MODE])
 AM_CONDITIONAL([DEVELOPER_MODE], [test x$DEVELOPER_MODE = x1])
-
-extensiondir=${libdir}/coldruby/${VERSION}
 
 AC_SUBST([extensiondir])
 AC_SUBST([compilerdir])
