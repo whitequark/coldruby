@@ -124,7 +124,7 @@ int ThreadedMRIRubyCompiler::threadPostInit(RubyCompiler *compiler, void *arg) {
 
 void ThreadedMRIRubyCompiler::thread(RubyCompiler *compiler, char *dummy) {
 	ipc_msg_t msg;
-
+	
 	do {
 		if(msgrcv(m_send, &msg, sizeof(void *), 0, 0) != sizeof(void *))
 			break;
@@ -149,9 +149,21 @@ void ThreadedMRIRubyCompiler::thread(RubyCompiler *compiler, char *dummy) {
 			msgsnd(m_receive, &msg, sizeof(void *), 0);
 
 			break;
-		}
+			
+		case MsgCompile:
+			if(compiler->compile(boot->code, boot->file, boot->js, 
+				boot->epilogue)) {
+				
+				boot->is_ok = true;
+			} else {
+				boot->error = compiler->errorString();
+				boot->is_ok = false;
+			}
 
-		printf("type = %lu, data = %p\n", msg.type, msg.data);
+			msgsnd(m_receive, &msg, sizeof(void *), 0);
+
+			break;			
+		}
 	} while(msg.type != MsgQuit);
 }
 

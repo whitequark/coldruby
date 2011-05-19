@@ -3,13 +3,14 @@
 #include <string.h>
 #include <errno.h>
 
+#include <ColdRubyVM.h>
+#include <ColdRuby.h>
+
 #include "ColdRubyNodeExtension.h"
 #include "ThreadedMRIRubyCompiler.h"
 
 ColdRubyNodeExtension::ColdRubyNodeExtension(v8::Handle<v8::Object> target): m_target(v8::Persistent<v8::Object>::New(target)) {
 	m_target.MakeWeak(this, destroyExtension);
-
-	printf("Creating extension!\n");
 
 	m_compiler = new ThreadedMRIRubyCompiler;
 
@@ -20,11 +21,24 @@ ColdRubyNodeExtension::ColdRubyNodeExtension(v8::Handle<v8::Object> target): m_t
 
 		throw std::runtime_error(error.c_str());
 	}
+
+	m_vm = new ColdRubyVM(v8::Context::GetCurrent());
+	
+	if(m_vm->initialize(m_compiler) == false) {
+		std::string error = "VM initialization failed: " + m_vm->errorString();
+		
+		delete m_vm;
+		delete m_compiler;
+	}
+	
+	v8::Handle<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+		newRuby, v8::External::Wrap(this));
+		
+	target->Set(v8::String::New("new_ruby"), tpl->GetFunction());
 }
 
 ColdRubyNodeExtension::~ColdRubyNodeExtension() {
-	printf("Destroying extension!\n");
-
+	delete m_vm;
 	delete m_compiler;
 }
 
@@ -32,3 +46,21 @@ void ColdRubyNodeExtension::destroyExtension(v8::Persistent<v8::Value> object, v
 	delete static_cast<ColdRubyNodeExtension *>(arg);
 }
 
+v8::Handle<v8::Value> ColdRubyNodeExtension::newRuby(const v8::Arguments &args) {
+	ColdRubyNodeExtension *self = static_cast<ColdRubyNodeExtension *>
+		(v8::External::Unwrap(args.Data()));
+		
+	ColdRuby *ruby = self->m_vm->createRuby();
+	
+	if(ruby == NULL) {
+		v8::ThrowException(v8::Exception::Error(v8::String::New(
+			ruby->errorString().c_str()
+		)));
+		
+		return v8::Null();
+	}
+	
+	ruby->delegateToJS();
+	
+	return ruby->ruby();
+}

@@ -35,6 +35,7 @@ public:
 	};
 
 	ColdRubyVM();
+	ColdRubyVM(v8::Handle<v8::Context> ctx);
 	virtual ~ColdRubyVM();
 
 	static int debugFlags();
