@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <assert.h>
+
 #include "ColdRuby.h"
 #include "ColdRubyVM.h"
 #include "ColdRubyException.h"
@@ -157,6 +159,7 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 	Handle<Function> func = pullFunction(#func); \
 	TryCatch try_catch; \
 	Handle<Value> args[] = { __VA_ARGS__ }; \
+	assert(!func.IsEmpty()); \
 	Handle<Value> ret = func->Call(m_ruby, argc, args); \
 	if(try_catch.HasCaught()) { \
 		m_vm->formatException(&try_catch, this); \

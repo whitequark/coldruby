@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <sstream>
 #include <iostream>
@@ -134,6 +135,8 @@ ColdRuby *ColdRubyVM::createRuby() {
 		create_ruby = v8::Handle<v8::Function>::Cast(ref);
 	}
 
+	assert(!create_ruby.IsEmpty());
+
 	v8::TryCatch try_catch;
 
 	v8::Handle<v8::Value> ret = create_ruby->Call(coldruby_object, 0, 0);
@@ -175,6 +178,8 @@ bool ColdRubyVM::runRubyJS(ColdRuby *ruby, const std::string &code, const std::s
 	v8::Handle<v8::Value> args[] = {
 		ruby->ruby()
 	};
+
+	assert(!func.IsEmpty());
 
 	func->Call(m_context->Global(), 1, args);
 
@@ -280,6 +285,8 @@ bool ColdRubyVM::formatRubyException(v8::Handle<v8::Object> exception, ColdRuby 
 
 			v8::Handle<v8::Value> argv[] = { klass, v8::String::New("to_s") };
 
+			assert(!funcall.IsEmpty());
+
 			v8::Handle<v8::Value> ruby_str = funcall->Call(rbobj, 2, argv);
 
 			if(try_catch.HasCaught()) {
@@ -350,9 +357,9 @@ bool ColdRubyVM::formatRubyException(v8::Handle<v8::Object> exception, ColdRuby 
 				v8::String::New("to_a")
 			};
 
+			assert(!convert.IsEmpty());
+
 			v8::Handle<v8::Value> ret = convert->Call(rbobj, 3, argv);
-
-
 
 			if(try_catch.HasCaught()) {
 				formatException(&try_catch);
@@ -560,6 +567,8 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 							constants->Get(v8::String::New("InstructionSequence"))
 						};
 
+						assert(!obj_kind_of.IsEmpty());
+
 						v8::Handle<v8::Value> ret = obj_kind_of->Call(ruby->ruby(), 2, args);
 
 						if(try_catch.HasCaught())
@@ -599,6 +608,8 @@ bool ColdRubyVM::dumpObject(v8::Handle<v8::Value> val, std::ostringstream &info_
 							v8::String::New("inspect"),
 						};
 
+
+						assert(!funcall.IsEmpty());
 
 						v8::Handle<v8::Value> ret = funcall->Call(ruby->ruby(), 2, args);
 
