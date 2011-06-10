@@ -20,6 +20,6 @@ coldruby_SOURCES = main.cpp
 coldruby_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\"" -I../libcoldruby ${MRI_CPPFLAGS} \
 	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""
-coldruby_LDADD = ../libcoldruby/libcoldruby.a ${MRI_LIBS} ${V8_LIBS}
+coldruby_LDADD = -L../libcoldruby -lcoldruby ${MRI_LIBS} ${V8_LIBS}
 
  

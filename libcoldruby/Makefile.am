@@ -15,13 +15,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-noinst_LIBRARIES = libcoldruby.a
-libcoldruby_a_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp \
+lib_LTLIBRARIES = libcoldruby.la
+libcoldruby_la_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp \
 	ColdRubyException.cpp ColdRuby.cpp ColdRubyVM.cpp \
 	ColdRubyStackFrame.cpp ColdRubyStackTrace.cpp
 noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h \
 	ColdRubyRuntime.h ColdRubyException.h ColdRuby.h ColdRubyVM.h  \
 	ColdRubyStackFrame.h ColdRubyStackTrace.h 
-libcoldruby_a_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
+libcoldruby_la_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\"" ${MRI_CPPFLAGS} \
 	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""
+libcoldruby_la_LIBADD = ${V8_LIBS}
