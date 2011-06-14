@@ -150,7 +150,18 @@ ColdRuby *ColdRubyVM::createRuby() {
 		return 0;
 	}
 
-	return new ColdRuby(this, ret->ToObject());
+	ColdRuby *ruby = 0;
+
+	try {
+		ruby = new ColdRuby(this, ret->ToObject());
+	} catch(const ColdRubyException &e) {
+		m_errorString = std::string(e.what()) + ": " + e.exceptionInfo();
+
+		if(ruby)
+			delete ruby;
+
+		return 0;
+	}
 }
 
 bool ColdRubyVM::runRubyJS(ColdRuby *ruby, const std::string &code, const std::string &file) {

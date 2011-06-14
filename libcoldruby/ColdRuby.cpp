@@ -25,14 +25,21 @@
 using namespace v8;
 
 ColdRuby::ColdRuby(ColdRubyVM *vm, Handle<Object> ruby) : m_vm(vm), m_ruby(Persistent<Object>::New(ruby)) {
-	std::vector<std::string> default_path;
-	default_path.push_back(EXTENSION_ROOT);
-	default_path.push_back(STDLIB_ROOT);
-	setSearchPath(default_path);
+	try {
+		std::vector<std::string> default_path;
+		default_path.push_back(EXTENSION_ROOT);
+		default_path.push_back(STDLIB_ROOT);
+		setSearchPath(default_path);
 	
-	std::string resolved = resolve("kernel");
+		std::string resolved = resolve("kernel");
 	
-	printf("kernel resolved to '%s'\n", resolved.c_str());
+		printf("kernel resolved to '%s'\n", resolved.c_str());
+	} catch(const ColdRubyException &e) {
+		if(!m_ruby.IsWeak())
+			m_ruby.Dispose();
+
+		throw e;
+	}
 }
 
 ColdRuby::~ColdRuby() {
@@ -120,9 +127,13 @@ std::vector<std::string> ColdRuby::searchPath() {
 	path.resize(len);
 
 	for(int i = 0; i < len; i++) {
-		std::string item;
+		Handle<Value> val = pathArray->Get(i);
 
-		String::Utf8Value str(to_str(pathArray->Get(i)->ToObject()));
+		if(!val->IsObject()) 
+			return path;
+
+		std::string item;
+		String::Utf8Value str(to_str(val->ToObject()));
 
 		if(str.length() > 0) {
 			item.assign(*str, str.length());
@@ -140,7 +151,7 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 
 	int count = path.size();
 
-	Handle<Array> pathArray = Array::New();
+	Handle<Array> pathArray = Array::New(count);
 
 	for(int i = 0; i < count; i++) {
 		std::string item = path.at(i);
@@ -164,10 +175,10 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 	}
 
 #define RETURN_CHECK_TYPE(func, type) \
-	if(! ret->Is ## type ()) \
+	if(ret.IsEmpty() || ! ret->Is ## type ()) \
 		throw ColdRubyException("Internal error", #func + \
 			std::string(" returned something other than ") + #type); \
-	return ret->To ## type ();
+	return handle_scope.Close(ret->To ## type ());
 
 #define RETURN_TYPE(func, type) \
 	if(! ret->Is ## type ()) \
@@ -176,7 +187,7 @@ void ColdRuby::setSearchPath(std::vector<std::string> path) {
 	return ret->type ## Value ();
 
 #define RETURN_VALUE() \
-	return Local<Value>::New(ret);
+	return handle_scope.Close(ret);
 
 /* Global variables */
 
@@ -398,6 +409,12 @@ int ColdRuby::to_int(Handle<Object> value) {
 
 Local<String> ColdRuby::to_str(Handle<Object> value) {
 	DO_RUBY_CALL(to_str, 1, value);
+
+	if(!ret->IsObject())
+		throw ColdRubyException("Internal error", "to_ary returned something other than string");
+
+	ret = ret->ToObject()->Get(String::New("value"));
+
 	RETURN_CHECK_TYPE(to_str, String);
 }
 
@@ -406,7 +423,7 @@ Local<Array> ColdRuby::to_ary(Handle<Object> value) {
 	if(!ret->IsArray())
 		throw ColdRubyException("Internal error", "to_ary returned something other than array");
 
-	return Local<Array>::New(ret.As<Array>());
+	return handle_scope.Close(ret.As<Array>());
 }
 
 Local<Object> ColdRuby::to_sym(Handle<Object> value) {
