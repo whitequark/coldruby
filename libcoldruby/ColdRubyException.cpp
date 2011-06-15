@@ -19,6 +19,8 @@
 
 #include "ColdRubyException.h"
 
+using namespace coldruby;
+
 ColdRubyException::ColdRubyException(std::string info) : m_what("Uncaught exception"), m_info(info) {
 
 }

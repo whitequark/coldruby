@@ -22,6 +22,8 @@
 #include <errno.h>
 #include "StandardRubyCompiler.h"
 
+using namespace coldruby;
+
 bool StandardRubyCompiler::boot(const std::string &file, const std::string &epilogue) {
 	FILE *source = fopen(file.c_str(), "rb");
 

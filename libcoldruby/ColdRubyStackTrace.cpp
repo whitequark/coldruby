@@ -20,6 +20,8 @@
 #include <sstream>
 #include "ColdRubyStackTrace.h"
 
+using namespace coldruby;
+
 void ColdRubyStackTrace::parse(const std::string &trace) {
 	std::istringstream stream(trace);
 

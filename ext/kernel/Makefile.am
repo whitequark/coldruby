@@ -18,7 +18,7 @@
 extension_LTLIBRARIES = libkernel.la
 libkernel_la_SOURCES = KernelExtension.h KernelExtension.cpp
 libkernel_la_LDFLAGS = -avoid-version
-libkernel_la_CPPFLAGS = -DCOLDRUBY_EXTENSION -I../../libcoldruby
+libkernel_la_CPPFLAGS = -DCOLDRUBY_EXTENSION -I../../libcoldruby/include
 
 if DEVELOPER_MODE
 

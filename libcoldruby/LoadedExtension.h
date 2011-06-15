@@ -22,6 +22,8 @@
 
 #include "DynamicLibrary.h"
 
+namespace coldruby {
+
 class ColdRubyExtension;
 
 class LoadedExtension {
@@ -38,6 +40,8 @@ private:
 	ColdRubyExtension *m_extension;
 	DynamicLibrary m_library;
 };
+
+}
 
 #endif
 

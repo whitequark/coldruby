@@ -40,6 +40,8 @@
 		return COLDRUBY_EXTENSION_ABI; \
 	}
 
+namespace coldruby {
+
 class ColdRuby;
 
 class ColdRubyExtension {
@@ -48,14 +50,16 @@ public:
 	virtual ~ColdRubyExtension() {}
 };
 
+}
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-ColdRubyExtension * COLDRUBY_EXT_DLLSPEC coldruby_extension_create(ColdRuby *ruby);
+coldruby::ColdRubyExtension * COLDRUBY_EXT_DLLSPEC coldruby_extension_create(coldruby::ColdRuby *ruby);
 int COLDRUBY_EXT_DLLSPEC coldruby_extension_abi();
 
-typedef ColdRubyExtension (*coldruby_extension_create_t)(ColdRuby *ruby);
+typedef coldruby::ColdRubyExtension (*coldruby_extension_create_t)(coldruby::ColdRuby *ruby);
 typedef int (*coldruby_extension_abi_t)();
 
 #if defined(__cplusplus)

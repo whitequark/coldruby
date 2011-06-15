@@ -22,8 +22,11 @@
 
 #include <v8.h>
 #include <string>
-#include "ColdRubyStackTrace.h"
 
+namespace coldruby {
+
+class ColdRubyStackTrace;
+class ColdRubyStackFrame;
 class RubyCompiler;
 class ColdRuby;
 
@@ -92,5 +95,7 @@ private:
 
 	static const frame_dump_variable_t m_dump_variables[];
 };
+
+}
 
 #endif

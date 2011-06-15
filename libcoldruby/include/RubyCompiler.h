@@ -40,6 +40,8 @@
  * В один момент времени существует только один инстанс RubyCompiler.
  */
 
+namespace coldruby {
+
 class RubyCompiler {
 public:
 	/** \brief Тип указателя на функцию для \ref initialize.
@@ -136,5 +138,7 @@ public:
 	 */
 	virtual const std::vector<ColdRubyRuntime> &runtime() const = 0;
 };
+
+}
 
 #endif

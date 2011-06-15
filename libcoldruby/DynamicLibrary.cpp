@@ -22,6 +22,8 @@
 
 #include "DynamicLibrary.h"
 
+using namespace coldruby;
+
 DynamicLibraryPrivate::DynamicLibraryPrivate() : m_hndl(0), m_refs(1) {
 
 }

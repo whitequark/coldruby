@@ -23,6 +23,8 @@
 #include <exception>
 #include <string>
 
+namespace coldruby {
+
 class ColdRubyException: public std::exception {
 public:
 	ColdRubyException(std::string info = std::string());
@@ -34,5 +36,7 @@ public:
 private:
 	std::string m_what, m_info;
 };
+
+}
 
 #endif

@@ -42,6 +42,8 @@
  * \brief Реализация компилятора Ruby, использующая MRI.
  */
 
+namespace coldruby {
+
 class MRIRubyCompiler: public StandardRubyCompiler {
 	/**
 	 * \brief Структура для обмена данными с защищенным кодом.
@@ -100,5 +102,7 @@ private:
 
 	std::vector<ColdRubyRuntime> m_runtime;
 };
+
+}
 
 #endif

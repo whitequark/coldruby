@@ -3,7 +3,7 @@
 
 #include <StandardRubyCompiler.h>
 
-class ThreadedMRIRubyCompiler: public StandardRubyCompiler {
+class ThreadedMRIRubyCompiler: public coldruby::StandardRubyCompiler {
 	enum {
 		MsgPing = 0x01,
 		MsgQuit = 0x02,
@@ -26,7 +26,7 @@ class ThreadedMRIRubyCompiler: public StandardRubyCompiler {
 		bool is_ok;
 		std::string error;
 		std::string js;
-		std::vector<ColdRubyRuntime> runtime;
+		std::vector<coldruby::ColdRubyRuntime> runtime;
 	} boot_data_t;
 
 public:
@@ -38,17 +38,17 @@ public:
 	//virtual bool boot(const std::string &file, const std::string &epilogue);
 	virtual bool compile(const std::string &code, const std::string &file, std::string &js, const std::string &epilogue);
 	//virtual bool compile(const std::string &file, std::string &js, const std::string &epilogue);
-	virtual const std::vector<ColdRubyRuntime> &runtime() const;
+	virtual const std::vector<coldruby::ColdRubyRuntime> &runtime() const;
 
 private:
 	bool sendBootRequest(long msg, boot_data_t *data);
 
 	static void *threadWrapper(void *arg);
-	static int threadPostInit(RubyCompiler *compiler, void *arg);
-	void thread(RubyCompiler *compiler, char *dummy);
+	static int threadPostInit(coldruby::RubyCompiler *compiler, void *arg);
+	void thread(coldruby::RubyCompiler *compiler, char *dummy);
 	void ipc(ipc_msg_t *msg);
 
-	std::vector<ColdRubyRuntime> m_runtime;
+	std::vector<coldruby::ColdRubyRuntime> m_runtime;
 	int m_send, m_receive;
 
 	pthread_t m_thread;

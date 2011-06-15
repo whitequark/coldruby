@@ -50,6 +50,8 @@ extern void *STACK_END_ADDRESS;
 #define RUBY_EPILOGUE
 #endif
 
+using namespace coldruby;
+
 void MRIRubyCompiler::sysinit(int *argc, char ***argv) {
 	ruby_sysinit(argc, argv);
 }

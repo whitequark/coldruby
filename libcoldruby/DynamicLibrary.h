@@ -22,6 +22,8 @@
 
 #include <string>
 
+namespace coldruby {
+
 class DynamicLibraryPrivate {
 public:
 	DynamicLibraryPrivate();
@@ -61,6 +63,7 @@ private:
 	DynamicLibraryPrivate *m_data;
 };
 
+}
 
 #endif
 

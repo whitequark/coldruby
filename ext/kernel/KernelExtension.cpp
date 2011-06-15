@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include "KernelExtension.h"
 
+using namespace coldruby;
+
 KernelExtension::KernelExtension(ColdRuby *ruby) {
 	printf("KernelExtension: construct, instance %p\n", ruby);
 }

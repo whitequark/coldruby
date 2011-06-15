@@ -23,6 +23,8 @@
 #include <limits.h>
 #include "ColdRubyStackFrame.h"
 
+using namespace coldruby;
+
 ColdRubyStackFrame::ColdRubyStackFrame() : m_line(0), m_column(0), m_frameNumber(INT_MIN) {
 
 }

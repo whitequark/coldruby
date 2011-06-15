@@ -23,9 +23,9 @@
 #include <string.h>
 #include <errno.h>
 #include <MRIRubyCompiler.h>
-#include "ColdRubyVM.h"
-#include "ColdRubyException.h"
-#include "ColdRuby.h"
+#include <ColdRubyVM.h>
+#include <ColdRubyException.h>
+#include <ColdRuby.h>
 #include <v8-debug.h>
 
 #ifdef HAVE_CONFIG_H
@@ -66,7 +66,7 @@ static void version() {
 	puts(PACKAGE_STRING);
 }
 
-static int post_compiler(RubyCompiler *compiler, void *arg) {
+static int post_compiler(coldruby::RubyCompiler *compiler, void *arg) {
 	init_data_t *init = (init_data_t *) arg;
 
 	if(compiler->boot(COMPILER_ROOT "/coldruby/compile.rb", std::string()) == false) {
@@ -75,11 +75,11 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 		return 1;
 	}
 
-	ColdRubyVM::setDebugFlags(init->debugFlags);
+	coldruby::ColdRubyVM::setDebugFlags(init->debugFlags);
 
-	atexit(ColdRubyVM::cleanup);
+	atexit(coldruby::ColdRubyVM::cleanup);
 
-	ColdRubyVM vm;
+	coldruby::ColdRubyVM vm;
 
 	if(vm.initialize(compiler) == false) {
 		fprintf(stderr, "coldruby: vm.initialize: %s\n", vm.errorString().c_str());
@@ -88,7 +88,7 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 	}
 
 
-	ColdRuby *ruby = vm.createRuby();
+	coldruby::ColdRuby *ruby = vm.createRuby();
 
 	if(ruby == NULL) {
 		fprintf(stderr, "coldruby: ruby creation failed: %s\n", vm.errorString().c_str());
@@ -104,7 +104,7 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 
 	try {
 		ruby->run(init->content, init->filename);
-	} catch(const ColdRubyException &e) {
+	} catch(const coldruby::ColdRubyException &e) {
 		fprintf(stderr, "coldruby: %s\n", e.what());
 
 		std::string info = e.exceptionInfo();
@@ -162,7 +162,7 @@ static bool load_file(const char *filename, std::string &content, std::string &e
 int main(int argc, char *argv[]) {
 	int ret, longidx;
 
-	MRIRubyCompiler::sysinit(&argc, &argv);
+	coldruby::MRIRubyCompiler::sysinit(&argc, &argv);
 	std::vector<std::string> execute;
 
 	init_data_t init = { 0 };
@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	MRIRubyCompiler compiler;
+	coldruby::MRIRubyCompiler compiler;
 
 	return compiler.initialize(post_compiler, &init);
 }

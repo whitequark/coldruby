@@ -22,7 +22,7 @@ libcoldruby_nodejs_la_LDFLAGS = -avoid-version ${PTHREAD_CFLAGS}
 libcoldruby_nodejs_la_CFLAGS = ${PTHREAD_CFLAGS}
 libcoldruby_nodejs_la_LIBADD = ${PTHREAD_LIBS} -L../libcoldruby -lcoldruby \
 	${MRI_LIBS} ${V8_LIBS}
-libcoldruby_nodejs_la_CPPFLAGS = -I../libcoldruby ${MRI_CPPFLAGS} \
+libcoldruby_nodejs_la_CPPFLAGS = -I../libcoldruby/include ${MRI_CPPFLAGS} \
 	-DCOMPILER_ROOT="\"$(compilerdir)\""
 
 all-local:

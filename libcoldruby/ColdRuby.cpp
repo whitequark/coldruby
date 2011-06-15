@@ -29,6 +29,7 @@
 #include "LoadedExtension.h"
 
 using namespace v8;
+using namespace coldruby;
 
 ColdRuby::ColdRuby(ColdRubyVM *vm, Handle<Object> ruby) : m_vm(vm), m_ruby(Persistent<Object>::New(ruby)) {
 

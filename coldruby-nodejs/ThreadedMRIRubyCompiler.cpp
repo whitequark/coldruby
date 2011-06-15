@@ -9,6 +9,8 @@
 
 #include "ThreadedMRIRubyCompiler.h"
 
+using namespace coldruby;
+
 ThreadedMRIRubyCompiler::ThreadedMRIRubyCompiler() : StandardRubyCompiler() {
 	m_send = msgget(IPC_PRIVATE, IPC_CREAT | S_IRUSR | S_IWUSR);
 

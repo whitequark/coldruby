@@ -22,9 +22,9 @@
 
 #include <ColdRubyExtension.h>
 
-class KernelExtension: public ColdRubyExtension {
+class KernelExtension: public coldruby::ColdRubyExtension {
 public:
-	KernelExtension(ColdRuby *ruby);
+	KernelExtension(coldruby::ColdRuby *ruby);
 	~KernelExtension();
 };
 

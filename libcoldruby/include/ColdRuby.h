@@ -24,6 +24,8 @@
 #include <vector>
 #include <string>
 
+namespace coldruby {
+
 class ColdRubyVM;
 class LoadedExtension;
 
@@ -148,5 +150,7 @@ private:
 
 	std::vector<LoadedExtension *> m_loaded_extensions;
 };
+
+}
 
 #endif

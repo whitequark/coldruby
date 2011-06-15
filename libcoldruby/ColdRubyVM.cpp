@@ -33,6 +33,8 @@
 
 #define STD_STRING(s) ({v8::String::Utf8Value utf8_val(s); (utf8_val.length() > 0) ? std::string(*utf8_val) : std::string(); })
 
+using namespace coldruby;
+
 ColdRubyVM::ColdRubyVM():
 	m_context(v8::Context::New()),
 	m_initialized(false) {

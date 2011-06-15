@@ -25,10 +25,14 @@
 
 #include "ColdRubyStackFrame.h"
 
-class ColdRubyStackTrace: public std::vector<ColdRubyStackFrame> {
+namespace coldruby {
+
+class ColdRubyStackTrace: public std::vector<coldruby::ColdRubyStackFrame> {
 public:
 	void parse(const std::string &trace);
 	std::string rebuild();
 };
+
+}
 
 #endif

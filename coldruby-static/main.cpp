@@ -144,13 +144,13 @@ static bool load_file(const std::string &filename, std::string &content, std::st
 	return ret;
 }
 
-static std::string compile_runtime(RubyCompiler *compiler) {
-	const std::vector<ColdRubyRuntime> &runtime =
+static std::string compile_runtime(coldruby::RubyCompiler *compiler) {
+	const std::vector<coldruby::ColdRubyRuntime> &runtime =
 		compiler->runtime();
 
 	std::string runtime_str;
 
-	for(std::vector<ColdRubyRuntime>::const_iterator it =
+	for(std::vector<coldruby::ColdRubyRuntime>::const_iterator it =
 		runtime.begin(); it != runtime.end(); it++) {
 
 		runtime_str += "/* Runtime: " +
@@ -162,7 +162,7 @@ static std::string compile_runtime(RubyCompiler *compiler) {
 	return runtime_str;
 }
 
-static int post_compiler(RubyCompiler *compiler, void *arg) {
+static int post_compiler(coldruby::RubyCompiler *compiler, void *arg) {
 	init_data_t *init = (init_data_t *) arg;
 
 	if(compiler->boot(COMPILER_ROOT "/coldruby/compile.rb", init->epilogue) == false) {
@@ -300,7 +300,7 @@ int main(int argc, char *argv[]) {
 			init.files.push_back("-");
 	}
 
-	MRIRubyCompiler compiler;
+	coldruby::MRIRubyCompiler compiler;
 
 	return compiler.initialize(post_compiler, &init);
 }

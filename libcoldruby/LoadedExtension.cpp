@@ -20,6 +20,8 @@
 #include "ColdRubyExtension.h"
 #include "LoadedExtension.h"
 
+using namespace coldruby;
+
 LoadedExtension::LoadedExtension(const std::string &file, const DynamicLibrary &library, ColdRubyExtension *extension) :
 	m_file(file), m_library(library), m_extension(extension) {
 

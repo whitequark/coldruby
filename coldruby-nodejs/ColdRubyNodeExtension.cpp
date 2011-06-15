@@ -22,7 +22,7 @@ ColdRubyNodeExtension::ColdRubyNodeExtension(v8::Handle<v8::Object> target): m_t
 		throw std::runtime_error(error.c_str());
 	}
 
-	m_vm = new ColdRubyVM(v8::Context::GetCurrent());
+	m_vm = new coldruby::ColdRubyVM(v8::Context::GetCurrent());
 	
 	if(m_vm->initialize(m_compiler) == false) {
 		std::string error = "VM initialization failed: " + m_vm->errorString();
@@ -50,7 +50,7 @@ v8::Handle<v8::Value> ColdRubyNodeExtension::newRuby(const v8::Arguments &args) 
 	ColdRubyNodeExtension *self = static_cast<ColdRubyNodeExtension *>
 		(v8::External::Unwrap(args.Data()));
 		
-	ColdRuby *ruby = self->m_vm->createRuby();
+	coldruby::ColdRuby *ruby = self->m_vm->createRuby();
 	
 	if(ruby == NULL) {
 		v8::ThrowException(v8::Exception::Error(v8::String::New(

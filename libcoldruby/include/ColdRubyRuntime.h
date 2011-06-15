@@ -32,6 +32,8 @@
  * Используется \ref RubyCompiler для передачи рантайма ColdRubyVM.
  */
 
+namespace coldruby {
+
 class ColdRubyRuntime {
 public:
 	/** \brief Конструктор класса.
@@ -58,5 +60,7 @@ public:
 private:
 	std::string m_code, m_file;
 };
+
+}
 
 #endif

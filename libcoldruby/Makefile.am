@@ -21,11 +21,17 @@ libcoldruby_la_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp \
 	ColdRubyStackFrame.cpp ColdRubyStackTrace.cpp \
 	DynamicLibrary.h DynamicLibrary.cpp LoadedExtension.h \
 	LoadedExtension.cpp
+include_HEADERS = include/ColdRubyExtension.h include/ColdRubyException.h \
+	include/ColdRubyRuntime.h include/RubyCompiler.h \
+	include/StandardRubyCompiler.h include/MRIRubyCompiler.h \
+	include/ColdRuby.h include/ColdRubyVM.h 
 
-noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h \
-	ColdRubyRuntime.h ColdRubyException.h ColdRuby.h ColdRubyVM.h  \
+noinst_HEADERS =  \
+	 \
 	ColdRubyStackFrame.h ColdRubyStackTrace.h
 libcoldruby_la_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\"" ${MRI_CPPFLAGS} \
-	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""
+	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\"" \
+	-Iinclude
+
 libcoldruby_la_LIBADD = ${V8_LIBS}

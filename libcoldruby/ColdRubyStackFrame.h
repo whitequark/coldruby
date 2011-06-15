@@ -23,6 +23,8 @@
 #include <string>
 #include <v8.h>
 
+namespace coldruby {
+
 class ColdRubyStackFrame {
 public:
 	ColdRubyStackFrame();
@@ -56,5 +58,7 @@ private:
 	int m_line, m_column, m_frameNumber;
 	v8::Handle<v8::Object> m_frame;
 };
+
+}
 
 #endif

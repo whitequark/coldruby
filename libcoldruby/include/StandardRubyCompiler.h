@@ -27,6 +27,8 @@
 
 #include "RubyCompiler.h"
 
+namespace coldruby {
+
 /** \brief Класс, включающий стандартные реализации некоторых функций для
  *         реализации компилятора Ruby.
  */
@@ -74,5 +76,7 @@ protected:
 private:
 	std::string m_errorString;
 };
+
+}
 
 #endif
