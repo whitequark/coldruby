@@ -103,13 +103,6 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 	}
 
 	try {
-		std::vector<std::string> path;
-
-		path.push_back(STDLIB_ROOT);
-		path.push_back(EXTENSION_ROOT);
-
-		ruby->setSearchPath(path);
-
 		ruby->run(init->content, init->filename);
 	} catch(const ColdRubyException &e) {
 		fprintf(stderr, "coldruby: %s\n", e.what());
@@ -121,6 +114,7 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 			fputc('\n', stderr);
 		}
 
+		delete ruby;
 
 		return 1;
 	}

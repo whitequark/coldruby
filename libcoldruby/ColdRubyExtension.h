@@ -44,7 +44,8 @@ class ColdRuby;
 
 class ColdRubyExtension {
 public:
-	virtual ~ColdRubyExtension();
+	ColdRubyExtension() {}
+	virtual ~ColdRubyExtension() {}
 };
 
 #if defined(__cplusplus)

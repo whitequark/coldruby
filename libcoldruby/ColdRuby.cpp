@@ -17,34 +17,45 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
+
 #include "ColdRuby.h"
 #include "ColdRubyVM.h"
 #include "ColdRubyException.h"
+#include "ColdRubyExtension.h"
 #include "RubyCompiler.h"
+#include "LoadedExtension.h"
 
 using namespace v8;
 
 ColdRuby::ColdRuby(ColdRubyVM *vm, Handle<Object> ruby) : m_vm(vm), m_ruby(Persistent<Object>::New(ruby)) {
-	try {
-		std::vector<std::string> default_path;
-		default_path.push_back(EXTENSION_ROOT);
-		default_path.push_back(STDLIB_ROOT);
-		setSearchPath(default_path);
-	
-		std::string resolved = resolve("kernel");
-	
-		printf("kernel resolved to '%s'\n", resolved.c_str());
-	} catch(const ColdRubyException &e) {
-		if(!m_ruby.IsWeak())
-			m_ruby.Dispose();
 
-		throw e;
-	}
 }
 
 ColdRuby::~ColdRuby() {
+	for(std::vector<LoadedExtension *>::const_iterator it = m_loaded_extensions.begin(); it != m_loaded_extensions.end(); it++) {
+		delete (*it);
+	}
+
 	if(!m_ruby.IsWeak())
 		m_ruby.Dispose();
+}
+
+void ColdRuby::initialize() {
+	std::vector<std::string> default_path;
+	default_path.push_back(EXTENSION_ROOT);
+	default_path.push_back(STDLIB_ROOT);
+	setSearchPath(default_path);
+	
+	std::string kernel = resolve("kernel");
+	if(kernel.empty())
+		throw ColdRubyException("Initialization failed", "kernel extension not found");
+
+	runElf(kernel);
+
+	printf("kernel is here.\n");
 }
 
 void ColdRuby::delegateToJS() {
@@ -451,10 +462,13 @@ void ColdRuby::rubyDisposed(v8::Persistent<v8::Value> object, void *arg) {
 }
 
 std::string ColdRuby::resolve(const std::string &name) {
+	if(loadableFile(name))
+		return name;
+
 	size_t slash_off = name.rfind('/');
 	std::vector<std::string> dirs;
 	std::string basename;
-	
+
 	if(slash_off == std::string::npos) {
 		basename = name;
 		dirs = searchPath();
@@ -466,9 +480,56 @@ std::string ColdRuby::resolve(const std::string &name) {
 	for(std::vector<std::string>::const_iterator it = dirs.begin();
 	    it != dirs.end();
 	    it++) {
-		printf("Searching for '%s' in '%s'\n",
-		       basename.c_str(), (*it).c_str());
+		for(int i = 0; m_ext_types[i].prefix != NULL; i++) {
+			std::string name = *it + "/" + std::string(m_ext_types[i].prefix) + basename + std::string(m_ext_types[i].suffix);
+
+			if(loadableFile(name))
+				return name;
+		}
 	}
 	
 	return std::string();
 }
+
+bool ColdRuby::loadableFile(const std::string &name) {
+	struct stat statbuf;
+
+	return stat(name.c_str(), &statbuf) == 0 && S_ISREG(statbuf.st_mode);
+}
+
+void ColdRuby::runElf(const std::string &file) {
+	for(std::vector<LoadedExtension *>::const_iterator it = m_loaded_extensions.begin(); it != m_loaded_extensions.end(); it++)
+		if((*it)->file() == file)
+			return;
+
+	DynamicLibrary lib;
+
+	if(lib.load(file) == false)
+		throw ColdRubyException("ELF load failed", lib.errorString());
+
+	int (*abi)() = (int (*)()) lib.resolve("coldruby_extension_abi");
+
+	if(abi == NULL) 
+		throw ColdRubyException("ELF load failed", lib.errorString());
+
+	if(abi() != COLDRUBY_EXTENSION_ABI) {
+		throw ColdRubyException("ELF load failed", "Extension ABI is not compatible");
+	}
+
+	ColdRubyExtension *(*create)(ColdRuby *) = (ColdRubyExtension *(*)(ColdRuby *)) lib.resolve("coldruby_extension_create");
+
+	if(create == NULL) 
+		throw ColdRubyException("ELF load failed", lib.errorString());
+
+	ColdRubyExtension *extension = create(this);
+
+	m_loaded_extensions.push_back(new LoadedExtension(file, lib, extension));
+}
+
+const ColdRuby::ext_type_t ColdRuby::m_ext_types[] = {
+	{ "", "" },
+	{ "", ".rb" },
+	{ "lib", ".so" },
+	{ NULL, NULL }
+};
+

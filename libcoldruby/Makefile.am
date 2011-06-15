@@ -18,10 +18,13 @@
 lib_LTLIBRARIES = libcoldruby.la
 libcoldruby_la_SOURCES = StandardRubyCompiler.cpp MRIRubyCompiler.cpp \
 	ColdRubyException.cpp ColdRuby.cpp ColdRubyVM.cpp \
-	ColdRubyStackFrame.cpp ColdRubyStackTrace.cpp
+	ColdRubyStackFrame.cpp ColdRubyStackTrace.cpp \
+	DynamicLibrary.h DynamicLibrary.cpp LoadedExtension.h \
+	LoadedExtension.cpp
+
 noinst_HEADERS = StandardRubyCompiler.h MRIRubyCompiler.h RubyCompiler.h \
 	ColdRubyRuntime.h ColdRubyException.h ColdRuby.h ColdRubyVM.h  \
-	ColdRubyStackFrame.h ColdRubyStackTrace.h 
+	ColdRubyStackFrame.h ColdRubyStackTrace.h
 libcoldruby_la_CPPFLAGS = -D_GNU_SOURCE -DCOMPILER_ROOT="\"$(compilerdir)\"" \
 	-DRUNTIME_ROOT="\"$(runtimedir)\"" ${MRI_CPPFLAGS} \
 	-DEXTENSION_ROOT="\"$(extensiondir)\"" -DSTDLIB_ROOT="\"$(stdlibdir)\""

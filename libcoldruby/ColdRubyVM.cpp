@@ -150,16 +150,16 @@ ColdRuby *ColdRubyVM::createRuby() {
 		return 0;
 	}
 
-	ColdRuby *ruby = 0;
+	ColdRuby *ruby = new ColdRuby(this, ret->ToObject());
 
 	try {
-		ruby = new ColdRuby(this, ret->ToObject());
+		ruby->initialize();
+
+		return ruby;
 	} catch(const ColdRubyException &e) {
 		m_errorString = std::string(e.what()) + ": " + e.exceptionInfo();
 
-		if(ruby)
-			delete ruby;
-
+		delete ruby;
 		return 0;
 	}
 }

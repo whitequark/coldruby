@@ -25,11 +25,14 @@
 #include <string>
 
 class ColdRubyVM;
+class LoadedExtension;
 
 class ColdRuby {
 public:
 	ColdRuby(ColdRubyVM *vm, v8::Handle<v8::Object> ruby);
 	virtual ~ColdRuby();
+
+	void initialize();
 
 	void delegateToJS();
 
@@ -42,6 +45,7 @@ public:
 
 	void run(const std::string &code, const std::string &file);
 	void run(const std::string &file);
+	void runElf(const std::string &file);
 
 	const std::string &errorString() const;
 
@@ -120,6 +124,20 @@ public:
 
 private:
 	static void rubyDisposed(v8::Persistent<v8::Value> object, void *arg);
+	static bool loadableFile(const std::string &file);
+
+	enum FileType {
+		TypeElf,
+		TypeRuby
+	};
+
+
+	typedef struct {
+		const char *prefix;
+		const char *suffix;
+	} ext_type_t;
+
+	static const ext_type_t m_ext_types[];
 
 	void setErrorString(const std::string &string);
 
@@ -127,6 +145,8 @@ private:
 	v8::Persistent<v8::Object> m_ruby;
 
 	std::string m_errorString;
+
+	std::vector<LoadedExtension *> m_loaded_extensions;
 };
 
 #endif
