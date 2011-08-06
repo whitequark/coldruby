@@ -6,7 +6,13 @@ $.define_method($c.Kernel, 'nil?', 0, function(self) {
   return Qfalse;
 });
 
-$.alias_method($c.Kernel, 'eql?', 'equal?');
+/*
+ * Why not
+ *   $.alias_method($c.Kernel, 'eql?', 'equal?'); ?
+ * Because of weird inheritance chain.
+ */
+$c.Kernel.instance_methods[$.any2id('eql?')] =
+          $c.BasicObject.instance_methods[$.any2id('equal?')];
 
 $.define_method($c.Kernel, '=~', 1, function(self, other) {
   return Qnil;
