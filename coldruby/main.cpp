@@ -81,6 +81,12 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 
 	ColdRubyVM vm;
 
+	if(init->debugPort != 0) {
+		fprintf(stderr, "coldruby: waiting for V8 debugger connection on port %d\n",
+						init->debugPort);
+		v8::Debug::EnableAgent("coldruby", init->debugPort, true);
+	}
+
 	if(vm.initialize(compiler) == false) {
 		fprintf(stderr, "coldruby: vm.initialize: %s\n", vm.errorString().c_str());
 
@@ -94,12 +100,6 @@ static int post_compiler(RubyCompiler *compiler, void *arg) {
 		fprintf(stderr, "coldruby: ruby creation failed: %s\n", vm.errorString().c_str());
 
 		return 1;
-	}
-
-	if(init->debugPort != 0) {
-		fprintf(stderr, "coldruby: waiting for V8 debugger connection on port %d\n",
-						init->debugPort);
-		v8::Debug::EnableAgent("coldruby", init->debugPort, true);
 	}
 
 	try {
