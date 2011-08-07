@@ -36,6 +36,10 @@ require('ruby/nodejs');
 
 ruby.protect_node(function() {
 END
+    when 'qtscript'
+      compiled = <<END
+ruby.protect(function() {
+END
     else
       compiled = ""
   end
@@ -66,6 +70,13 @@ END
       compiled << <<END
 })(ruby);
 })();
+END
+    when 'qtscript'
+      compiled << <<END
+})(ruby);
+}, function(e) {
+  qtPrintRubyError(e);
+});
 END
     when nil
       compiled << '});'
@@ -125,7 +136,7 @@ def get_runtime(directory, epilogue_type=nil)
     when 'browser'
       epilogue << "ruby = $.create_ruby();\n"
       epilogue << CONSOLE_LOG_PUTS
-    when nil
+    when nil, 'qtscript'
     else
       raise "Unknown epilogue type #{epilogue}"
   end
