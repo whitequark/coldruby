@@ -1022,7 +1022,7 @@ var $ = {
     var klass = object.klass;
 
     do {
-      if(klass == c)
+      if(klass == c || (klass.type == 'module_proxy' && klass.klass == c))
         return true;
     } while(klass = klass.superklass);
 
