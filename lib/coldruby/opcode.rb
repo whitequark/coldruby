@@ -106,6 +106,11 @@ module ColdRuby
           %Q{#{PUSH} = this.float_new(#{@info[0].inspect});}
         when Range
           %Q{#{PUSH} = this.range_new(#{@info[0].begin.inspect}, #{@info[0].end.inspect}, #{@info[0].exclude_end?});}
+        when Regexp
+          options = ""
+          options << "i" if object.options & Regexp::IGNORECASE
+          pattern = @info[0].inspect.sub(%r{^/}, "").sub(%r{/[a-z]*$}, "")
+          %Q{#{PUSH} = this.regexp_new(#{pattern.inspect}, #{options.inspect});}
         when Symbol
           %Q{#{PUSH} = #{SYMBOL[self, object]};}
         when true
