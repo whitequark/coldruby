@@ -602,16 +602,23 @@ $.define_method($c.Array, 'slice', -1, function(self, args) {
       index = this.to_int(index);
       length = this.to_int(length);
     } else if(index.klass == $c.Range) {
-      length = this.to_int(index.ivs['@end']) - (this.test(index.ivs['@excl']) ? 1 : 0);
+      length = this.to_int(index.ivs['@end']);
+      if(length < 0)
+        length += self.length + 1;
+      length -= (this.test(index.ivs['@excl']) ? 1 : 0);
       index  = this.to_int(index.ivs['@begin']);
       length -= index;
     } else {
       this.raise($c.ArgumentError, "Array#slice requires one or two integers or Range as arguments");
     }
 
-    var result = [];
+    var step = (length > 0 ? 1 : -1), result = [];
+    var neg = (index < 0);
 
-    for(var i = 0; i < length; i++) {
+    for(var i = 0; i < length; i += step) {
+      if((neg && (index + i >= 0)) || (!neg && (index + i < 0)))
+        break;
+
       if((index + i) < self.length && (index + i) >= -self.length) {
         result.push(this.funcall(self, 'at', index + i));
       }
@@ -633,16 +640,23 @@ $.define_method($c.Array, 'slice!', -1, function(self, args) {
       index = this.to_int(index);
       length = this.to_int(length);
     } else if(index.klass == $c.Range) {
-      length = this.to_int(index.ivs['@end']) - (this.test(index.ivs['@excl']) ? 1 : 0);
+      length = this.to_int(index.ivs['@end']);
+      if(length < 0)
+        length += self.length + 1;
+      length -= (this.test(index.ivs['@excl']) ? 1 : 0);
       index  = this.to_int(index.ivs['@begin']);
       length -= index;
     } else {
       this.raise($c.ArgumentError, "Array#slice! requires one or two integers or Range as arguments");
     }
 
-    var result = [];
+    var step = (length > 0 ? 1 : -1), result = [];
+    var neg = (index < 0);
 
-    for(var i = 0; i < length; i++) {
+    for(var i = 0; i < length; i += step) {
+      if((neg && (index + i >= 0)) || (!neg && (index + i < 0)))
+        break;
+
       if((index + i) < self.length && (index + i) >= -self.length) {
         result.push(this.funcall(self, 'delete_at', index + i));
       }
