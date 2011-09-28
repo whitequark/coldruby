@@ -115,6 +115,20 @@ $.define_method($c.Kernel, 'untrusted?', 0, function(self) {
   return self.trusted ? Qfalse : Qtrue;
 });
 
+$.define_method($c.Kernel, 'freeze', 0, function(self) {
+  self.frozen = true;
+  return self;
+});
+
+$.define_method($c.Kernel, 'unfreeze', 0, function(self) {
+  self.frozen = false;
+  return self;
+});
+
+$.define_method($c.Kernel, 'frozen?', 0, function(self) {
+  return self.frozen ? Qfalse : Qtrue;
+});
+
 $.define_method($c.Kernel, 'instance_variable_defined?', 1, function(self, symbol) {
   symbol = this.to_sym(symbol);
 
