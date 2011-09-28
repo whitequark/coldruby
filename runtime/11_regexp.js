@@ -9,13 +9,17 @@ $.const_set(cRegexp, "EXTENDED", cRegexp.EXTENDED);
 cRegexp.MULTILINE = 4;
 $.const_set(cRegexp, "MULTILINE", cRegexp.MULTILINE);
 
-$.regexp_new = function(pattern, flags) {
+$.regexp_new = function(pattern, flags, define_osf) {
   var safe_flags = "m";
 
   if(flags.indexOf("i") != -1)
     safe_flags += "i";
 
-  return { klass: cRegexp, regexp: new RegExp(pattern, safe_flags) };
+  return {
+    klass:      cRegexp,
+    regexp:     new RegExp(pattern, safe_flags),
+    define_osf: define_osf
+  };
 }
 
 $.alias_method($.get_singleton(cRegexp), "compile", "new");
@@ -66,7 +70,11 @@ $.define_method(cRegexp, "===", 1, function(self, other) {
 
 $.define_method(cRegexp, "=~", 1, function(self, other) {
   var match_data = this.funcall(self, 'match', other);
-  return this.funcall(match_data, 'begin', 0);
+  if(match_data == Qnil) {
+    return match_data;
+  } else {
+    return this.funcall(match_data, 'begin', 0);
+  }
 });
 
 $.define_method(cRegexp, "casefold?", 0, function(self) {
@@ -84,7 +92,7 @@ $.define_method(cRegexp, "match", -1, function(self, args) {
     var input = other;
   }
 
-  var js_match = self.regexp.exec(input);
+  var js_match = self.regexp.exec(input), ruby_match;
 
   if(js_match) {
     var parts = [];
@@ -98,11 +106,16 @@ $.define_method(cRegexp, "match", -1, function(self, args) {
       }
     }
 
-    return this.funcall($c.MatchData, "new",
+    ruby_match = this.funcall($c.MatchData, "new",
                   self, this.string_new(input), parts, starts);
   } else {
-    return Qnil;
+    ruby_match = Qnil;
   }
+
+  if(self.define_osf)
+    self.define_osf.last_regexp_match = ruby_match;
+
+  return ruby_match;
 });
 
 $.define_method(cRegexp, "inspect", 0, function(self) {
@@ -128,3 +141,31 @@ $.define_method(cRegexp, "~", 0, function(self) {
 });
 
 $.const_set(Qnil, "Regexp", cRegexp);
+
+$.regexp_last_match_op = function(method, args) {
+  var match_data = this.context.sf.osf.last_regexp_match;
+  if(!match_data || match_data == Qnil)
+    return Qnil;
+
+  if(method) {
+    return this.funcall2(match_data, method, args);
+  } else {
+    return match_data;
+  }
+}
+
+$.gvar_special("$~", {
+  get: function() { return this.regexp_last_match_op(); }
+});
+
+$.gvar_special("$&", {
+  get: function() { return this.regexp_last_match_op('[]', [0]); }
+});
+
+$.gvar_special("$`", {
+  get: function() { return this.regexp_last_match_op('pre_match', []); }
+});
+
+$.gvar_special("$'", {
+  get: function() { return this.regexp_last_match_op('post_match', []); }
+});

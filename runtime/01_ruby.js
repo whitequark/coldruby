@@ -8,6 +8,7 @@ var $ = {
       $.gvar_alias('$LOAD_PATH', '$:');
 
       $.gvar_set('$,', "");
+      $.gvar_set('$_', $.builtin.Qnil);
 
       $.e = $.c = $.internal_constants;
     },
@@ -16,6 +17,7 @@ var $ = {
   /* === GLOBAL VARIABLES === */
   globals: {},
   globals_aliases: {},
+  specials: {},
 
   /*
    * call-seq: gvar_normalize(name) -> string
@@ -56,7 +58,12 @@ var $ = {
    * Retrieve contents of global variable +name+ or nil if it does not exist.
    */
   gvar_get: function(name) {
-    var v = this.globals[this.gvar_normalize(name)]
+    name = this.gvar_normalize(name);
+
+    var v = this.specials[name];
+    if(v) return v.get.apply(this);
+
+    var v = this.globals[name];
     return v == null ? this.builtin.Qnil : v;
   },
 
@@ -66,9 +73,22 @@ var $ = {
    * Set contents of global variable +name+ to +value+.
    */
   gvar_set: function(name, value) {
-    this.globals[this.gvar_normalize(name)] = value;
+    name = this.gvar_normalize(name);
 
+    var v = this.specials[name];
+    if(v) return v.set.apply(this, value);
+
+    this.globals[name] = value;
     return value;
+  },
+
+  /*
+   * call-seq: gvar_special(name, { get: <getter> [, set: <setter> ] }) -> null
+   *
+   * Define a special global variable.
+   */
+  gvar_special: function(name, data) {
+    this.specials[this.any2id(name)] = data;
   },
 
   /* === CONSTANTS === */

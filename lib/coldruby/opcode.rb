@@ -110,7 +110,7 @@ module ColdRuby
           options = ""
           options << "i" if object.options & Regexp::IGNORECASE
           pattern = @info[0].inspect.sub(%r{^/}, "").sub(%r{/[a-z]*$}, "")
-          %Q{#{PUSH} = this.regexp_new(#{pattern.inspect}, #{options.inspect});}
+          %Q{#{PUSH} = this.regexp_new(#{pattern.inspect}, #{options.inspect}, sf.osf);}
         when Symbol
           %Q{#{PUSH} = #{SYMBOL[self, object]};}
         when true
@@ -245,7 +245,7 @@ module ColdRuby
         [
           %Q{var strings = sf.stack.slice(sf.sp - #{@info[1]}, sf.sp);},
           %Q{sf.sp -= #{@info[1]};},
-          %Q{#{PUSH} = this.regexp_new(strings.join(""), #{options.inspect});}
+          %Q{#{PUSH} = this.regexp_new(strings.join(""), #{options.inspect}, sf.osf);}
         ]
 
       when :pop
@@ -296,6 +296,14 @@ module ColdRuby
         %Q{sf.self.ivs[#{@info[0].to_s.inspect}] = #{POP};}
       when :getinstancevariable
         %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_s.inspect}];}
+
+      when :getspecial
+        raise UnknownFeatureException, "getspecial field0 #{@info[0]}" if @info[0] != 1
+        if @info[1] & 1 != 0
+          %Q{#{PUSH} = this.gvar_get("$#{(@info[1] >> 1).chr}");}
+        else
+          %Q{#{PUSH} = this.regexp_last_match_op("[]", #{@info[1] >> 1});}
+        end
 
       when :send, :invokeblock, :invokesuper
         code = []
