@@ -235,6 +235,19 @@ module ColdRuby
           raise UnknownFeatureException, "newrange flags #{@info[0]}"
         end
 
+      when :toregexp
+        options = ""
+        options << "i" if @info[0] & Regexp::IGNORECASE
+        if @info[0] & ~Regexp::IGNORECASE != 0
+          raise UnknownFeatureException, "toregexp flags #{@info[0]}"
+        end
+
+        [
+          %Q{var strings = sf.stack.slice(sf.sp - #{@info[1]}, sf.sp);},
+          %Q{sf.sp -= #{@info[1]};},
+          %Q{#{PUSH} = this.regexp_new(strings.join(""), #{options.inspect});}
+        ]
+
       when :pop
         %Q{sf.sp--;}
       when :adjuststack
