@@ -56,8 +56,22 @@ $.define_method($c.String, 'to_sym', 0, function(self) {
   return $.text2sym(self.value);
 });
 
+$c.String.replacements = [];
+for(var i = 0; i < 0x20; i++) {
+  var rightHex = i.toString(16), leftHex = ("0000").substr(0, rightHex);
+  var hex = "\\u" + leftHex + rightHex, re = new RegExp(hex, 'g');
+  $c.String.replacements.push(re);
+}
+
 $.define_method($c.String, 'inspect', 0, function(self) {
-  return this.string_new('"' + self.value + '"');
+  var value = self.value.replace(/"/g, '\\"');
+
+  for(var i = 0; i < $c.String.replacements.length; i++) {
+    var re = $c.String.replacements[i];
+    value = value.replace(re, re.source);
+  }
+
+  return this.string_new('"' + value + '"');
 });
 
 String.prototype.klass = $c.String;
