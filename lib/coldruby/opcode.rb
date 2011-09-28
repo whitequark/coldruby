@@ -205,7 +205,7 @@ module ColdRuby
         end
 
         code << %Q{for(var i = 0; i < #{@info[0]}; i++)}
-        code << %Q{  #{PUSH} = array[#{@info[0]} - i - 1];}
+        code << %Q{  #{PUSH} = array[#{@info[0]} - i - 1] || this.builtin.Qnil;}
 
         code
       when :concatarray
