@@ -43,7 +43,7 @@ $.any2id = function(obj) {
 $.define_class('Symbol', null); // will be set up later
 
 $.define_method($c.Symbol, '==', 1, function(self, other) {
-  return (other.klass == $c.Symbol && this.value == other.value) ? Qtrue : Qfalse;
+  return (other.klass == $c.Symbol && self.value == other.value) ? Qtrue : Qfalse;
 });
 $.alias_method($c.Symbol, '===', '==');
 
