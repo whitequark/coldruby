@@ -134,6 +134,15 @@ $.define_method($c.Hash, 'values', 0, function(self) {
   return values;
 });
 
+$.define_method($c.Hash, 'values_at', -1, function(self, keys) {
+  var values = [];
+
+  for(var i = 0; i < keys.length; i++)
+    values.push(self.values[this.funcall(keys[i], 'hash')] || Qnil);
+
+  return values;
+});
+
 $.define_method($c.Hash, 'delete', 1, function(self, key) {
   var hash = this.funcall(key, 'hash');
 
