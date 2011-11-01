@@ -168,7 +168,7 @@ var $ = {
     name = this.any2id(name);
 
     if(scope.constants[name] != undefined)
-      this.warn("Constant " + this.id2text(strname) + " is already defined");
+      this.warn("Constant " + this.id2text(name) + " is already defined");
 
     scope.constants[name] = value;
 
