@@ -73,5 +73,3 @@ $.define_method($c.String, 'inspect', 0, function(self) {
 
   return this.string_new('"' + value + '"');
 });
-
-String.prototype.klass = $c.String;
