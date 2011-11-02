@@ -105,7 +105,12 @@ var $ = {
    * TODO: check the search rules (comparing to MRI)
    */
   const_find_scope: function(name) {
-    var cref = this.context.sf.cref;
+    if(this.context == null) {
+      /* The method is called on global `$' object. */
+      var cref = [ this.c.Object ];
+    } else {
+      var cref = this.context.sf.cref;
+    }
 
     // Skip outermost context; it has precedence lower than superklasses
     for(var i = 0; i < cref.length - 1; i++) {
