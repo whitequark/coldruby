@@ -1400,7 +1400,7 @@ var $ = {
    * +value+ may be Proc or Symbol.
    */
   to_block: function(value) {
-    this.check_type(value, [$c.Proc, $c.Symbol]);
+    this.check_type(value, [this.c.Proc, this.c.Symbol]);
 
     if(value.klass == $c.Symbol) {
       var proc = function(self, x) {
@@ -1436,6 +1436,10 @@ var $ = {
     ruby.define_singleton_method(ruby.toplevel, 'to_s', 0, function(self) {
       return this.string_new("main");
     });
+
+    var toplevel_singleton = ruby.get_singleton(ruby.toplevel);
+    toplevel_singleton.instance_methods[ruby.any2id('include')] =
+        ruby.internal_constants.Module.instance_methods[ruby.any2id('include')];
 
     return ruby;
   },
