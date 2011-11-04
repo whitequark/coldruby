@@ -141,7 +141,7 @@ $.define_method($c.Kernel, 'instance_variable_get', 1, function(self, symbol) {
   return self.ivs[this.id2text(this.to_sym(symbol).value)] || Qnil;
 });
 
-$.define_method($c.Kernel, 'instance_variable_set', 1, function(self, symbol, value) {
+$.define_method($c.Kernel, 'instance_variable_set', 2, function(self, symbol, value) {
   self.ivs[this.id2text(this.to_sym(symbol).value)] = value;
 
   return value;
