@@ -136,7 +136,11 @@ module ColdRuby
           raise UnknownFeatureException, "putspecialobject type #{@info[0]}"
         end
       when :putiseq
-        %Q{#{PUSH} = #{ISeq.new(@pool, @info[0]).compile};}
+        [
+          %Q{var iseq = #{ISeq.new(@pool, @info[0]).compile};},
+          %Q{iseq.context = sf;},
+          %Q{#{PUSH} = iseq;}
+        ]
 
       when :tostring
         [

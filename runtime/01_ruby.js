@@ -439,16 +439,18 @@ var $ = {
       };
     }
 
-    if(this.context && this.context.sf) {
-      wrapper.context = {
-        ddef: this.context.sf.ddef,
-        cref: this.context.sf.cref,
-      };
-    } else {
-      wrapper.context = {
-        ddef: klass,
-        cref: [klass],
-      };
+    if(!wrapper.context) {
+      if(this.context && this.context.sf) {
+        wrapper.context = {
+          ddef: this.context.sf.ddef,
+          cref: this.context.sf.cref,
+        };
+      } else {
+        wrapper.context = {
+          ddef: klass,
+          cref: [klass],
+        };
+      }
     }
 
     return wrapper;
