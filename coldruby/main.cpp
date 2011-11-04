@@ -22,8 +22,8 @@
 #include <getopt.h>
 #include <string.h>
 #include <errno.h>
-#include <MRIRubyCompiler.h>
 #include "ColdRubyVM.h"
+#include <MRIRubyCompiler.h>
 #include "ColdRubyException.h"
 #include "ColdRuby.h"
 #include <v8-debug.h>
