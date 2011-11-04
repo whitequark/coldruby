@@ -135,7 +135,9 @@ function() {
     ],
 
     args: {
+      opt_jumptable: #{@args[1].map { |arg| Opcode.label_to_id(arg) }},
       argc:  #{@args[0]},
+      post:  #{@args[2]},
       rest:  #{@args[4]},
       block: #{@args[5]},
     },

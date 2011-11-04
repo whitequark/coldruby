@@ -1125,6 +1125,8 @@ var $ = {
       args: args,
     };
 
+    var initial_chunk;
+
     for(var key in opts) {
       new_sf[key] = opts[key];
     }
@@ -1138,13 +1140,22 @@ var $ = {
     }
 
     if(typeof iseq == 'object') {
-      if((iseq.lambda || iseq.info.type == 'method') &&
-          args.length < iseq.info.args.argc) {
-        throw "argument count mismatch: " + args.length + " < " + iseq.info.args.argc;
-      }
-
       var argsinfo = iseq.info.args;
+      var optarg_count = argsinfo.opt_jumptable.length - 1;
       var new_args = [];
+
+      var error_messenger = function() {
+        var expect_args, nonopt_args = argsinfo.argc + argsinfo.post;
+
+        if(argsinfo.opt_jumptable.length === 0) {
+          expect_args = argsinfo.argc;
+        } else {
+          expect_args = nonopt_args + '..' + (nonopt_args + optarg_count);
+        }
+
+        this.raise(this.e.ArgumentError, "wrong number of arguments " +
+                   "(" + old_args.length + " for " + expect_args + ")");
+      }
 
       if(argsinfo.block > -1) {
         if(new_sf.block) {
@@ -1154,22 +1165,43 @@ var $ = {
         }
       }
 
-      for(var i = 0; i < argsinfo.argc; i++)
-        new_args[i] = args[i];
+      if(argsinfo.opt_jumptable.length > 0)
+        debugger;
 
-      args = args.splice(argsinfo.argc);
+      new_args = args.splice(0, argsinfo.argc);
+
+      var optargs = args.splice(0, args.length - argsinfo.post < optarg_count ?
+                                   args.length - argsinfo.post : optarg_count);
+      initial_chunk = argsinfo.opt_jumptable[optargs.length] || 0;
+
+      new_args = new_args.concat(optargs);
+
+      if(argsinfo.post > 0) {
+        var postargs = args.splice(0, argsinfo.post);
+
+        /* Append postargs after optargs even if the count of latter is
+           not large enough */
+        if(new_args.length < argsinfo.argc + optarg_count)
+          new_args.length = argsinfo.argc + optarg_count;
+
+        if(postargs.length < argsinfo.post)
+          error_messenger.call(this);
+
+        new_args = new_args.concat(postargs);
+      }
+
       if(argsinfo.rest > -1) {
         new_args[argsinfo.rest] = args;
         args = [];
       }
 
-      if(args.length > 0 && !(iseq.info.type == 'block' && !iseq.lambda))
-        this.raise(this.e.ArgumentError, "wrong number of arguments " +
-                   "(" + old_args.length + " for " + argsinfo.argc + ")");
+      if((args.length > 0 || old_args.length < argsinfo.argc)
+                     && !(iseq.info.type == 'block' && !iseq.lambda)) 
+        error_messenger.call();
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
         new_sf.locals[iseq.info.local_size - i] =
-            new_args[i] == null ? this.builtin.Qnil : new_args[i];
+            new_args[i] === undefined ? this.builtin.Qnil : new_args[i];
       }
     }
 
@@ -1194,7 +1226,7 @@ var $ = {
     this.context.sf = new_sf;
 
     if(typeof iseq == 'object') {
-      var chunk = 0, handler_chunk = null;
+      var chunk = initial_chunk, handler_chunk = null;
       while(chunk != null) {
         try {
           if(handler_chunk != null) {
