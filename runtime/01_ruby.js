@@ -1162,14 +1162,6 @@ var $ = {
                    "(" + old_args.length + " for " + expect_args + ")");
       }
 
-      if(argsinfo.block > -1) {
-        if(new_sf.block) {
-          new_args[argsinfo.block] = { klass: this.c.Proc, iseq: new_sf.block };
-        } else {
-          new_args[argsinfo.block] = this.builtin.Qnil;
-        }
-      }
-
       new_args = args.splice(0, argsinfo.argc);
 
       if(optarg_count > 0) {
@@ -1197,6 +1189,14 @@ var $ = {
       if(argsinfo.rest > -1) {
         new_args[argsinfo.rest] = args;
         args = [];
+      }
+
+      if(argsinfo.block > -1) {
+        if(new_sf.block) {
+          new_args[argsinfo.block] = { klass: this.c.Proc, iseq: new_sf.block };
+        } else {
+          new_args[argsinfo.block] = this.builtin.Qnil;
+        }
       }
 
       if((args.length > 0 || old_args.length < argsinfo.argc)
