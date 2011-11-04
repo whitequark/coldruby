@@ -51,7 +51,7 @@ $.define_method($.c.Module, 'module_exec', -1, function(self, args) {
     ddef: self,
     cref: sf.block.stack_frame.cref,
 
-    outer: sf,
+    outer: sf.block.stack_frame
   };
 
   return this.execute(sf_opts, sf.block, args);
@@ -111,7 +111,7 @@ $.define_method($c.BasicObject, 'instance_exec', -1, function(self, args) {
     ddef: null, /* will turn to singleton of self in getspecial(VM_SPECIAL_OBJECT_CBASE) */
     cref: sf.block.stack_frame.cref,
 
-    outer: sf,
+    outer: sf.block.stack_frame
   };
 
   return this.execute(sf_opts, sf.block, args);
