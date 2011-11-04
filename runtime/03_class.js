@@ -39,9 +39,25 @@ $.define_method($c.Class, 'superclass', 0, function(self) {
   return self.superklass == null ? Qnil : self.superklass;
 });
 
-$.define_method($.c.Class, 'inherited', 1, function(subclass) {
+$.define_method($.c.Class, 'inherited', 1, function(self, subclass) {
   return Qnil;
 });
+
+$.define_method($.c.Module, 'module_exec', -1, function(self, args) {
+  var sf = this.context.sf;
+
+  var sf_opts = {
+    self: self,
+    ddef: self,
+    cref: sf.cref,
+
+    outer: sf,
+  };
+
+  return this.execute(sf_opts, sf.block, args);
+});
+
+$.alias_method($c.Class, 'class_exec', 'module_exec');
 
 $.define_method($c.BasicObject, 'equal?', 1, function(self, other) {
   return self == other ? Qtrue : Qfalse;
@@ -91,8 +107,8 @@ $.define_method($c.BasicObject, 'instance_exec', -1, function(self, args) {
   var sf = this.context.sf;
 
   var sf_opts = {
-    self: sf.self,
-    ddef: sf.ddef,
+    self: self,
+    ddef: null, /* will turn to singleton of self in getspecial(VM_SPECIAL_OBJECT_CBASE) */
     cref: sf.cref,
 
     outer: sf,

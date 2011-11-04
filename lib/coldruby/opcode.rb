@@ -127,7 +127,7 @@ module ColdRuby
         when VM_SPECIAL_OBJECT_VMCORE
           %Q{#{PUSH} = this.builtin.vmcore;}
         when VM_SPECIAL_OBJECT_CBASE
-          %Q{#{PUSH} = sf.ddef;}
+          %Q{#{PUSH} = sf.ddef || this.get_singleton(sf.self);}
         when VM_SPECIAL_OBJECT_CONST_BASE
           # Just guessing.
           %Q{#{PUSH} = sf.cref[0];}
