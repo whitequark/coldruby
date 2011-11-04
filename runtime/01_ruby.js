@@ -1125,7 +1125,7 @@ var $ = {
       args: args,
     };
 
-    var initial_chunk;
+    var initial_chunk = 0;
 
     for(var key in opts) {
       new_sf[key] = opts[key];
@@ -1141,15 +1141,18 @@ var $ = {
 
     if(typeof iseq == 'object') {
       var argsinfo = iseq.info.args;
-      var optarg_count = argsinfo.opt_jumptable.length - 1;
+      var optarg_count = argsinfo.opt_jumptable ? argsinfo.opt_jumptable.length - 1 : 0;
       var new_args = [];
 
       var error_messenger = function() {
-        var expect_args, nonopt_args = argsinfo.argc + argsinfo.post;
+        var expect_args;
 
-        if(argsinfo.opt_jumptable.length === 0) {
+        if(argsinfo.opt_jumptable === undefined ||
+           argsinfo.opt_jumptable.length === 0) {
           expect_args = argsinfo.argc;
         } else {
+          var nonopt_args = argsinfo.argc + argsinfo.post;
+
           expect_args = nonopt_args + '..' + (nonopt_args + optarg_count);
         }
 
@@ -1165,16 +1168,15 @@ var $ = {
         }
       }
 
-      if(argsinfo.opt_jumptable.length > 0)
-        debugger;
-
       new_args = args.splice(0, argsinfo.argc);
 
-      var optargs = args.splice(0, args.length - argsinfo.post < optarg_count ?
-                                   args.length - argsinfo.post : optarg_count);
-      initial_chunk = argsinfo.opt_jumptable[optargs.length] || 0;
+      if(optarg_count > 0) {
+        var optargs = args.splice(0, args.length - argsinfo.post < optarg_count ?
+                                     args.length - argsinfo.post : optarg_count);
+        initial_chunk = argsinfo.opt_jumptable[optargs.length] || 0;
 
-      new_args = new_args.concat(optargs);
+        new_args = new_args.concat(optargs);
+      }
 
       if(argsinfo.post > 0) {
         var postargs = args.splice(0, argsinfo.post);
@@ -1197,7 +1199,7 @@ var $ = {
 
       if((args.length > 0 || old_args.length < argsinfo.argc)
                      && !(iseq.info.type == 'block' && !iseq.lambda)) 
-        error_messenger.call();
+        error_messenger.call(this);
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
         new_sf.locals[iseq.info.local_size - i] =
