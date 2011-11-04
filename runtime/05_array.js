@@ -1,6 +1,14 @@
 $.define_class('Array', $c.Object);
 $.module_include($c.Array, $c.Enumerable);
 
+$.define_method($c.Kernel, 'Array', 1, function(self, object) {
+  if(object instanceof Array) {
+    return object;
+  } else {
+    return [object];
+  }
+});
+
 $.define_singleton_method($c.Array, 'new', -1, function(self, args) {
   this.check_args(args, 0, 2);
 
