@@ -164,10 +164,10 @@ module ColdRuby
         ]
 
       when :getclassvariable
-        %Q{#{PUSH} = this.cvar_get(Qnil, #{SYMBOL[self, @info[0]]})}
+        %Q{#{PUSH} = this.cvar_get(this.builtin.Qnil, #{SYMBOL[self, @info[0]]})}
 
       when :setclassvariable
-        %Q{this.cvar_set(Qnil, #{SYMBOL[self, @info[0]]}, #{POP})}
+        %Q{this.cvar_set(this.builtin.Qnil, #{SYMBOL[self, @info[0]]}, #{POP})}
 
       when :newarray
         [
@@ -295,7 +295,7 @@ module ColdRuby
       when :setinstancevariable
         %Q{sf.self.ivs[#{@info[0].to_s.inspect}] = #{POP};}
       when :getinstancevariable
-        %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_s.inspect}];}
+        %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_s.inspect}] || this.builtin.Qnil;}
 
       when :getspecial
         raise UnknownFeatureException, "getspecial field0 #{@info[0]}" if @info[0] != 1
