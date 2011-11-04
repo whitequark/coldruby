@@ -140,7 +140,7 @@ module ColdRuby
 
       when :tostring
         [
-          %Q{if((typeof #{TOP}) != 'string')},
+          %Q{if(#{TOP}.klass != this.internal_constants.String)},
           %Q{  #{TOP} = this.funcall(#{TOP}, 'to_s');}
         ]
       when :concatstrings
