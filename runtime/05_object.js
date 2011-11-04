@@ -138,7 +138,9 @@ $.define_method($c.Kernel, 'instance_variable_defined?', 1, function(self, symbo
 $.define_method($c.Kernel, 'instance_variable_get', 1, function(self, symbol) {
   symbol = this.to_sym(symbol);
 
-  return self.ivs[this.id2text(this.to_sym(symbol).value)] || Qnil;
+  var value = self.ivs[this.id2text(this.to_sym(symbol).value)]
+
+  return (typeof value !== "undefined") ? value : Qnil;
 });
 
 $.define_method($c.Kernel, 'instance_variable_set', 2, function(self, symbol, value) {

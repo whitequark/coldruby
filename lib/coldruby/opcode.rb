@@ -299,7 +299,10 @@ module ColdRuby
       when :setinstancevariable
         %Q{sf.self.ivs[#{@info[0].to_s.inspect}] = #{POP};}
       when :getinstancevariable
-        %Q{#{PUSH} = sf.self.ivs[#{@info[0].to_s.inspect}] || this.builtin.Qnil;}
+        [
+            %Q{var iv = sf.self.ivs[#{@info[0].to_s.inspect}];},
+            %Q{#{PUSH} = (typeof iv !== "undefined") ? iv : this.builtin.Qnil;}
+        ]
 
       when :getspecial
         raise UnknownFeatureException, "getspecial field0 #{@info[0]}" if @info[0] != 1
