@@ -182,6 +182,17 @@ $.define_method($c.Hash, 'clear', 0, function(self) {
 $.attr('accessor', $c.Hash, 'default');
 $.attr('accessor', $c.Hash, 'default_proc');
 
+$.define_method($c.Hash, 'hash', 0, function(self) {
+  var hash = self.klass.hash_seed;
+
+  for(var keyhash in self.keys) {
+    hash = $.hash(hash, this.funcall(self.keys[keyhash], 'hash'));
+    hash = $.hash(hash, this.funcall(self.values[keyhash], 'hash'));
+  }
+
+  return hash;
+});
+
 $.define_method($c.Hash, 'inspect', 0, function(self) {
   var desc = '';
   for(var hash in self.keys) {

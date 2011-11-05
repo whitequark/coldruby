@@ -340,6 +340,15 @@ $.define_method($c.Array, 'first', -1, function(self, args) {
   }
 });
 
+$.define_method($c.Array, 'hash', 0, function(self) {
+  var hash = self.klass.hash_seed;
+
+  for(var i = 0; i < self.length; i++)
+    hash = $.hash(hash, this.funcall(self[i], 'hash'));
+
+  return hash;
+});
+
 $.define_method($c.Array, 'include?', 1, function(self, object) {
   for(var i = 0; i < self.length; i++) {
     if(this.test(this.funcall(self[i], '==', object)))

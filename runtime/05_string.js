@@ -52,6 +52,10 @@ $.define_method($c.String, '*', 1, function(self, count) {
   return this.string_new(result);
 });
 
+$.define_method($c.String, 'hash', 0, function(self) {
+  return $.hash(self.klass.hash_seed, self.value);
+});
+
 $.define_method($c.String, 'to_sym', 0, function(self) {
   return $.text2sym(self.value);
 });

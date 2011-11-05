@@ -57,3 +57,7 @@ $.define_method($c.Float, '/', 1, function(self, other) {
 $.define_method($c.Float, '%', 1, function(self, other) {
   return $.float_new(self.value % this.to_float(other).value);
 });
+
+$.define_method($c.Float, 'hash', 0, function(self) {
+  return $.hash(self.klass.hash_seed, self.toString());
+});

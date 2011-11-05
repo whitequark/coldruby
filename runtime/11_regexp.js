@@ -140,6 +140,10 @@ $.define_method(cRegexp, "~", 0, function(self) {
   return this.funcall(self, "=~", this.gvar_get("$_"));
 });
 
+$.define_method(cRegexp, "hash", 0, function(self) {
+  return $.hash(this.klass.hash_seed, self.regexp.toString());
+});
+
 $.const_set(Qnil, "Regexp", cRegexp);
 
 $.regexp_last_match_op = function(method, args) {

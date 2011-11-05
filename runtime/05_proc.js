@@ -1,5 +1,7 @@
 $.define_class('Proc');
 
+$c.Proc.last_id = 0;
+
 $.proc_new = function() {
   var proc = { klass: $c.Proc };
   this.funcall(proc, 'initialize');
@@ -9,6 +11,10 @@ $.proc_new = function() {
 
 $.define_method($c.Proc, 'initialize', 0, function(self) {
   var new_iseq = {}, sf;
+
+  // for hashing
+  self.id = self.klass.last_id;
+  self.klass.last_id += 1;
 
   // Proc#initialize->Proc.new->caller
   var outer_sf = this.context.sf.parent.osf;
@@ -74,4 +80,8 @@ $.define_method($c.Proc, 'to_s', 0, function(self) {
     desc += ' (lambda)';
   }
   return this.string_new(desc + '>');
+});
+
+$.define_method($c.Proc, 'hash', 0, function(self) {
+  return $.hash(self.klass.hash_seed, self.id.toString());
 });

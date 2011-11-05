@@ -1,15 +1,11 @@
 $.define_class('BasicObject', null);
-$c.BasicObject.klass_name = 'BasicObject';
 
 $.define_class('Object', $c.BasicObject);
-$c.Object.klass_name = 'Object';
 $c.Object.constants = $.constants;
 
 $.define_class('Module', $c.Object);
-$c.Module.klass_name = 'Module';
 
 $.define_class('Class',  $c.Module);
-$c.Class.klass_name = 'Class';
 
 $c.BasicObject.klass = $c.Object.klass = $c.Module.klass = $c.Class.klass = $c.Class;
 

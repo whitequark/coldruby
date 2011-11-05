@@ -313,6 +313,7 @@ var $ = {
     };
 
     if(under == null) {
+      klass.hash_seed = this.hash(0xC1A55, name);
       klass.klass_name = name;
 
       this.internal_constants[name] = klass;
@@ -320,6 +321,8 @@ var $ = {
 
       return klass;
     } else {
+      klass.hash_seed = this.hash(under.hash_seed, name);
+
       return this.const_set(under, name, klass);
     }
   },
@@ -1445,6 +1448,20 @@ var $ = {
 
     return ruby;
   },
+
+  /*
+   * call-seq: hash(seed, string) -> value
+   *
+   * Incremental hash function which may differ depending on a particular
+   * VM used. +seed+ and +value+ are 32-bit integers, and +seed+ is interpreted
+   * as an UTF-16 string (i.e. both bytes in a codepoint are hashed).
+   *
+   * This function may be replaced by a host, given that its interface is kept
+   * the same.
+   */
+  hash: function(seed, string) {
+    return MurmurHash3.hashString(string, string.length, seed);
+  }
 };
 
 var $c = $.internal_constants, $e = $c;

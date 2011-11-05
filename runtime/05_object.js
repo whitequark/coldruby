@@ -58,10 +58,24 @@ $.define_method($c.Kernel, 'extend', 1, function(self, module) {
   return self;
 });
 
-// This complete method is an example of how _not_ to do
-// hash-functions, but it's the best I can think of now.
 $.define_method($c.Kernel, 'hash', 0, function(self) {
-  return this.string_new(self.toString());
+  var ivs_sorted = [];
+
+  for(var name in self.ivs)
+    ivs_sorted.push(name);
+
+  ivs_sorted.sort();
+
+  var hash = self.klass.hash_seed;
+
+  for(var i = 0; i < ivs_sorted.length; i++) {
+    var name = ivs_sorted[i];
+
+    hash = $.hash(hash, name);
+    hash = $.hash(hash, this.funcall(self.ivs[name], 'hash'));
+  }
+
+  return hash;
 });
 
 $.define_method($c.Kernel, 'to_s', 0, function(self) {

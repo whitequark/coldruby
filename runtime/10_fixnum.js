@@ -99,4 +99,8 @@ $.define_method($c.Fixnum, 'size', 0, function(self) {
   return 4;
 });
 
+$.define_method($c.Fixnum, 'hash', 0, function(self) {
+  return $.hash(self.klass.hash_seed, self.toString());
+});
+
 Number.prototype.klass = $c.Fixnum;

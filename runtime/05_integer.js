@@ -3,6 +3,7 @@ $.define_class('Integer', $c.Numeric);
 $.define_method($c.Integer, 'to_int', 0, function(self) {
   return self;
 });
+
 $.alias_method($c.Integer, 'to_i', 'to_int');
 $.alias_method($c.Integer, 'floor', 'to_int');
 $.alias_method($c.Integer, 'ceil', 'to_int');
