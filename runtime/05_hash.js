@@ -38,6 +38,13 @@ $.define_singleton_method($c.Hash, 'new', -1, function(self, args) {
   return hash;
 });
 
+$.define_method($c.Hash, 'initialize_copy', 1, function(self, other) {
+  self.keys   = Object.create(other.keys);
+  self.values = Object.create(other.values);
+
+  return self;
+});
+
 $.define_method($c.Hash, '[]', 1, function(self, key) {
   var hash = this.funcall(key, 'hash');
 

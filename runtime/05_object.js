@@ -143,6 +143,28 @@ $.define_method($c.Kernel, 'frozen?', 0, function(self) {
   return self.frozen ? Qfalse : Qtrue;
 });
 
+$.define_method($c.Kernel, 'dup', 0, function(self) {
+  debugger;
+  var newobj = this.funcall(self.klass, 'allocate');
+  newobj.ivs = new Object(self.ivs);
+  newobj.tainted = self.tainted;
+
+  this.funcall(newobj, 'initialize_copy', self);
+
+  return newobj;
+});
+
+$.define_method($c.Kernel, 'clone', 0, function(self) {
+  var newobj = this.funcall(self.klass, 'allocate');
+  newobj.ivs = Object.new(self.ivs);
+  newobj.frozen = self.frozen;
+  newobj.tainted = self.tainted;
+
+  this.funcall(newobj, 'initialize_copy', self);
+
+  return newobj;
+});
+
 $.define_method($c.Kernel, 'instance_variable_defined?', 1, function(self, symbol) {
   symbol = this.to_sym(symbol);
 
