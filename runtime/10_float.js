@@ -1,4 +1,5 @@
 $.define_class('Float', $c.Numeric, true);
+$.undef_singleton_method($c.Float, 'allocate');
 
 $.float_new = function(value) {
   return {

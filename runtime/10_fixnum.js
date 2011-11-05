@@ -1,4 +1,5 @@
 $.define_class('Fixnum', $c.Integer, true);
+$.undef_singleton_method($c.Fixnum, 'allocate');
 
 $.define_method($c.Fixnum, 'to_s', 0, function(self) {
   return this.string_new(self.toString());

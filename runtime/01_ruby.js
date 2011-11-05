@@ -479,6 +479,19 @@ var $ = {
     klass.instance_methods[name] = this.find_method(klass, other_name, false, true);
   },
 
+  undef_method: function(klass, name) {
+    name = this.any2id(name);
+
+    klass.instance_methods[name] = null; // _not_ undefined.
+  },
+
+  undef_singleton_method: function(klass, name) {
+    name = this.any2id(name);
+
+    var singleton = this.get_singleton(klass);
+    singleton.instance_methods[name] = null; // _not_ undefined.
+  },
+
   attr: function(type, klass, methods) {
     var ruby = this;
     if(typeof methods == 'string') {
@@ -506,7 +519,7 @@ var $ = {
   },
 
   find_method: function(object, method, superobject, search_klass) {
-    var func = null;
+    var func = undefined;
 
     if(object != null) {
       var klass;
@@ -514,11 +527,11 @@ var $ = {
       if(!search_klass && !superobject) {
         func = this.find_method(object.singleton_klass, method, false, true);
 
-        if(func == null && object.klass == this.internal_constants.Class &&
+        if(func === undefined && object.klass == this.internal_constants.Class &&
                   object.type != 'singleton') {
           klass = object.superklass;
 
-          while(func == null && klass != null) {
+          while(func === undefined && klass != null) {
             func = this.find_method(klass.singleton_klass, method, false, true);
 
             klass = klass.superklass;
@@ -526,10 +539,13 @@ var $ = {
         }
       }
 
+      if(func !== undefined)
+        return func;
+
       klass = search_klass ? object : (superobject ? superobject.superklass : object.klass);
 
-      while(func == null && klass != null) {
-        if(func == null && klass.instance_methods)
+      while(func === undefined && klass != null) {
+        if(klass.instance_methods)
           func = klass.instance_methods[method];
 
         klass = klass.superklass;

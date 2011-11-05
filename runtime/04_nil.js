@@ -1,4 +1,5 @@
 $.define_class('NilClass', $c.Class, true);
+$.undef_singleton_method($c.NilClass, 'allocate');
 
 $.define_method($c.NilClass, 'inspect', 0, function(self) {
   return this.string_new("nil");
