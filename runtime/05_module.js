@@ -92,6 +92,8 @@ var with_each_method = function(what, type, include_super, f) {
 var make_reflectors = function(type) {
   $.define_method($c.Kernel, type, -1, function(self, args) {
     // stub
+
+    return Qnil;
   });
 
   var visibility = (type == 'public' ? null : type);
@@ -147,6 +149,7 @@ $.define_method($c.Module, 'module_function', -1, function(self, args) {
 
 $.define_method($c.Module, 'private_class_method', -1, function(self, args) {
   // stub
+
   return Qnil;
 });
 
