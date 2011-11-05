@@ -16,9 +16,13 @@ $.string_new = function(value) {
 };
 
 $.define_method($c.String, '==', 1, function(self, other) {
-  other = this.to_str(other);
+  if(this.respond_to(other, 'to_str')) {
+    other = this.to_str(other);
 
-  return (self.value == other.value) ? Qtrue : Qfalse;
+    return (self.value == other.value) ? Qtrue : Qfalse;
+  } else {
+    return Qfalse;
+  }
 });
 
 $.define_method($c.String, 'to_str', 0, function(self) {
