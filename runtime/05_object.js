@@ -144,9 +144,8 @@ $.define_method($c.Kernel, 'frozen?', 0, function(self) {
 });
 
 $.define_method($c.Kernel, 'dup', 0, function(self) {
-  debugger;
   var newobj = this.funcall(self.klass, 'allocate');
-  newobj.ivs = new Object(self.ivs);
+  newobj.ivs = Object.create(self.ivs);
   newobj.tainted = self.tainted;
 
   this.funcall(newobj, 'initialize_copy', self);
@@ -156,7 +155,7 @@ $.define_method($c.Kernel, 'dup', 0, function(self) {
 
 $.define_method($c.Kernel, 'clone', 0, function(self) {
   var newobj = this.funcall(self.klass, 'allocate');
-  newobj.ivs = Object.new(self.ivs);
+  newobj.ivs = Object.create(self.ivs);
   newobj.frozen = self.frozen;
   newobj.tainted = self.tainted;
 
