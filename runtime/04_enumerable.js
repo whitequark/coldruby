@@ -14,16 +14,28 @@ $.define_method($c.Enumerable, 'to_a', -1, function(self, args) {
 });
 $.alias_method($c.Enumerable, 'entries', 'to_a');
 
-$.define_method($c.Enumerable, 'any?', 0, function(self) {
-  var retval = Qfalse, block;
+$c.Enumerable.make_truth_checker = function() {
+  var checker;
 
-  if(this.block_given_p())
-    block = this.block_lambda();
+  if(this.block_given_p()) {
+    var block = this.block_proc();
+    checker = function(object) {
+      return this.test(this.funcall(block, 'call', object));
+    }
+  } else {
+    checker = function(object) {
+      return this.test(object);
+    }
+  }
+
+  return checker;
+}
+
+$.define_method($c.Enumerable, 'any?', 0, function(self) {
+  var retval = Qfalse, checker = $c.Enumerable.make_truth_checker.call(this);
 
   var iterator = function(self, object) {
-    if(block) object = this.funcall(block, 'call', object);
-
-    if(this.test(object)) {
+    if(checker.call(this, object)) {
       retval = Qtrue;
       this.iter_break();
     }
@@ -37,15 +49,10 @@ $.define_method($c.Enumerable, 'any?', 0, function(self) {
 });
 
 $.define_method($c.Enumerable, 'all?', 0, function(self) {
-  var retval = Qtrue, block;
-
-  if(this.block_given_p())
-    block = this.block_lambda();
+  var retval = Qtrue, checker = $c.Enumerable.make_truth_checker.call(this);
 
   var iterator = function(self, object) {
-    if(block) object = this.funcall(block, 'call', object);
-
-    if(!this.test(object)) {
+    if(!checker.call(this, object)) {
       retval = Qfalse;
       this.iter_break();
     }
@@ -373,7 +380,145 @@ $.define_method($c.Enumerable, 'inject', -1, function(self, args) {
 });
 $.alias_method($c.Enumerable, 'reduce', 'inject');
 
-$.define_method($c.Enumerable, 'reject', 0, function(self, args) {
+$c.Enumerable.minmax_checker = function(self, direction, by) {
+  var comparator;
+
+  debugger;
+
+  if(this.block_given_p() && !by) {
+    var block = this.block_proc();
+    comparator = function(a, b, dir) {
+      return (this.to_int(this.funcall(block, 'call', a, b)) * dir) < 0;
+    }
+  } else {
+    var ruby = this;
+    comparator = function(a, b, dir) {
+      return (this.to_int(this.funcall(a, '<=>', b)) * dir) < 0;
+    }
+
+    if(by) {
+      var block = this.block_proc();
+      var mapper = function(a) {
+        return this.funcall(block, 'call', a);
+      }
+    }
+  }
+
+  var min = Qnil, max = Qnil;
+  var minby = null, maxby = null;
+
+  var iterator = function(self, object) {
+    if(mapper)
+      var by = mapper.call(this, object);
+
+    if(direction == 0 || direction == 1) {
+      if(max == Qnil || comparator.call(this, maxby || max, by || object, 1)) {
+        max = object;
+        maxby = by;
+      }
+    }
+
+    if(direction == 0 || direction == -1) {
+      if(min == Qnil || comparator.call(this, minby || min, by || object, -1)) {
+        min = object;
+        minby = by;
+      }
+    }
+
+    return Qnil;
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  if(direction == 1) {
+    return max;
+  } else if(direction == -1) {
+    return min;
+  } else {
+    return [min, max];
+  }
+}
+
+$.define_method($c.Enumerable, 'max', 0, function(self) {
+  return $c.Enumerable.minmax_checker.call(this, self, 1, false);
+});
+
+$.define_method($c.Enumerable, 'max_by', 0, function(self) {
+  return $c.Enumerable.minmax_checker.call(this, self, 1, true);
+});
+
+$.define_method($c.Enumerable, 'min', 0, function(self) {
+  return $c.Enumerable.minmax_checker.call(this, self, -1, false);
+});
+
+$.define_method($c.Enumerable, 'min_by', 0, function(self) {
+  return $c.Enumerable.minmax_checker.call(this, self, -1, true);
+});
+
+$.define_method($c.Enumerable, 'minmax', 0, function(self) {
+  return $c.Enumerable.minmax_checker.call(this, self, 0, false);
+});
+
+$.define_method($c.Enumerable, 'minmax_by', 0, function(self) {
+  return $c.Enumerable.minmax_checker.call(this, self, 0, true);
+});
+
+$.define_method($c.Enumerable, 'none?', 0, function(self) {
+  var retval = Qtrue, checker = $c.Enumerable.make_truth_checker.call(this);
+
+  var iterator = function(self, object) {
+    if(checker.call(this, object)) {
+      retval = Qfalse;
+      this.iter_break();
+    }
+
+    return Qnil;
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return retval;
+});
+
+$.define_method($c.Enumerable, 'one?', 0, function(self) {
+  var retval = Qfalse, checker = $c.Enumerable.make_truth_checker.call(this);
+
+  var iterator = function(self, object) {
+    if(checker.call(this, object)) {
+      if(retval == Qfalse) {
+        retval = Qtrue;
+      } else {
+        retval = Qfalse;
+        this.iter_break();
+      }
+    }
+
+    return Qnil;
+  };
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+
+  return retval;
+});
+
+$.define_method($c.Enumerable, 'partition', 0, function(self) {
+  var true_array = [], false_array = [];
+  var block = this.block_proc();
+
+  var iterator = function(self, object) {
+    if(this.test(this.funcall(block, 'call', object))) {
+      true_array.push(object);
+    } else {
+      false_array.push(object);
+    }
+
+    return Qnil;
+  }
+
+  return [true_array, false_array];
+});
+
+$.define_method($c.Enumerable, 'reject', 0, function(self) {
   var block = this.block_proc(), result = [];
 
   var iterator = function(self, object) {
@@ -387,4 +532,3 @@ $.define_method($c.Enumerable, 'reject', 0, function(self, args) {
 
   return result;
 });
-
