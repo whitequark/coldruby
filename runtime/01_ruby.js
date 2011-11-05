@@ -310,6 +310,7 @@ var $ = {
       class_variables:   {},
       instance_methods:  {},
       ivs:               {},
+      toString:          function() { return "#<Class: " + $.class2name(this) + ">"; }
     };
 
     if(under == null) {
@@ -358,6 +359,7 @@ var $ = {
       ivs:               {},
       type:              'singleton',
       object:            object,
+      toString:         function() { return "#<singleton class>"; }
     };
 
     object.singleton_klass = singleton;
@@ -382,6 +384,7 @@ var $ = {
       instance_methods: module.instance_methods,
       superklass:       target.superklass,
       type:             'module_proxy',
+      toString:         function() { return "#<proxy for " + this.klass_name + ">"; }
     };
 
     target.superklass = proxy;
@@ -779,6 +782,7 @@ var $ = {
           class_variables:   {},
           instance_methods:  {},
           ivs:               {},
+          toString:          function() { return "#<Class: " + $.class2name(this) + ">"; }
         };
         this.const_set(cbase, name, klass);
 
@@ -1450,7 +1454,8 @@ var $ = {
         klass:             this.internal_constants.Object,
         class_variables:   {},
         ivs:               {},
-        toplevel:          true
+        toplevel:          true,
+        toString:          function() { return "#<toplevel>"; }
       }
     };
 

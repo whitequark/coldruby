@@ -23,7 +23,8 @@ $.define_method($c.TrueClass, 'hash', 0, function(self) {
 
 var Qtrue  = $.builtin.Qtrue = {
   klass: $c.TrueClass,
-  hash:  $.hash($c.TrueClass.hash_seed, 'true')
+  hash:  $.hash($c.TrueClass.hash_seed, 'true'),
+  toString: function() { return "#<true>"; }
 };
 
 $.define_class('FalseClass', $c.Object, true);
@@ -51,5 +52,6 @@ $.define_method($c.FalseClass, 'hash', 0, function(self) {
 
 var Qfalse = $.builtin.Qfalse = {
   klass: $c.FalseClass,
-  hash:  $.hash($c.FalseClass.hash_seed, 'false')
+  hash:  $.hash($c.FalseClass.hash_seed, 'false'),
+  toString: function() { return "#<false>"; }
 };

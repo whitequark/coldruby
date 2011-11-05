@@ -783,3 +783,6 @@ $.define_method($c.Array, '|', 1, function(self, other) {
 });
 
 Array.prototype.klass = $c.Array;
+Array.prototype.toString = function() {
+  return "#<Array [" + this.map(function(elem) { return elem.toString(); }).join(", ") + "]>";
+}

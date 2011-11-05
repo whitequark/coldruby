@@ -35,5 +35,6 @@ $.define_method($c.NilClass, 'hash', 0, function(self) {
 
 var Qnil = $.builtin.Qnil = {
   klass: $c.NilClass,
-  hash:  $.hash($c.NilClass.hash_seed, 'nil')
+  hash:  $.hash($c.NilClass.hash_seed, 'nil'),
+  toString: function() { return "#<nil>"; }
 };

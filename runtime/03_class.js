@@ -21,6 +21,7 @@ $.define_method($c.Class, 'allocate', 0, function(self) {
   return {
     klass: self,
     ivs:   {},
+    toString: function() { return "#<" + $.class2name(this.klass) + ">"; }
   };
 });
 

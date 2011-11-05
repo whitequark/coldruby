@@ -12,6 +12,7 @@ $.hash_new = function(elements) {
     ivs:      {
       '@default': Qnil,
     },
+    toString: function() { return "#<Hash>"; }
   }
   for(var i = 0; i < elements.length; i += 2) {
     var key = elements[i], value = elements[i+1];
