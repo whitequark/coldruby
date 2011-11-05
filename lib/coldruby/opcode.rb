@@ -273,7 +273,7 @@ module ColdRuby
           %Q{sf.sp++;}
         ]
       when :setn
-        %Q{sf.stack[sf.sp - #{@info[0] - 1}] = sf.stack[sf.sp - 1];}
+        %Q{sf.stack[sf.sp - #{@info[0] + 1}] = sf.stack[sf.sp - 1];}
       when :swap
         [
           %Q{var tmp = sf.stack[sf.sp - 1];},
