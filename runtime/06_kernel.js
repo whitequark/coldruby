@@ -52,7 +52,9 @@ $.define_method($c.Kernel, 'autoload', 2, function(self, constant, file) {
 $.define_method($c.Kernel, 'autoload?', 1, function(self, constant) {
   this.check_type(constant, $c.Symbol);
 
-  return $c.Kernel.autoload[constant.value] || Qnil;
+  var const = $c.Kernel.autoload[constant.value];
+
+  return (typeof const !== 'undefined') ? const : Qnil;
 });
 
 $.define_method($c.Kernel, 'p', -1, function(self, args) {

@@ -28,7 +28,7 @@ $.define_method($e.NoMethodError, 'initialize', -1, function(self, args) {
   this.check_args(args, 2, 1);
   this.super1(args[0], args[1]);
 
-  self.ivs['@args'] = args[2] || Qnil;
+  self.ivs['@args'] = (typeof args[2] !== 'undefined') ? args[2] : Qnil;
 
   return Qnil;
 });
