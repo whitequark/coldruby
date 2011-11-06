@@ -14,7 +14,8 @@ $.define_method($c.Fixnum, '-@', 0, function(self) {
 });
 
 $.define_method($c.Fixnum, '==', 1, function(self, other) {
-  return (self == this.to_float(other).value) ? Qtrue : Qfalse;
+  return this.obj_is_kind_of(other, $c.Numeric) &&
+             (self == this.to_float(other).value) ? Qtrue : Qfalse;
 });
 
 $.define_method($c.Fixnum, '+', 1, function(self, other) {
