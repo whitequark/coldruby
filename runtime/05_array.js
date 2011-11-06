@@ -443,7 +443,7 @@ $.define_method($c.Array, 'join', -1, function(self, args) {
 
   var output = "";
   for(var i = 0; i < self.length; i++) {
-    output += this.to_str(self[i]).value;
+    output += this.funcall(self[i], 'to_s').value;
     if(i < self.length - 1)
       output += separator;
   }
