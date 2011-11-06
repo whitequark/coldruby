@@ -59,6 +59,18 @@ $.define_method($c.Float, '%', 1, function(self, other) {
   return $.float_new(self.value % this.to_float(other).value);
 });
 
+$.define_method($c.Float, '<=>', 1, function(self, other) {
+  other = this.to_float(other);
+
+  if(self.value > other.value) {
+    return 1;
+  } else if(self.value < other.value) {
+    return -1;
+  } else {
+    return 0;
+  }
+});
+
 $.define_method($c.Float, 'hash', 0, function(self) {
   return $.hash(self.klass.hash_seed, self.toString());
 });
