@@ -383,8 +383,6 @@ $.alias_method($c.Enumerable, 'reduce', 'inject');
 $c.Enumerable.minmax_checker = function(self, direction, by) {
   var comparator;
 
-  debugger;
-
   if(this.block_given_p() && !by) {
     var block = this.block_proc();
     comparator = function(a, b, dir) {
