@@ -99,6 +99,15 @@ $.define_method($c.Hash, 'empty?', 0, function(self) {
   return Qtrue;
 });
 
+$.define_method($c.Hash, 'invert', 0, function(self) {
+  var array = [];
+
+  for(var hash in self.keys)
+    array.push(self.values[hash], self.keys[hash]);
+
+  return this.funcall2($c.Hash, '[]', array);
+});
+
 $.define_method($c.Hash, 'length', 0, function(self) {
   var count = 0;
   for(var hash in self.keys)
