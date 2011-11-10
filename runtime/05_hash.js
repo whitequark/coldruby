@@ -1,4 +1,5 @@
 $.define_class('Hash', $c.Object, true);
+$.module_include($c.Hash, $c.Enumerable);
 
 $.hash_new = function(elements) {
   if(elements.length % 2 != 0) {

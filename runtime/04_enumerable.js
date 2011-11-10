@@ -2,13 +2,14 @@ $.define_module('Enumerable');
 
 $.define_method($c.Enumerable, 'to_a', -1, function(self, args) {
   var array = [];
-  var iterator = function(self, object) {
-    array.push(object);
+  var iterator = function(self, args) {
+    if(args.length == 1) args = args[0];
+    array.push(args);
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return array;
 });
@@ -19,12 +20,14 @@ $c.Enumerable.make_truth_checker = function() {
 
   if(this.block_given_p()) {
     var block = this.block_proc();
-    checker = function(object) {
-      return this.test(this.funcall(block, 'call', object));
+    checker = function(args) {
+      return this.test(this.funcall2(block, 'call', args));
     }
   } else {
-    checker = function(object) {
-      return this.test(object);
+    checker = function(args) {
+      if(args.length > 1)
+        return true;
+      return this.test(args[0]);
     }
   }
 
@@ -34,8 +37,8 @@ $c.Enumerable.make_truth_checker = function() {
 $.define_method($c.Enumerable, 'any?', 0, function(self) {
   var retval = Qfalse, checker = $c.Enumerable.make_truth_checker.call(this);
 
-  var iterator = function(self, object) {
-    if(checker.call(this, object)) {
+  var iterator = function(self, args) {
+    if(checker.call(this, args)) {
       retval = Qtrue;
       this.iter_break();
     }
@@ -43,7 +46,7 @@ $.define_method($c.Enumerable, 'any?', 0, function(self) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return retval;
 });
@@ -51,8 +54,8 @@ $.define_method($c.Enumerable, 'any?', 0, function(self) {
 $.define_method($c.Enumerable, 'all?', 0, function(self) {
   var retval = Qtrue, checker = $c.Enumerable.make_truth_checker.call(this);
 
-  var iterator = function(self, object) {
-    if(!checker.call(this, object)) {
+  var iterator = function(self, args) {
+    if(!checker.call(this, args)) {
       retval = Qfalse;
       this.iter_break();
     }
@@ -60,7 +63,7 @@ $.define_method($c.Enumerable, 'all?', 0, function(self) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return retval;
 });
@@ -68,13 +71,13 @@ $.define_method($c.Enumerable, 'all?', 0, function(self) {
 $.define_method($c.Enumerable, 'map', 0, function(self) {
   var result = [], block = this.block_lambda();
 
-  var iterator = function(self, object) {
-    result.push(this.funcall(block, 'call', object));
+  var iterator = function(self, args) {
+    result.push(this.funcall2(block, 'call', args));
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return result;
 });
@@ -88,19 +91,20 @@ $.define_method($c.Enumerable, 'count', -1, function(self, args) {
     block = this.block_lambda();
 
   var count = 0;
-  var iterator = function(self, object) {
+  var iterator = function(self, args) {
     if(elem != null) {
-      if(this.test(this.funcall(object, '==', elem)))
+      if(args.length == 1) args = args[0];
+      if(this.test(this.funcall(args, '==', elem)))
         count++;
     } else if(block != null) {
-      if(this.test(this.funcall(block, 'call', object)))
+      if(this.test(this.funcall2(block, 'call', args)))
         count++;
     } else count++;
 
     return Qnil;
   }
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return count;
 });
@@ -109,17 +113,17 @@ $.define_method($c.Enumerable, 'drop', 1, function(self, n) {
   var result = [];
   n = this.to_int(n);
 
-  var iterator = function(self, object) {
+  var iterator = function(self, args) {
     if(n > 0) {
       n--;
     } else if(n == 0) {
-      result.push(object);
+      $c.Enumerable.multi_push(result, args);
     } else this.iter_break();
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return result;
 });
@@ -128,19 +132,21 @@ $.define_method($c.Enumerable, 'drop_while', 0, function(self) {
   var result = [], block = this.block_lambda();
   var do_drop = true;
 
-  var iterator = function(self, object) {
+  var iterator = function(self, args) {
     if(do_drop) {
-      if(!this.test(this.funcall(block, 'call', object)))
+      if(!this.test(this.funcall2(block, 'call', args)))
         do_drop = false;
     }
 
-    if(!do_drop)
-      result.push(object);
+    if(!do_drop) {
+      if(args.length == 1) args = args[0];
+      result.push(args);
+    }
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return result;
 });
@@ -148,8 +154,9 @@ $.define_method($c.Enumerable, 'drop_while', 0, function(self) {
 $.define_method($c.Enumerable, 'each_with_index', -1, function(self, args) {
   var block = this.block_lambda(), index = 0;
 
-  var iterator = function(self, object) {
-    this.funcall(block, 'call', object, index);
+  var iterator = function(self, args) {
+    if(args.length == 1) args = args[0];
+    this.funcall(block, 'call', args, index);
     index++;
 
     return Qnil;
@@ -164,6 +171,7 @@ $.define_method($c.Enumerable, 'each_with_object', 1, function(self, memo) {
   var block = this.block_lambda();
 
   var iterator = function(self, args) {
+    if(args.length != 1) args = [args];
     args.push(memo);
     this.funcall2(block, 'call', args);
 
@@ -185,14 +193,14 @@ $.define_method($c.Enumerable, 'cycle', -1, function(self, args) {
   if(n != Qnil)
     n = this.to_int(n);
 
-  var iterator = function(self, object) {
-    this.funcall(block, 'call', object);
+  var iterator = function(self, args) {
+    this.funcall2(block, 'call', args);
 
     return Qnil;
   };
 
   while(n == Qnil || n > 0) {
-    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+    this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
     if(typeof n == "number")
       n--;
@@ -208,16 +216,17 @@ $.define_method($c.Enumerable, 'find', -1, function(self, args) {
   var block = this.block_proc();
 
   var memo = null;
-  var iterator = function(self, object) {
-    if(this.test(this.funcall(block, 'call', object))) {
-      memo = object;
+  var iterator = function(self, args) {
+    if(this.test(this.funcall2(block, 'call', args))) {
+      if(args.length == 1) args = args[0];
+      memo = args;
       this.iter_break();
     }
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   if(memo) {
     return memo;
@@ -234,14 +243,14 @@ $.alias_method($c.Enumerable, 'detect', 'find');
 $.define_method($c.Enumerable, 'find_all', 0, function(self, args) {
   var block = this.block_proc(), result = [];
 
-  var iterator = function(self, object) {
-    if(this.test(this.funcall(block, 'call', object)))
+  var iterator = function(self, args) {
+    if(this.test(this.funcall2(block, 'call', args)))
       result.push(object);
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return result;
 });
@@ -254,9 +263,9 @@ $.define_method($c.Enumerable, 'find_index', -1, function(self, args) {
   if(value == null)
     block = this.block_lambda();
 
-  var iterator = function(self, object) {
-    if((value != null && this.test(this.funcall(value, '==', object))) ||
-       (block != null && this.test(this.funcall(block, 'call', object)))) {
+  var iterator = function(self, args) {
+    if((value != null && this.test(this.funcall(value, '==', args.length == 1 ? args[0] : args))) ||
+       (block != null && this.test(this.funcall2(block, 'call', args)))) {
       found = true;
       this.iter_break();
     }
@@ -266,7 +275,7 @@ $.define_method($c.Enumerable, 'find_index', -1, function(self, args) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return found ? index : Qnil;
 });
@@ -277,30 +286,31 @@ $.define_method($c.Enumerable, 'first', -1, function(self, args) {
 
   if(count == null) {
     var elem = Qnil;
-    var iterator = function(self, object) {
-      elem = object;
-      this.iter_break();
+    var iterator = function(self, args) {
+      elem = args;
 
-      return Qnil;
+      this.iter_break();
     };
 
-    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+    this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
+    if(elem.length == 1) elem = elem[0];
     return elem;
   } else {
     count = this.to_int(count);
 
     var array = [];
-    var iterator = function(self, object) {
+    var iterator = function(self, args) {
       count -= 1;
       if(count < 0) this.iter_break();
 
-      array.push(object);
+      if(args.length == 1) args = args[0];
+      array.push(args);
 
       return Qnil;
-    };
+    }
 
-    this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+    this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
     return array;
   }
@@ -310,8 +320,8 @@ $.define_method($c.Enumerable, 'group_by', 0, function(self) {
   var block = this.block_lambda();
   var hash = this.funcall($c.Hash, 'new');
 
-  var iterator = function(self, object) {
-    var key = this.funcall(block, 'call', object);
+  var iterator = function(self, args) {
+    var key = this.funcall2(block, 'call', args);
 
     var array = this.funcall(hash, '[]', key);
     if(array == Qnil) {
@@ -319,12 +329,13 @@ $.define_method($c.Enumerable, 'group_by', 0, function(self) {
       this.funcall(hash, '[]=', key, array);
     }
 
-    array.push(object);
+    if(args.length == 1) args = args[0];
+    array.push(args);
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return hash;
 });
@@ -332,8 +343,10 @@ $.define_method($c.Enumerable, 'group_by', 0, function(self) {
 $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
   var retval = Qfalse;
 
-  var iterator = function(self, object) {
-    if(object == needle) {
+  var iterator = function(self, args) {
+    if(args.length == 1) args = args[0];
+
+    if(this.test(this.funcall(args, '==', needle))) {
       retval = Qtrue;
       this.iter_break();
     }
@@ -341,7 +354,7 @@ $.define_method($c.Enumerable, 'include?', 1, function(self, needle) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return retval;
 });
@@ -362,19 +375,21 @@ $.define_method($c.Enumerable, 'inject', -1, function(self, args) {
     block   = this.block_lambda();
   }
 
-  var iterator = function(self, object) {
+  var iterator = function(self, args) {
+    if(args.length == 1) args = args[0];
+
     if(initial == null) {
-      initial = object;
+      initial = args;
     } else if(block) {
-      initial = this.funcall(block, 'call', initial, object);
+      initial = this.funcall(block, 'call', initial, args);
     } else {
-      initial = this.funcall(initial, sym, object);
+      initial = this.funcall(initial, sym, args);
     }
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return initial;
 });
@@ -393,40 +408,37 @@ $c.Enumerable.minmax_checker = function(self, direction, by) {
     comparator = function(a, b, dir) {
       return (this.to_int(this.funcall(a, '<=>', b)) * dir) < 0;
     }
-
-    if(by) {
-      var block = this.block_proc();
-      var mapper = function(a) {
-        return this.funcall(block, 'call', a);
-      }
-    }
   }
 
   var min = Qnil, max = Qnil;
   var minby = null, maxby = null;
 
-  var iterator = function(self, object) {
-    if(mapper)
-      var by = mapper.call(this, object);
+  var iterator = function(self, args) {
+    if(by)
+      var mapped = this.yield2(args);
+
+    if(args.length == 1) args = args[0];
 
     if(direction == 0 || direction == 1) {
-      if(max == Qnil || comparator.call(this, maxby || max, by || object, 1)) {
-        max = object;
-        maxby = by;
+      if(max == Qnil || comparator.call(this, maxby != null ? maxby : max,
+                                             mapped != null ? mapped : args, 1)) {
+        max = args;
+        maxby = mapped;
       }
     }
 
     if(direction == 0 || direction == -1) {
-      if(min == Qnil || comparator.call(this, minby || min, by || object, -1)) {
-        min = object;
-        minby = by;
+      if(min == Qnil || comparator.call(this, minby != null ? minby : min,
+                                             mapped != null ? mapped : args, -1)) {
+        min = args;
+        minby = mapped;
       }
     }
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   if(direction == 1) {
     return max;
@@ -464,8 +476,8 @@ $.define_method($c.Enumerable, 'minmax_by', 0, function(self) {
 $.define_method($c.Enumerable, 'none?', 0, function(self) {
   var retval = Qtrue, checker = $c.Enumerable.make_truth_checker.call(this);
 
-  var iterator = function(self, object) {
-    if(checker.call(this, object)) {
+  var iterator = function(self, args) {
+    if(checker.call(this, args)) {
       retval = Qfalse;
       this.iter_break();
     }
@@ -473,7 +485,7 @@ $.define_method($c.Enumerable, 'none?', 0, function(self) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return retval;
 });
@@ -481,8 +493,8 @@ $.define_method($c.Enumerable, 'none?', 0, function(self) {
 $.define_method($c.Enumerable, 'one?', 0, function(self) {
   var retval = Qfalse, checker = $c.Enumerable.make_truth_checker.call(this);
 
-  var iterator = function(self, object) {
-    if(checker.call(this, object)) {
+  var iterator = function(self, args) {
+    if(checker.call(this, args)) {
       if(retval == Qfalse) {
         retval = Qtrue;
       } else {
@@ -494,7 +506,7 @@ $.define_method($c.Enumerable, 'one?', 0, function(self) {
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return retval;
 });
@@ -503,15 +515,20 @@ $.define_method($c.Enumerable, 'partition', 0, function(self) {
   var true_array = [], false_array = [];
   var block = this.block_proc();
 
-  var iterator = function(self, object) {
-    if(this.test(this.funcall(block, 'call', object))) {
-      true_array.push(object);
+  var iterator = function(self, args) {
+    var a_args = args;
+    if(args.length == 1) args = args[0];
+
+    if(this.test(this.funcall2(block, 'call', a_args))) {
+      true_array.push(args);
     } else {
-      false_array.push(object);
+      false_array.push(args);
     }
 
     return Qnil;
   }
+
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return [true_array, false_array];
 });
@@ -519,14 +536,16 @@ $.define_method($c.Enumerable, 'partition', 0, function(self) {
 $.define_method($c.Enumerable, 'reject', 0, function(self) {
   var block = this.block_proc(), result = [];
 
-  var iterator = function(self, object) {
-    if(!this.test(this.funcall(block, 'call', object)))
-      result.push(object);
+  var iterator = function(self, args) {
+    if(!this.test(this.funcall2(block, 'call', args))) {
+      if(args.length == 1) args = args[0];
+      result.push(args);
+    }
 
     return Qnil;
   };
 
-  this.funcall2(self, 'each', [], this.lambda(iterator, 1));
+  this.funcall2(self, 'each', [], this.lambda(iterator, -1));
 
   return result;
 });
