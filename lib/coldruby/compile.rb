@@ -113,13 +113,20 @@ def get_runtime(directory, epilogue_type=nil)
     lines = File.readlines(runtime_file)
     lines.unshift %Q{"use strict";\n}
 
+    basename = File.basename(runtime_file).inspect
+
     last_definition = nil
+    vars = {}
     lines.each_with_index { |line, index|
       if line =~ %r{^\$\.define_method\(}
         last_definition = index
+      elsif line =~ %r{\s+var ([a-z_]+)}
+        vars[$1] = index
       elsif last_definition && line == "});\n"
-        lines[index] = "}, { file: #{File.basename(runtime_file).inspect}," <<
-                       " line: #{last_definition + 1} });\n"
+        lines[index] = "}, { file: #{basename}, line: #{last_definition + 1} });\n"
+      elsif line =~ %r{this.lambda\(([a-z_]+),}
+        var = $1
+        line.sub! %r{(this.lambda\(#{var}, -?\d+)\)}, "\\1, { file: #{basename}, line: #{vars[var] + 1} }, #{var.inspect})" if vars[var]
       end
     }
 

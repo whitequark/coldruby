@@ -410,6 +410,20 @@ var $ = {
     }
   },
 
+  attach_native_info: function(iseq, func, native_info) {
+    if(!native_info)
+      native_info = { file: '<unknown>', line: 0 };
+
+    iseq.info = {
+      type: 'method',
+
+      file: native_info.raw_file || ('<runtime:' + native_info.file + '>'),
+      path: '<runtime:' + native_info.file + '>',
+      line: native_info.line,
+      func: func,
+    };
+  },
+
   wrap_method: function(klass, name, want_args, method, native_info) {
     var wrapper;
 
@@ -432,17 +446,7 @@ var $ = {
         throw new Error("wrap_method: unknown want_args type " + want_args);
       }
 
-      if(!native_info)
-        native_info = { file: '<unknown>', line: 0 };
-
-      wrapper.info = {
-        type: 'method',
-
-        file: '<runtime:' + native_info.file + '>',
-        path: '<runtime:' + native_info.file + '>',
-        line: native_info.line,
-        func: this.id2text(name),
-      };
+      this.attach_native_info(wrapper, this.id2text(name), native_info);
     }
 
     if(!wrapper.context) {
@@ -972,13 +976,13 @@ var $ = {
   },
 
   /*
-   * call-seq: lambda(closure, arg_count) -> block
+   * call-seq: lambda(closure, arg_count]) -> block
    *
    * Convert a JavaScript closure to a block which may be passed to
    * funcall2(). +arg_count+ may be a positive number or -1; in latter case
    * count is not checked at all.
    */
-  lambda: function(closure, arg_count) {
+  lambda: function(closure, arg_count, native_info, closure_name) {
     var sf = this.context.sf;
 
     var iseq;
@@ -1000,12 +1004,9 @@ var $ = {
       cref: sf.cref,
     };
 
-    iseq.info = {
-      args: {
-        argc: arg_count,
-      }
-    };
+    this.attach_native_info(iseq, '<closure:' + closure_name + '>', native_info);
 
+    iseq.info.args = { argc: arg_count };
     iseq.stack_frame = sf;
     iseq.lambda = true;
 
@@ -1428,11 +1429,18 @@ var $ = {
     this.check_type(value, [this.c.Proc, this.c.Symbol]);
 
     if(value.klass == $c.Symbol) {
+      var sf = this.context.sf;
       var proc = function(self, x) {
         return this.funcall(x, value);
       };
 
-      return this.lambda(proc, 1);
+      if(sf.iseq.info) {
+        return this.lambda(proc, 1,
+                     { raw_file: sf.iseq.info.file, line: sf.line || sf.iseq.info.line },
+                     '<&:' + this.id2text(value.value) + '>');
+      } else {
+        return this.lambda(proc, 1);
+      }
     } else {
       return value.iseq;
     }
