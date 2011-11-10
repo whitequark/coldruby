@@ -379,16 +379,17 @@ $.define_method($c.Array, 'flatten', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var level = args[0];
 
-  if(level != null && level <= 0)
+  if(level !== undefined)
+    level = this.to_int(level);
+  if(level !== undefined && level <= 0)
     return self;
 
   var result = [];
 
   for(var i = 0; i < self.length; i++) {
-    if(self[i].klass == $c.Array) {
-      var arr = this.funcall(self[i], 'flatten', level != null ? level - 1 : null);
-      for(var j = 0; j < arr.length; j++)
-        result.push(arr[j]);
+    if(this.respond_to(self[i], 'flatten')) {
+      var arr = this.to_ary(this.funcall2(self[i], 'flatten', level !== undefined ? [level - 1] : []));
+      result.push.apply(result, arr);
     } else {
       result.push(self[i]);
     }
@@ -401,16 +402,17 @@ $.define_method($c.Array, 'flatten!', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var level = args[0];
 
-  if(level != null && level <= 0)
+  if(level !== undefined)
+    level = this.to_int(level);
+  if(level !== undefined && level <= 0)
     return Qnil;
 
   var result = [], changed = false;
 
   for(var i = 0; i < self.length; i++) {
-    if(self[i].klass == $c.Array) {
-      var arr = this.funcall(self[i], 'flatten', level != null ? level - 1 : null);
-      for(var j = 0; j < arr.length; j++)
-        result.push(arr[j]);
+    if(this.respond_to(self[i], 'flatten')) {
+      var arr = this.to_ary(this.funcall2(self[i], 'flatten', level !== undefined ? [level - 1] : []));
+      result.push.apply(result, arr);
       changed = true;
     } else {
       result.push(self[i]);
@@ -502,7 +504,9 @@ $.define_method($c.Array, 'map!', 0, function(self) {
 $.alias_method($c.Array, 'collect!', 'map!');
 
 $.define_method($c.Array, 'pop', 0, function(self) {
-  return self.pop();
+  var elem = self.pop();
+
+  return (elem !== undefined) ? elem : Qnil;
 });
 
 $.define_method($c.Array, 'push', 1, function(self, obj) {
@@ -605,7 +609,9 @@ $.define_method($c.Array, 'select!', 0, function(self) {
 });
 
 $.define_method($c.Array, 'shift', 0, function(self) {
-  return self.shift();
+  var elem = self.shift();
+
+  return elem !== undefined ? elem : Qnil;
 });
 
 $.define_method($c.Array, 'slice', -1, function(self, args) {
