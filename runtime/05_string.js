@@ -64,6 +64,18 @@ $.define_method($c.String, 'to_sym', 0, function(self) {
   return $.text2sym(self.value);
 });
 
+$.define_method($c.String, 'to_i', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var base = 10;
+  if(args[0]) {
+    base = this.to_int(args[0]);
+    if(base < 2 || base > 36)
+      this.raise($e.ArgumentError, "invalid radix " + base);
+  }
+
+  return parseInt(self.value, base);
+});
+
 $c.String.replacements = [];
 for(var i = 0; i < 0x20; i++) {
   var rightHex = i.toString(16), leftHex = ("0000").substr(0, rightHex);
