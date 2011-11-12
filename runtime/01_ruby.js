@@ -1165,6 +1165,11 @@ var $ = {
         throw new Error("argument " + i + " (" + args[i] + ") does not look like Ruby object");
     }
 
+    if(iseq.info.local_size !== undefined) {
+      for(var i = 2; i <= iseq.info.local_size; i++)
+        new_sf.locals[i] = Qnil;
+    }
+
     if(typeof iseq == 'object') {
       var argsinfo = iseq.info.args;
       var optarg_count = argsinfo.opt_jumptable ? argsinfo.opt_jumptable.length - 1 : 0;
