@@ -63,6 +63,7 @@ $.define_method($c.String, 'hash', 0, function(self) {
 $.define_method($c.String, 'to_sym', 0, function(self) {
   return $.text2sym(self.value);
 });
+$.alias_method($c.String, 'intern', 'to_sym');
 
 $.define_method($c.String, 'to_i', -1, function(self, args) {
   this.check_args(args, 0, 1);
