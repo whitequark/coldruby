@@ -17,9 +17,11 @@ module ColdRuby
     VM_SPECIAL_OBJECT_CBASE      = 2
     VM_SPECIAL_OBJECT_CONST_BASE = 3
 
-    VM_DEFINE_CLASS    = 0
-    VM_SINGLETON_CLASS = 1
-    VM_DEFINE_MODULE   = 2
+    VM_DEFINE_CLASS          = 0
+    VM_SINGLETON_CLASS       = 1
+    VM_DEFINE_MODULE         = 2
+    VM_DEFINE_CLASS_NOSCOPE  = 3
+    VM_DEFINE_MODULE_NOSCOPE = 5
 
     DEFINED_IVAR  = 3
     DEFINED_CONST = 11
@@ -393,10 +395,12 @@ module ColdRuby
         ]
 
         case @info[2]
-        when VM_DEFINE_MODULE, VM_DEFINE_CLASS
-          define_class = @info[2] == VM_DEFINE_MODULE ? 'false' : 'true'
+        when VM_DEFINE_MODULE, VM_DEFINE_MODULE_NOSCOPE
           code << %Q{#{PUSH} = this.execute_class(cbase, } +
-                  %Q{#{@info[0].to_s.inspect}, superklass, #{define_class}, iseq);}
+                  %Q{#{@info[0].to_s.inspect}, superklass, false, iseq);}
+        when VM_DEFINE_CLASS, VM_DEFINE_CLASS_NOSCOPE
+          code << %Q{#{PUSH} = this.execute_class(cbase, } +
+                  %Q{#{@info[0].to_s.inspect}, superklass, true, iseq);}
         when VM_SINGLETON_CLASS
           code << %Q{#{PUSH} = this.execute_class(cbase, null, null, null, iseq);}
         else
