@@ -88,6 +88,20 @@ $.define_method($c.String, '[]=', 2, function(self, index, sub) {
   return self;
 });
 
+$.define_method($c.String, 'capitalize', 0, function(self) {
+  var copy = this.string_new(self.value);
+  this.funcall(copy, 'capitalize!');
+  return copy;
+});
+
+$.define_method($c.String, 'capitalize!', 0, function(self) {
+  var value = self.value, old_value = value;
+  value = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
+  self.value = value;
+
+  return (value == old_value) ? Qnil : self;
+});
+
 $.define_method($c.String, 'concat', 1, function(self, other) {
   self.value += this.to_str(other).value;
 
