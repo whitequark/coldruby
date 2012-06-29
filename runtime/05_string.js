@@ -122,6 +122,58 @@ $.define_method($c.String, 'length', 0, function(self) {
 });
 $.alias_method($c.String, 'size', 'length');
 
+$.define_method($c.String, 'split', -1, function(self, args) {
+  this.check_args(args, 0, 2);
+  var pattern = args[0] || this.gvar_get("$;");
+  var limit = args[1] ? this.to_int(args[1]) : 0;
+  var do_trim = true, do_remove_null = true; // not actually null, but called so in docs
+
+  if(pattern == Qnil ||
+        (pattern.klass == $c.String && pattern.value == " ")) {
+    pattern = ' ';
+  } else {
+    pattern = this.to_str(pattern).value;
+    do_trim = false;
+  }
+
+  if(limit < 0) {
+    limit = 0;
+    do_remove_null = false;
+  }
+
+  var parts = [];
+
+  if(limit == 0) {
+    parts = self.value.split(pattern);
+  } else {
+    parts = self.value.split(pattern, limit - 1);
+    var last = self.value.substr(parts.join(pattern).length);
+  }
+
+  if(do_trim) {
+    parts = parts.map(function(part) {
+      return part.trim();
+    });
+  }
+
+  if(last) {
+    if(do_trim)
+      last = last.trimLeft();
+    parts.push(last);
+  }
+
+  if(do_remove_null) {
+    while(parts.lastIndexOf("") == parts.length - 1) {
+      parts.pop();
+    }
+  }
+
+  var ruby = this;
+  return parts.map(function(part) {
+    return ruby.string_new(part);
+  });
+});
+
 $.define_method($c.String, 'to_i', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var base = 10;
