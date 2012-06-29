@@ -15,32 +15,9 @@ $.string_new = function(value) {
   };
 };
 
-$.define_method($c.String, '==', 1, function(self, other) {
-  if(this.respond_to(other, 'to_str')) {
-    other = this.to_str(other);
-
-    return (self.value == other.value) ? Qtrue : Qfalse;
-  } else {
-    return Qfalse;
-  }
+$.define_singleton_method($c.String, 'new', 1, function(self, str) {
+  return this.string_new(str.value);
 });
-
-$.define_method($c.String, 'to_str', 0, function(self) {
-  return self;
-});
-$.alias_method($c.String, 'to_s', 'to_str');
-
-$.define_method($c.String, 'length', 0, function(self) {
-  return self.value.length;
-});
-$.alias_method($c.String, 'size', 'length');
-
-$.define_method($c.String, 'concat', 1, function(self, other) {
-  self.value += this.to_str(other).value;
-
-  return self;
-});
-$.alias_method($c.String, '<<', 'concat');
 
 $.define_method($c.String, '+', 1, function(self, other) {
   return this.string_new(self + this.to_str(other).value);
@@ -56,25 +33,70 @@ $.define_method($c.String, '*', 1, function(self, count) {
   return this.string_new(result);
 });
 
+$.define_method($c.String, '==', 1, function(self, other) {
+  if(this.respond_to(other, 'to_str')) {
+    other = this.to_str(other);
+
+    return (self.value == other.value) ? Qtrue : Qfalse;
+  } else {
+    return this.funcall(self, '<=>', other) == 0 ? Qtrue : Qfalse;
+  }
+});
+
+$.define_method($c.String, '<=>', 1, function(str, str2) {
+  if(str2.klass != $c.String) {
+    if(!this.respond_to(str2, 'to_str'))
+      return Qnil;
+
+    if(!this.respond_to(str2, '<=>'))
+      return Qnil;
+
+    var tmp = this.funcall(str2, '<=>', str);
+    if(typeof tmp != "number")
+      return Qnil;
+
+    return -tmp;
+  } else {
+    return str.value.localeCompare(str2.value);
+  }
+});
+
+$.define_method($c.String, '=~', 1, function(self, obj) {
+  return this.funcall(obj, '=~', self);
+});
+
+$.define_method($c.String, '[]', -1, function(self, args) {
+  var set = this.slicer(self.value.length, args, function(index) {
+    return self.value[index];
+  });
+
+  if(typeof set == "string") {
+    return this.string_new(set);
+  } else {
+    return this.string_new(set.join(""));
+  }
+});
+
+$.define_method($c.String, '[]=', 2, function(self, index, sub) {
+  index = this.to_int(index);
+  sub   = this.to_str(sub);
+
+  var value = self.value;
+  value = value.slice(0, index) + sub + value.slice(index, -1);
+  self.value = value;
+
+  return self;
+});
+
+$.define_method($c.String, 'concat', 1, function(self, other) {
+  self.value += this.to_str(other).value;
+
+  return self;
+});
+$.alias_method($c.String, '<<', 'concat');
+
 $.define_method($c.String, 'hash', 0, function(self) {
   return $.hash(self.klass.hash_seed, self.value);
-});
-
-$.define_method($c.String, 'to_sym', 0, function(self) {
-  return $.text2sym(self.value);
-});
-$.alias_method($c.String, 'intern', 'to_sym');
-
-$.define_method($c.String, 'to_i', -1, function(self, args) {
-  this.check_args(args, 0, 1);
-  var base = 10;
-  if(args[0]) {
-    base = this.to_int(args[0]);
-    if(base < 2 || base > 36)
-      this.raise($e.ArgumentError, "invalid radix " + base);
-  }
-
-  return parseInt(self.value, base);
 });
 
 $c.String.replacements = [];
@@ -94,3 +116,30 @@ $.define_method($c.String, 'inspect', 0, function(self) {
 
   return this.string_new('"' + value + '"');
 });
+
+$.define_method($c.String, 'length', 0, function(self) {
+  return self.value.length;
+});
+$.alias_method($c.String, 'size', 'length');
+
+$.define_method($c.String, 'to_i', -1, function(self, args) {
+  this.check_args(args, 0, 1);
+  var base = 10;
+  if(args[0]) {
+    base = this.to_int(args[0]);
+    if(base < 2 || base > 36)
+      this.raise($e.ArgumentError, "invalid radix " + base);
+  }
+
+  return parseInt(self.value, base);
+});
+
+$.define_method($c.String, 'to_str', 0, function(self) {
+  return self;
+});
+$.alias_method($c.String, 'to_s', 'to_str');
+
+$.define_method($c.String, 'to_sym', 0, function(self) {
+  return $.text2sym(self.value);
+});
+$.alias_method($c.String, 'intern', 'to_sym');
