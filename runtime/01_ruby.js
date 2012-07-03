@@ -1229,7 +1229,7 @@ var $ = {
       }
 
       if((args.length > 0 || old_args.length < argsinfo.argc)
-                     && !(iseq.info.type == 'block' && !iseq.lambda)) 
+                     && !(iseq.info.type == 'block' && !iseq.lambda))
         error_messenger.call(this);
 
       for(var i = 0; i < iseq.info.arg_size; i++) {
@@ -1282,7 +1282,8 @@ var $ = {
             if(iseq.lambda || iseq.info.type == 'method') {
               chunk = null;
               found = true;
-              new_sf.sp = 0;
+              new_sf.sp = 1;
+              new_sf.stack[0] = e.object;
             } else {
               throw e;
             }
@@ -1292,7 +1293,8 @@ var $ = {
             if(iseq.info.type == 'method') {
               chunk = null;
               found = true;
-              new_sf.sp = 0;
+              new_sf.sp = 1;
+              new_sf.stack[0] = e.object;
             } else {
               throw e;
             }
