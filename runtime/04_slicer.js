@@ -10,8 +10,11 @@ $.slicer = function(self_length, args, getter) {
       length = this.to_int(length);
     } else if(index.klass == $c.Range) {
       length = this.to_int(index.ivs['@end']);
-      if(length < 0)
-        length += self.length + 1;
+      if(length < 0) {
+        length += self_length + 1;
+      } else {
+        length += 1;
+      }
       length -= (this.test(index.ivs['@excl']) ? 1 : 0);
       index  = this.to_int(index.ivs['@begin']);
       length -= index;
