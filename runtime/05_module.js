@@ -156,12 +156,18 @@ $.define_method($c.Module, 'private_class_method', -1, function(self, args) {
 $.define_method($c.Module, 'extend_object', 1, function(self, object) {
   $.module_include(this.get_singleton(object), self);
 
+  this.funcall(self, 'extended', object);
+
   return Qnil;
 });
 
 /* === PRIVATE === */
 
 $.visibility($c.Module, 'private');
+
+$.define_method($c.Module, 'extended', 1, function(self, where) {
+  return Qnil;
+});
 
 $.define_method($c.Module, 'include', 1, function(self, module) {
   this.check_type(module, $c.Module);
