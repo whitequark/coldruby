@@ -65,7 +65,7 @@ $.define_singleton_method($c.Class, 'new', -1, function(self, args) {
     outer: sf.block.stack_frame
   };
 
-  this.execute(sf_opts, sf.block, []);
+  this.execute(sf_opts, sf.block, [ klass ]);
 
   return klass;
 });
