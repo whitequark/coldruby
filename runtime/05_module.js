@@ -265,6 +265,12 @@ $.define_method($c.Module, 'const_set', 2, function(self, name, value) {
   return this.const_set(self, name, value);
 });
 
+$.define_method($c.Module, 'remove_const', 1, function(self, name) {
+  name = this.to_sym(name);
+  this.const_remove(self, name);
+  return Qnil;
+});
+
 $.define_method($c.Module, 'constants', -1, function(self, args) {
   this.check_args(args, 0, 1);
   var inherit = this.test(args[1] || Qtrue);
@@ -290,9 +296,10 @@ $.define_method($c.Module, 'class_variable_set', 2, function(self, name, value) 
   return this.cvar_set(self, name, value);
 });
 
-$.define_method($c.Module, 'remove_class_variable', 2, function(self, name) {
+$.define_method($c.Module, 'remove_class_variable', 1, function(self, name) {
   name = this.to_sym(name);
-  return this.cvar_set(self, name, value);
+  this.cvar_remove(self, name);
+  return Qnil;
 });
 
 $.define_method($c.Module, 'class_variables', 0, function(self) {

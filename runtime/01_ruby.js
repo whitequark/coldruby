@@ -190,6 +190,21 @@ var $ = {
     return value;
   },
 
+  /*
+   * call-seq: const_remove(scope, name) -> value
+   *
+   * Remove the constant +name+ from scope +scope+.
+   */
+  const_remove: function(scope, name, inherit) {
+    name = this.any2id(name);
+    if(scope == this.builtin.Qnil)
+      scope = this.const_find_scope(name);
+
+    if(scope.constants[name] != undefined)
+      this.raise(this.e.NameError, "Constant " + this.id2text(name) + " not defined");
+
+    delete scope.constants[name];
+  },
   /* === CLASS VARIABLES === */
 
   /*
