@@ -47,6 +47,15 @@ $.define_method(cRegexp, "initialize", -1, function(self, args) {
   return self;
 });
 
+$.define_singleton_method(cRegexp, "escape", 1, function(self, str) {
+  str = this.to_str(str);
+
+  str = this.string_new(str.value.replace(/([\\^$*+?.()|{}\[\]])/g, '\\$1'));
+
+  return str;
+});
+$.alias_method($.get_singleton(cRegexp), "quote", "escape");
+
 $.define_singleton_method(cRegexp, "try_convert", 1, function(self, object) {
   if(this.respond_to(object, "to_regexp")) {
     return this.funcall(object, "to_regexp");
